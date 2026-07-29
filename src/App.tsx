@@ -17,6 +17,8 @@ import { events } from './data/events'
 import { initializeTracking, track } from './lib/tracking'
 import { submitLead, type LeadResult } from './lib/submitLead'
 
+const packHref = window.location.protocol === 'file:' ? './pack/index.html' : './pack/'
+
 const concerns = [
   {
     id: 'taches',
@@ -173,7 +175,7 @@ function Header({ lang, menuOpen, setMenuOpen }: { lang: Language; menuOpen: boo
         </a>
         <nav className="desktop-nav" aria-label={lang === 'fr' ? 'Navigation principale' : 'التنقل الرئيسي'}>
           {links.map(([href, label]) => <a key={href} href={href}>{label}</a>)}
-          <a className="pack-link" href="./pack/">{t('nav.pack')} <ArrowUpRight size={14} /></a>
+          <a className="pack-link" href={packHref}>{t('nav.pack')} <ArrowUpRight size={14} /></a>
         </nav>
         <div className="nav-actions">
           <button className="language-button" onClick={changeLanguage} aria-label="Changer de langue">
@@ -193,7 +195,7 @@ function Header({ lang, menuOpen, setMenuOpen }: { lang: Language; menuOpen: boo
             <nav>
               {links.map(([href, label], index) => <a key={href} href={href} onClick={() => setMenuOpen(false)}><span>0{index + 1}</span>{label}</a>)}
               <a href="#formulaire" onClick={() => setMenuOpen(false)}><span>06</span>{t('nav.ask')}</a>
-              <a href="./pack/"><span>07</span>{t('nav.pack')} <ArrowUpRight /></a>
+              <a href={packHref}><span>07</span>{t('nav.pack')} <ArrowUpRight /></a>
             </nav>
             <button className="mobile-language" onClick={changeLanguage}>{lang === 'fr' ? 'النسخة العربية' : 'Version française'}</button>
           </motion.div>
@@ -697,7 +699,7 @@ function Footer({ lang, openLegal }: { lang: Language; openLegal: (type: 'privac
       <div className="footer-main">
         <div className="footer-brand"><img src="./assets/brand/logo.webp" alt="ECOLYN" /><p>{lang === 'fr' ? 'Une plateforme marocaine pour mieux comprendre sa peau, simplifier sa routine et recevoir des conseils gratuits.' : 'منصة مغربية باش تفهمي بشرتك، تبسطي الروتين وتستافدي من نصائح مجانية.'}</p><span>{lang === 'fr' ? 'Conseillère experte en soins et routines du visage' : 'خبيرة في روتين والعناية ببشرة الوجه'}</span></div>
         <div className="footer-links"><h3>{lang === 'fr' ? 'Explorer' : 'تصفحي'}</h3><a href="#conseils">{lang === 'fr' ? 'Conseils' : 'النصائح'}</a><a href="#cas">{lang === 'fr' ? 'Cas pratiques' : 'حالات واقعية'}</a><a href="#experiences">{lang === 'fr' ? 'Expériences' : 'التجارب'}</a><a href="#lives">{lang === 'fr' ? 'Lives' : 'اللقاءات'}</a></div>
-        <div className="footer-links"><h3>{lang === 'fr' ? 'Agir' : 'تواصلي'}</h3><a href="#formulaire">{lang === 'fr' ? 'Demander des conseils' : 'طلب نصائح'}</a><a href="./pack/">{lang === 'fr' ? 'Routine ECOLYN' : 'روتين ECOLYN'} <ArrowUpRight /></a><a href="mailto:contact@ecolyn.com">contact@ecolyn.com</a></div>
+        <div className="footer-links"><h3>{lang === 'fr' ? 'Agir' : 'تواصلي'}</h3><a href="#formulaire">{lang === 'fr' ? 'Demander des conseils' : 'طلب نصائح'}</a><a href={packHref}>{lang === 'fr' ? 'Routine ECOLYN' : 'روتين ECOLYN'} <ArrowUpRight /></a><a href="mailto:contact@ecolyn.com">contact@ecolyn.com</a></div>
         <div className="footer-links"><h3>{lang === 'fr' ? 'Confiance' : 'الثقة'}</h3><button onClick={() => openLegal('privacy')}>{lang === 'fr' ? 'Politique de confidentialité' : 'سياسة الخصوصية'}</button><button onClick={() => openLegal('terms')}>{lang === 'fr' ? 'Conditions' : 'الشروط'}</button><button onClick={() => i18n.changeLanguage(lang === 'fr' ? 'ar' : 'fr')}>{lang === 'fr' ? 'العربية' : 'Français'} <Languages /></button></div>
       </div>
       <div className="footer-bottom"><span>© {new Date().getFullYear()} ECOLYN</span><p>{lang === 'fr' ? 'Les conseils sont informatifs et ne remplacent pas l’avis d’un dermatologue.' : 'النصائح توعوية وما كتعوضش رأي طبيب الجلد.'}</p><a href="#accueil"><ArrowDown /> {lang === 'fr' ? 'Retour en haut' : 'نرجعو للفوق'}</a></div>

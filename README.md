@@ -22,6 +22,10 @@ pnpm run build
 
 Le résultat est généré dans `dist/`.
 
+Le build est autonome : `dist/index.html` peut être ouvert directement par
+double-clic, sans serveur local. Le lien « Routine ECOLYN » utilise alors
+automatiquement `dist/pack/index.html`.
+
 ## Configuration
 
 La configuration publique modifiable sans recompiler se trouve dans `public/config.js`.
