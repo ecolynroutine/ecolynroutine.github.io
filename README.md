@@ -26,6 +26,31 @@ Le build est autonome : `dist/index.html` peut être ouvert directement par
 double-clic, sans serveur local. Le lien « Routine ECOLYN » utilise alors
 automatiquement `dist/pack/index.html`.
 
+## Backend Supabase et administration
+
+Le projet inclut maintenant :
+
+- l’enregistrement sécurisé des prospects et des commandes `/pack` ;
+- Supabase Auth sur `/admin/login` ;
+- l’espace protégé `/admin` ;
+- la recherche, les filtres, les statuts, les notes et l’export CSV ;
+- la configuration dynamique Meta Pixel, TikTok Pixel et GA4 ;
+- la page `/merci` ;
+- les politiques RLS complètes dans `supabase/schema.sql`.
+
+Le guide le plus court pour le propriétaire des comptes est :
+[`docs/INSTALLATION_SUPABASE_GITHUB.md`](docs/INSTALLATION_SUPABASE_GITHUB.md).
+
+Variables obligatoires :
+
+```dotenv
+VITE_SUPABASE_URL=https://votre-projet.supabase.co
+VITE_SUPABASE_ANON_KEY=votre-cle-publique-anon
+```
+
+La clé `service_role` ne doit jamais être ajoutée au frontend, à un fichier
+`.env` de production ou à GitHub.
+
 ## Configuration
 
 La configuration publique modifiable sans recompiler se trouve dans `public/config.js`.

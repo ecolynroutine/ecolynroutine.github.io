@@ -1,0 +1,132 @@
+.thank-you-page {
+  position: relative;
+  display: grid;
+  min-height: 100vh;
+  overflow: hidden;
+  place-items: center;
+  padding: 6.5rem 1.25rem 3rem;
+  color: #09374a;
+  background:
+    radial-gradient(circle at 15% 12%, rgba(212, 20, 90, .11), transparent 24rem),
+    radial-gradient(circle at 85% 82%, rgba(9, 55, 74, .10), transparent 28rem),
+    #fffaf7;
+}
+
+.thank-you-brand {
+  position: absolute;
+  z-index: 2;
+  top: 1.8rem;
+  left: 50%;
+  display: inline-flex;
+  align-items: baseline;
+  gap: .75rem;
+  transform: translateX(-50%);
+  letter-spacing: .12em;
+  white-space: nowrap;
+}
+
+.thank-you-brand span {
+  color: #d4145a;
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: 1.8rem;
+}
+
+.thank-you-brand small {
+  padding-left: .75rem;
+  border-left: 1px solid rgba(9, 55, 74, .18);
+  color: #58747e;
+  font-size: .55rem;
+  font-weight: 800;
+}
+
+[dir="rtl"] .thank-you-brand small {
+  padding-right: .75rem;
+  padding-left: 0;
+  border-right: 1px solid rgba(9, 55, 74, .18);
+  border-left: 0;
+}
+
+.thank-you-card {
+  position: relative;
+  z-index: 1;
+  width: min(100%, 48rem);
+  border: 1px solid rgba(9, 55, 74, .10);
+  border-radius: clamp(1.6rem, 4vw, 3rem);
+  padding: clamp(1.8rem, 6vw, 4.5rem);
+  text-align: center;
+  background: rgba(255, 255, 255, .88);
+  box-shadow: 0 3rem 8rem rgba(9, 55, 74, .13);
+  backdrop-filter: blur(1.5rem);
+}
+
+.thank-you-check {
+  display: grid;
+  width: 4.5rem;
+  height: 4.5rem;
+  margin: 0 auto 1.6rem;
+  border-radius: 50%;
+  place-items: center;
+  color: #fff;
+  background: linear-gradient(135deg, #d4145a, #eb6b9b);
+  box-shadow: 0 1rem 2.3rem rgba(212, 20, 90, .22);
+}
+
+.thank-you-check svg { width: 1.8rem; stroke-width: 2.4; }
+.thank-you-kicker { margin: 0 0 .75rem; color: #d4145a; font-size: .7rem; font-weight: 800; letter-spacing: .16em; text-transform: uppercase; }
+.thank-you-card h1 { margin: 0; font-family: "Cormorant Garamond", Georgia, serif; font-size: clamp(2.8rem, 7vw, 5rem); font-weight: 500; line-height: .95; }
+[dir="rtl"] .thank-you-card h1 { font-family: "Noto Naskh Arabic", serif; line-height: 1.25; }
+.thank-you-copy { width: min(100%, 36rem); margin: 1.2rem auto; color: #5e7780; font-size: .92rem; line-height: 1.75; }
+.thank-you-reference { display: inline-flex; border-radius: 999px; padding: .55rem .85rem; color: #d4145a; background: #fff0f5; font-size: .72rem; font-weight: 800; letter-spacing: .08em; }
+
+.thank-you-timeline {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: .75rem;
+  margin: 2rem 0;
+  text-align: left;
+}
+
+[dir="rtl"] .thank-you-timeline { text-align: right; }
+.thank-you-timeline > div { display: flex; gap: .65rem; border: 1px solid rgba(9, 55, 74, .08); border-radius: 1rem; padding: .9rem; background: #fff; }
+.thank-you-timeline > div > span { display: grid; width: 1.8rem; height: 1.8rem; flex: 0 0 auto; border-radius: 50%; place-items: center; color: #d4145a; background: #fff0f5; }
+.thank-you-timeline svg { width: .8rem; }
+.thank-you-timeline p { margin: 0; }
+.thank-you-timeline strong,
+.thank-you-timeline small { display: block; }
+.thank-you-timeline strong { font-size: .7rem; }
+.thank-you-timeline small { margin-top: .25rem; color: #7d9097; font-size: .6rem; line-height: 1.45; }
+
+.thank-you-actions { display: flex; justify-content: center; gap: .65rem; }
+.thank-you-primary,
+.thank-you-secondary {
+  display: inline-flex;
+  min-height: 3.2rem;
+  align-items: center;
+  justify-content: center;
+  gap: .55rem;
+  border-radius: 999px;
+  padding: .8rem 1.2rem;
+  font-size: .75rem;
+  font-weight: 750;
+}
+.thank-you-primary { color: #fff; background: linear-gradient(135deg, #d4145a, #e64982); box-shadow: 0 .8rem 1.8rem rgba(212, 20, 90, .19); }
+.thank-you-secondary { border: 1px solid rgba(9, 55, 74, .12); background: #fff; }
+.thank-you-primary svg,
+.thank-you-secondary svg { width: 1rem; }
+.thank-you-return { display: inline-flex; align-items: center; gap: .4rem; margin-top: 1.4rem; color: #5f7881; font-size: .7rem; font-weight: 650; }
+.thank-you-return svg { width: .9rem; }
+.thank-you-privacy { display: flex; justify-content: center; align-items: center; gap: .4rem; margin: 1.6rem 0 0; color: #82949a; font-size: .62rem; }
+.thank-you-privacy svg { width: .85rem; }
+.thank-you-orbit { position: absolute; border: 1px solid rgba(212, 20, 90, .12); border-radius: 50%; pointer-events: none; }
+.thank-you-orbit--one { width: 35rem; height: 35rem; top: -15rem; left: -10rem; }
+.thank-you-orbit--two { width: 45rem; height: 45rem; right: -18rem; bottom: -23rem; }
+
+@media (max-width: 680px) {
+  .thank-you-page { padding: 5.5rem .7rem 1.5rem; }
+  .thank-you-brand { top: 1.2rem; }
+  .thank-you-card { padding: 1.6rem 1rem; }
+  .thank-you-timeline { grid-template-columns: 1fr; }
+  .thank-you-actions { flex-direction: column; }
+  .thank-you-primary,
+  .thank-you-secondary { width: 100%; }
+}

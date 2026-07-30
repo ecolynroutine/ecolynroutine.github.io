@@ -1221,8 +1221,8 @@ html[lang="fr"] .testi-quote.fr {
 <div class="policy-section">
 <p class="policy-section-title fr">6. Cookies & Tracking</p>
 <p class="policy-section-title ar">6. ملفات تعريف الارتباط والتتبع</p>
-<p class="fr" style="opacity:0.72;font-size:0.87rem">Cette version ne contient aucun pixel publicitaire, aucun outil d'analyse et aucun script de tracking externe. Vous pourrez ajouter vos propres scripts plus tard.</p>
-<p class="ar" style="opacity:0.72;font-size:0.92rem">لا تحتوي هذه النسخة على أي بيكسل إعلاني أو أداة تحليل أو سكريبت تتبع خارجي. يمكنك إضافة سكريبتاتك الخاصة لاحقاً.</p>
+<p class="fr" style="opacity:0.72;font-size:0.87rem">Les outils de mesure activés par ECOLYN peuvent collecter des événements techniques et publicitaires. Ils sont gérés individuellement depuis l’espace administrateur.</p>
+<p class="ar" style="opacity:0.72;font-size:0.92rem">يمكن لإيكولين تفعيل أدوات القياس والإعلانات بشكل منفصل، ويتم التحكم فيها من فضاء الإدارة.</p>
 </div>
 
 <div class="policy-section">
@@ -1437,7 +1437,6 @@ html[lang="fr"] .testi-quote.fr {
     if (window.gtag) window.gtag('event','pack_cta_click',{cta_location:locationName});
     if (window.fbq) window.fbq('track','InitiateCheckout',{content_name:'Routine ECOLYN',cta_location:locationName});
   };
-  window.dataLayer.push({event:'pack_view', page_path:location.pathname});
   window.lbOpen = function(src, alt) {
     var lb = document.getElementById('routineLightbox');
     if (!lb) return;
@@ -1826,11 +1825,17 @@ html[lang="fr"] .testi-quote.fr {
         panel.classList.add('is-success');
         submitBtn.classList.remove('is-loading');
         submitBtn.disabled = false;
-        window.dataLayer.push({event:'generate_lead', lead_type:'pack_order', submission_mode:mode, reference:orderNumber});
-        if (window.gtag) window.gtag('event','generate_lead',{lead_type:'pack_order',submission_mode:mode});
-        if (window.fbq) window.fbq('track','Lead',{content_name:'Routine ECOLYN'});
+        if (window.ecolynTrack) {
+          window.ecolynTrack('form_submit',{lead_type:'pack_order',submission_mode:mode,reference:orderNumber});
+        } else {
+          window.dataLayer.push({event:'form_submit', lead_type:'pack_order', submission_mode:mode, reference:orderNumber});
+        }
+        if (mode === 'supabase' && window.ecolynThankYouUrl) {
+          setTimeout(function(){ window.location.assign(window.ecolynThankYouUrl(orderNumber)); }, 450);
+        }
       };
-      if (endpoint) {
+      var submitFallback = function() {
+        if (endpoint) {
         fetch(endpoint, {
           method: 'POST',
           headers: {'Content-Type':'application/json','Accept':'application/json'},
@@ -1843,11 +1848,17 @@ html[lang="fr"] .testi-quote.fr {
           window.open('https://wa.me/'+whatsappNumber+'?text='+text,'_blank','noopener');
           finishOrder('whatsapp_fallback');
         });
-      } else {
-        var text = 'Bonjour ECOLYN, je souhaite commander la routine.%0ACommande: '+encodeURIComponent(orderNumber)+'%0ANom: '+encodeURIComponent(nom)+'%0AVille: '+encodeURIComponent(ville)+'%0ATéléphone: '+encodeURIComponent(tel);
-        window.open('https://wa.me/'+whatsappNumber+'?text='+text,'_blank','noopener');
-        finishOrder('whatsapp');
-      }
+        } else {
+          var text = 'Bonjour ECOLYN, je souhaite commander la routine.%0ACommande: '+encodeURIComponent(orderNumber)+'%0ANom: '+encodeURIComponent(nom)+'%0AVille: '+encodeURIComponent(ville)+'%0ATéléphone: '+encodeURIComponent(tel);
+          window.open('https://wa.me/'+whatsappNumber+'?text='+text,'_blank','noopener');
+          finishOrder('whatsapp');
+        }
+      };
+      if (window.ecolynSubmitPackProspect) {
+        window.ecolynSubmitPackProspect(payload)
+          .then(function(){ finishOrder('supabase'); })
+          .catch(submitFallback);
+      } else submitFallback();
     });
   })();
   setTimeout(function () {
@@ -1861,6 +1872,8 @@ html[lang="fr"] .testi-quote.fr {
 <button class="routine-lightbox-close" type="button" aria-label="Fermer" onclick="window.lbClose()">✕</button>
 <img class="routine-lightbox-img" src="" alt="" width="1254" height="1254" decoding="async">
 </div>
+<script src="../config.js"></script>
+<script src="./ecolyn-runtime.js"></script>
 </body>
 </html>
 

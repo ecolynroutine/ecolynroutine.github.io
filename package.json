@@ -5,11 +5,12 @@
   "type": "module",
   "scripts": {
     "dev": "vite --configLoader runner --config vite.config.ts",
-    "build": "tsc -p tsconfig.app.json && vite build --configLoader runner --config vite.config.ts && node scripts/inline-build.mjs",
+    "build": "tsc -p tsconfig.app.json && vite build --configLoader runner --config vite.config.ts && node scripts/build-runtime-config.mjs && node scripts/inline-build.mjs",
     "preview": "vite preview",
     "check": "tsc -p tsconfig.app.json --pretty false"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.111.0",
     "framer-motion": "^12.23.12",
     "i18next": "^25.3.2",
     "lucide-react": "^0.468.0",

@@ -16,8 +16,9 @@ import { faqs } from './data/faqs'
 import { events } from './data/events'
 import { initializeTracking, track } from './lib/tracking'
 import { submitLead, type LeadResult } from './lib/submitLead'
+import { navigate, packUrl } from './lib/navigation'
 
-const packHref = window.location.protocol === 'file:' ? './pack/index.html' : './pack/'
+const packHref = packUrl()
 
 const concerns = [
   {
@@ -560,10 +561,25 @@ function LeadForm({ lang, concern, setConcern }: { lang: Language; concern: stri
     setError('')
     try {
       const nextResult = await submitLead(formRef.current)
-      setResult(nextResult)
-      track('generate_lead', { skin_concern: concern, submission_mode: nextResult.mode })
-    } catch {
-      setError(lang === 'fr' ? 'L’envoi sécurisé n’a pas abouti. Réessayez ou utilisez WhatsApp.' : 'الإرسال الآمن ما كملش. عاودي أو استعملي واتساب.')
+      track('form_submit', { skin_concern: concern, submission_mode: nextResult.mode })
+      if (nextResult.mode === 'supabase' || nextResult.mode === 'endpoint') {
+        sessionStorage.setItem('ecolyn-last-lead', JSON.stringify({
+          reference: nextResult.reference,
+          whatsappUrl: nextResult.whatsappUrl,
+        }))
+        navigate('thank-you', { ref: nextResult.reference })
+      } else {
+        setResult(nextResult)
+      }
+    } catch (nextError) {
+      const code = nextError instanceof Error ? nextError.message : ''
+      setError(
+        code === 'PHOTO_TOO_LARGE'
+          ? (lang === 'fr' ? 'La photo est trop lourde après compression. Choisissez une image plus légère.' : 'الصورة كبيرة بزاف. اختاري صورة أخف.')
+          : code === 'PHOTO_CONSENT_REQUIRED'
+            ? (lang === 'fr' ? 'Cochez le consentement photo pour joindre cette image.' : 'وافقي على استعمال الصورة باش تزيديها.')
+            : (lang === 'fr' ? 'L’envoi sécurisé n’a pas abouti. Réessayez ou utilisez WhatsApp.' : 'الإرسال الآمن ما كملش. عاودي أو استعملي واتساب.'),
+      )
     } finally {
       setSending(false)
     }
@@ -771,7 +787,7 @@ export default function App() {
   const progress = useSpring(scrollYProgress, { stiffness: 120, damping: 28, restDelta: .001 })
   const reduced = useReducedMotion()
 
-  useEffect(() => initializeTracking(), [])
+  useEffect(() => { void initializeTracking('advice_home') }, [])
 
   const openArticle = (nextArticle: Article) => {
     setArticle(nextArticle)

@@ -1,12 +1,11 @@
+import { createReference, insertProspect } from './prospects'
+import { isSupabaseConfigured } from './supabase'
+
 export interface LeadResult {
   ok: boolean
   reference: string
-  mode: 'endpoint' | 'whatsapp'
+  mode: 'supabase' | 'endpoint' | 'whatsapp'
   whatsappUrl: string
-}
-
-function createReference() {
-  return `ECO-${Date.now().toString(36).slice(-6).toUpperCase()}`
 }
 
 function buildWhatsAppUrl(payload: Record<string, unknown>, reference: string) {
@@ -32,6 +31,11 @@ export async function submitLead(form: HTMLFormElement): Promise<LeadResult> {
   const endpoint = window.ECOLYN_CONFIG?.leadEndpoint?.trim()
   const whatsappUrl = buildWhatsAppUrl(payload, reference)
 
+  if (isSupabaseConfigured()) {
+    await insertProspect(form, reference)
+    return { ok: true, reference, mode: 'supabase', whatsappUrl }
+  }
+
   data.set('reference', reference)
   data.set('source', 'ecolyn-advice-platform')
   data.set('submittedAt', new Date().toISOString())
@@ -46,15 +50,6 @@ export async function submitLead(form: HTMLFormElement): Promise<LeadResult> {
     if (!response.ok) throw new Error(`Lead endpoint returned ${response.status}`)
     return { ok: true, reference, mode: 'endpoint', whatsappUrl }
   }
-
-  const localQueue = JSON.parse(localStorage.getItem('ecolyn-pending-leads') || '[]')
-  localQueue.push({
-    ...payload,
-    reference,
-    submittedAt: new Date().toISOString(),
-    photo: data.get('photo') instanceof File && (data.get('photo') as File).size > 0 ? 'not-stored-locally' : ''
-  })
-  localStorage.setItem('ecolyn-pending-leads', JSON.stringify(localQueue.slice(-10)))
 
   return { ok: true, reference, mode: 'whatsapp', whatsappUrl }
 }

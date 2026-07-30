@@ -5,6 +5,7 @@ import { fileURLToPath } from 'node:url'
 const projectDir = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const distDir = resolve(projectDir, 'dist')
 const indexPath = resolve(distDir, 'index.html')
+const notFoundPath = resolve(distDir, '404.html')
 
 let html = await readFile(indexPath, 'utf8')
 
@@ -28,7 +29,19 @@ if (!stylesheetMatch) {
 }
 
 let css = await readDistAsset(stylesheetMatch[1])
-css = css.replace(/url\((['"]?)\.\//g, (_match, quote) => `url(${quote}./assets/`)
+const bundledAssetPattern = /url\((['"]?)\.\/([^)'"]+)\1\)/g
+const bundledAssets = [...css.matchAll(bundledAssetPattern)]
+for (const match of bundledAssets) {
+  const assetName = match[2]
+  const extension = assetName.split('.').pop()?.toLowerCase()
+  const mime = extension === 'woff2'
+    ? 'font/woff2'
+    : extension === 'woff'
+      ? 'font/woff'
+      : 'application/octet-stream'
+  const data = await readFile(resolve(distDir, 'assets', assetName), 'base64')
+  css = css.replaceAll(match[0], `url("data:${mime};base64,${data}")`)
+}
 html = html.replace(stylesheetPattern, () => `<style>\n${css}\n</style>`)
 
 const modulePattern = /<script\s+type=["']module["'][^>]*\ssrc=["']([^"']+)["'][^>]*><\/script>/
@@ -42,3 +55,4 @@ html = html.replace(modulePattern, '')
 html = html.replace('</body>', () => `<script>\n${javascript}\n</script>\n  </body>`)
 
 await writeFile(indexPath, html, 'utf8')
+await writeFile(notFoundPath, html, 'utf8')
