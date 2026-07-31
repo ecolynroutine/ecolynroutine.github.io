@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import {
-  ArrowLeft, Check, ChevronRight, Download, FileText, LayoutDashboard,
+  ArrowLeft, CalendarDays, Check, ChevronRight, Download, FileText, LayoutDashboard,
   LogOut, RefreshCw, Search, Settings2, SlidersHorizontal, UserRound, X,
 } from 'lucide-react'
 import type { User } from '@supabase/supabase-js'
@@ -9,7 +9,7 @@ import { navigate, routeUrl } from '../lib/navigation'
 import { getSupabase } from '../lib/supabase'
 import { initializeTracking } from '../lib/tracking'
 
-type Tab = 'prospects' | 'trackings'
+type Tab = 'prospects' | 'live' | 'trackings'
 type ProspectStatus = 'nouveau' | 'a_contacter' | 'contacte' | 'qualifie' | 'converti' | 'archive'
 
 interface Prospect {
@@ -48,6 +48,19 @@ interface TrackingForm {
   tiktok_enabled: boolean
   ga4_measurement_id: string
   ga4_enabled: boolean
+}
+
+interface LiveForm {
+  is_published: boolean
+  title_fr: string
+  title_ar: string
+  description_fr: string
+  description_ar: string
+  starts_at: string
+  ends_at: string
+  timezone: string
+  location: string
+  meeting_url: string
 }
 
 const statusLabels: Record<ProspectStatus, string> = {
@@ -372,11 +385,153 @@ function TrackingPanel() {
       )}
       <div className="tracking-events">
         <p className="admin-kicker">Événements couverts</p>
-        <div>{['PageView', 'ViewContent', 'Lead', 'Contact', 'InitiateCheckout', 'form_start', 'form_submit', 'whatsapp_click', 'pack_view', 'pack_cta_click'].map(event => <span key={event}>{event}</span>)}</div>
+        <div>{['PageView', 'ViewContent', 'Lead', 'Contact', 'InitiateCheckout', 'form_start', 'form_submit', 'whatsapp_click', 'pack_view', 'pack_cta_click', 'live_calendar_click'].map(event => <span key={event}>{event}</span>)}</div>
       </div>
       {error && <p className="admin-alert" role="alert">{error}</p>}
       {message && <p className="admin-success" role="status"><Check /> {message}</p>}
       <button className="admin-primary-button tracking-save" onClick={() => void save()} disabled={saving || loading}><Settings2 /> {saving ? 'Enregistrement…' : 'Enregistrer les trackings'}</button>
+    </section>
+  )
+}
+
+function dateTimeLocal(value: string | null | undefined) {
+  if (!value) return ''
+  const date = new Date(value)
+  const local = new Date(date.getTime() - date.getTimezoneOffset() * 60_000)
+  return local.toISOString().slice(0, 16)
+}
+
+function LivePanel() {
+  const [form, setForm] = useState<LiveForm>({
+    is_published: false,
+    title_fr: 'Live ECOLYN',
+    title_ar: 'لايف إيكولين',
+    description_fr: '',
+    description_ar: '',
+    starts_at: '',
+    ends_at: '',
+    timezone: 'Africa/Casablanca',
+    location: 'En ligne',
+    meeting_url: '',
+  })
+  const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
+  const [message, setMessage] = useState('')
+  const [error, setError] = useState('')
+
+  useEffect(() => {
+    const load = async () => {
+      const supabase = getSupabase()
+      if (!supabase) return
+      const { data, error: loadError } = await supabase.from('live_settings').select('*').eq('id', 1).single()
+      if (loadError) {
+        setError('Impossible de charger le live. Exécutez d’abord la dernière version du SQL Supabase.')
+      } else if (data) {
+        setForm({
+          is_published: Boolean(data.is_published),
+          title_fr: data.title_fr || '',
+          title_ar: data.title_ar || '',
+          description_fr: data.description_fr || '',
+          description_ar: data.description_ar || '',
+          starts_at: dateTimeLocal(data.starts_at),
+          ends_at: dateTimeLocal(data.ends_at),
+          timezone: data.timezone || 'Africa/Casablanca',
+          location: data.location || '',
+          meeting_url: data.meeting_url || '',
+        })
+      }
+      setLoading(false)
+    }
+    void load()
+  }, [])
+
+  const update = <K extends keyof LiveForm>(key: K, value: LiveForm[K]) => {
+    setForm(current => ({ ...current, [key]: value }))
+  }
+
+  const save = async () => {
+    setError('')
+    setMessage('')
+    if (!form.title_fr.trim() || !form.title_ar.trim()) {
+      setError('Ajoutez le titre du live en français et en arabe.')
+      return
+    }
+    if (form.is_published && !form.starts_at) {
+      setError('Choisissez la date et l’heure avant de publier le live.')
+      return
+    }
+    if (form.ends_at && new Date(form.ends_at) <= new Date(form.starts_at)) {
+      setError('L’heure de fin doit être postérieure à l’heure de début.')
+      return
+    }
+    if (form.meeting_url && !/^https:\/\//i.test(form.meeting_url.trim())) {
+      setError('Le lien du live doit commencer par https://.')
+      return
+    }
+
+    const supabase = getSupabase()
+    if (!supabase) return
+    setSaving(true)
+    const { error: saveError } = await supabase
+      .from('live_settings')
+      .update({
+        is_published: form.is_published,
+        title_fr: form.title_fr.trim(),
+        title_ar: form.title_ar.trim(),
+        description_fr: form.description_fr.trim() || null,
+        description_ar: form.description_ar.trim() || null,
+        starts_at: form.starts_at ? new Date(form.starts_at).toISOString() : null,
+        ends_at: form.ends_at ? new Date(form.ends_at).toISOString() : null,
+        timezone: form.timezone,
+        location: form.location.trim() || null,
+        meeting_url: form.meeting_url.trim() || null,
+      })
+      .eq('id', 1)
+
+    if (saveError) setError('Le live n’a pas été enregistré.')
+    else setMessage(form.is_published ? 'Live publié. Le bouton calendrier est actif sur le site.' : 'Brouillon enregistré. Le live reste masqué sur le site.')
+    setSaving(false)
+  }
+
+  if (loading) return <section className="admin-panel"><div className="admin-loading"><RefreshCw /> Chargement sécurisé…</div></section>
+
+  return (
+    <section className="admin-panel">
+      <div className="admin-panel-heading">
+        <div><p className="admin-kicker">Agenda public</p><h1>Prochain live</h1><span>Programmez la date affichée et le rappel calendrier des visiteurs.</span></div>
+      </div>
+
+      <div className="live-admin-layout">
+        <div className="live-admin-card">
+          <div className="live-admin-publish">
+            <div><strong>Afficher ce live sur le site</strong><span>Vous pouvez enregistrer un brouillon avant de le publier.</span></div>
+            <label className="admin-switch"><input type="checkbox" checked={form.is_published} onChange={event => update('is_published', event.target.checked)} /><i /><span>{form.is_published ? 'Publié' : 'Brouillon'}</span></label>
+          </div>
+
+          <div className="live-admin-grid">
+            <label><span>Titre français</span><input value={form.title_fr} maxLength={180} onChange={event => update('title_fr', event.target.value)} /></label>
+            <label dir="rtl"><span>العنوان بالعربية</span><input value={form.title_ar} maxLength={180} onChange={event => update('title_ar', event.target.value)} /></label>
+            <label><span>Description française</span><textarea value={form.description_fr} maxLength={1200} rows={4} onChange={event => update('description_fr', event.target.value)} /></label>
+            <label dir="rtl"><span>الوصف بالعربية</span><textarea value={form.description_ar} maxLength={1200} rows={4} onChange={event => update('description_ar', event.target.value)} /></label>
+            <label><span>Date et heure de début</span><input type="datetime-local" value={form.starts_at} onChange={event => update('starts_at', event.target.value)} /></label>
+            <label><span>Date et heure de fin</span><input type="datetime-local" value={form.ends_at} onChange={event => update('ends_at', event.target.value)} /></label>
+            <label><span>Fuseau horaire affiché</span><select value={form.timezone} onChange={event => update('timezone', event.target.value)}><option value="Africa/Casablanca">Maroc — Africa/Casablanca</option><option value="UTC">UTC</option><option value="Europe/Paris">Europe/Paris</option></select></label>
+            <label><span>Lieu ou plateforme</span><input value={form.location} maxLength={180} placeholder="Instagram Live, Google Meet…" onChange={event => update('location', event.target.value)} /></label>
+            <label className="live-admin-wide"><span>Lien du live (facultatif)</span><input type="url" value={form.meeting_url} maxLength={2000} placeholder="https://…" onChange={event => update('meeting_url', event.target.value)} /></label>
+          </div>
+        </div>
+
+        <aside className="live-admin-preview">
+          <span><CalendarDays /> Aperçu</span>
+          <strong>{form.title_fr || 'Titre du live'}</strong>
+          <p>{form.starts_at ? new Intl.DateTimeFormat('fr-MA', { dateStyle: 'full', timeStyle: 'short' }).format(new Date(form.starts_at)) : 'Date à définir'}</p>
+          <small>Le fichier calendrier ajoutera automatiquement un rappel 30 minutes avant.</small>
+        </aside>
+      </div>
+
+      {error && <p className="admin-alert" role="alert">{error}</p>}
+      {message && <p className="admin-success" role="status"><Check /> {message}</p>}
+      <button className="admin-primary-button live-admin-save" onClick={() => void save()} disabled={saving}><CalendarDays /> {saving ? 'Enregistrement…' : 'Enregistrer le live'}</button>
     </section>
   )
 }
@@ -420,13 +575,14 @@ export default function AdminDashboard() {
         <a className="admin-sidebar-brand" href={routeUrl('home')}><span>ECOLYN</span><small>ADMIN</small></a>
         <nav>
           <button className={tab === 'prospects' ? 'is-active' : ''} onClick={() => setTab('prospects')}><LayoutDashboard /> Prospects</button>
+          <button className={tab === 'live' ? 'is-active' : ''} onClick={() => setTab('live')}><CalendarDays /> Live</button>
           <button className={tab === 'trackings' ? 'is-active' : ''} onClick={() => setTab('trackings')}><Settings2 /> Trackings</button>
         </nav>
         <div className="admin-sidebar-account"><UserRound /><div><strong>{user.email}</strong><span>Administrateur</span></div></div>
         <button className="admin-logout" onClick={() => void signOutAdmin().then(() => navigate('admin-login', {}, true))}><LogOut /> Se déconnecter</button>
         <a className="admin-site-link" href={routeUrl('home')}><ArrowLeft /> Voir le site</a>
       </aside>
-      <div className="admin-content">{tab === 'prospects' ? <ProspectsPanel /> : <TrackingPanel />}</div>
+      <div className="admin-content">{tab === 'prospects' ? <ProspectsPanel /> : tab === 'live' ? <LivePanel /> : <TrackingPanel />}</div>
     </main>
   )
 }

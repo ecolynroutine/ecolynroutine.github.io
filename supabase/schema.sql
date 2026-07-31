@@ -80,7 +80,42 @@ create table if not exists public.tracking_settings (
   updated_by uuid references auth.users(id) on delete set null
 );
 
+create table if not exists public.live_settings (
+  id smallint primary key default 1 check (id = 1),
+  is_published boolean not null default false,
+  title_fr text not null default 'Live ECOLYN'
+    check (char_length(title_fr) between 1 and 180),
+  title_ar text not null default 'لايف إيكولين'
+    check (char_length(title_ar) between 1 and 180),
+  description_fr text
+    check (description_fr is null or char_length(description_fr) <= 1200),
+  description_ar text
+    check (description_ar is null or char_length(description_ar) <= 1200),
+  starts_at timestamptz,
+  ends_at timestamptz,
+  timezone text not null default 'Africa/Casablanca'
+    check (char_length(timezone) between 1 and 64),
+  location text
+    check (location is null or char_length(location) <= 180),
+  meeting_url text
+    check (
+      meeting_url is null
+      or (
+        char_length(meeting_url) <= 2000
+        and meeting_url ~ '^https://'
+      )
+    ),
+  updated_at timestamptz not null default now(),
+  updated_by uuid references auth.users(id) on delete set null,
+  check (not is_published or starts_at is not null),
+  check (ends_at is null or starts_at is null or ends_at > starts_at)
+);
+
 insert into public.tracking_settings (id)
+values (1)
+on conflict (id) do nothing;
+
+insert into public.live_settings (id)
 values (1)
 on conflict (id) do nothing;
 
@@ -201,6 +236,19 @@ begin
 end;
 $$;
 
+create or replace function private.touch_live_settings()
+returns trigger
+language plpgsql
+security definer
+set search_path = ''
+as $$
+begin
+  new.updated_at := now();
+  new.updated_by := (select auth.uid());
+  return new;
+end;
+$$;
+
 drop trigger if exists prospects_touch_updated_at on public.prospects;
 create trigger prospects_touch_updated_at
 before update on public.prospects
@@ -216,12 +264,19 @@ create trigger tracking_settings_touch_updated_at
 before update on public.tracking_settings
 for each row execute function private.touch_tracking_settings();
 
+drop trigger if exists live_settings_touch_updated_at on public.live_settings;
+create trigger live_settings_touch_updated_at
+before update on public.live_settings
+for each row execute function private.touch_live_settings();
+
 alter table public.admin_users enable row level security;
 alter table public.admin_users force row level security;
 alter table public.prospects enable row level security;
 alter table public.prospects force row level security;
 alter table public.tracking_settings enable row level security;
 alter table public.tracking_settings force row level security;
+alter table public.live_settings enable row level security;
+alter table public.live_settings force row level security;
 
 drop policy if exists "admin can read own role" on public.admin_users;
 create policy "admin can read own role"
@@ -278,9 +333,32 @@ to authenticated
 using ((select private.is_admin()))
 with check ((select private.is_admin()));
 
+drop policy if exists "public can read published live" on public.live_settings;
+create policy "public can read published live"
+on public.live_settings
+for select
+to anon, authenticated
+using (id = 1 and is_published = true);
+
+drop policy if exists "administrators can read live configuration" on public.live_settings;
+create policy "administrators can read live configuration"
+on public.live_settings
+for select
+to authenticated
+using ((select private.is_admin()));
+
+drop policy if exists "administrators can update live configuration" on public.live_settings;
+create policy "administrators can update live configuration"
+on public.live_settings
+for update
+to authenticated
+using ((select private.is_admin()))
+with check ((select private.is_admin()));
+
 revoke all on table public.admin_users from anon, authenticated;
 revoke all on table public.prospects from anon, authenticated;
 revoke all on table public.tracking_settings from anon, authenticated;
+revoke all on table public.live_settings from anon, authenticated;
 
 grant select on table public.admin_users to authenticated;
 grant insert on table public.prospects to anon;
@@ -295,6 +373,19 @@ grant update (
   ga4_measurement_id,
   ga4_enabled
 ) on table public.tracking_settings to authenticated;
+grant select on table public.live_settings to anon, authenticated;
+grant update (
+  is_published,
+  title_fr,
+  title_ar,
+  description_fr,
+  description_ar,
+  starts_at,
+  ends_at,
+  timezone,
+  location,
+  meeting_url
+) on table public.live_settings to authenticated;
 
 comment on table public.prospects is
   'Demandes ECOLYN. Les visiteurs peuvent uniquement insérer; la lecture et la gestion sont réservées aux administrateurs.';
@@ -302,6 +393,8 @@ comment on table public.tracking_settings is
   'Configuration publique des identifiants de tracking. Seuls les administrateurs peuvent la modifier.';
 comment on table public.admin_users is
   'Liste d’autorisation administrateur. Modification uniquement via SQL sécurisé/service_role.';
+comment on table public.live_settings is
+  'Prochain live ECOLYN. Le public voit uniquement la ligne lorsque sa publication est activée.';
 
 notify pgrst, 'reload schema';
 

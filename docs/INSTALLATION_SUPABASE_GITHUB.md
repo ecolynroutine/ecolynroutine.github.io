@@ -24,7 +24,7 @@ GitHub.
 
 Ce script réalise en une seule opération :
 
-- les tables `prospects`, `tracking_settings` et `admin_users` ;
+- les tables `prospects`, `tracking_settings`, `live_settings` et `admin_users` ;
 - les index et validations ;
 - la liste des statuts ;
 - toutes les politiques RLS ;
@@ -154,7 +154,9 @@ Après configuration :
 4. vérifier le prospect et modifier son statut ;
 5. exporter le CSV ;
 6. enregistrer un pixel test désactivé, puis activé ;
-7. confirmer qu’un visiteur non connecté ne peut lire aucune ligne de
+7. programmer un live test et ouvrir le fichier calendrier généré par
+   « Me prévenir » ;
+8. confirmer qu’un visiteur non connecté ne peut lire aucune ligne de
    `prospects`.
 
 La documentation officielle de référence est disponible dans les guides

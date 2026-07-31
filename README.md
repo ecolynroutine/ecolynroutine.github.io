@@ -34,9 +34,15 @@ Le projet inclut maintenant :
 - Supabase Auth sur `/admin/login` ;
 - l’espace protégé `/admin` ;
 - la recherche, les filtres, les statuts, les notes et l’export CSV ;
+- la programmation bilingue du prochain live et son rappel calendrier ;
 - la configuration dynamique Meta Pixel, TikTok Pixel et GA4 ;
 - la page `/merci` ;
 - les politiques RLS complètes dans `supabase/schema.sql`.
+
+L’onglet **Live** de l’administration permet de régler la date, les textes,
+la plateforme et le lien du prochain rendez-vous. Une fois publié, le bouton
+« Me prévenir » ajoute un événement au calendrier avec un rappel 30 minutes
+avant ; Google Agenda est également proposé.
 
 Le guide le plus court pour le propriétaire des comptes est :
 [`docs/INSTALLATION_SUPABASE_GITHUB.md`](docs/INSTALLATION_SUPABASE_GITHUB.md).

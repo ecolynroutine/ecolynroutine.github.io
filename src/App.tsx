@@ -13,10 +13,15 @@ import { skinCases } from './data/cases'
 import { testimonials } from './data/testimonials'
 import { videoSlots } from './data/videos'
 import { faqs } from './data/faqs'
-import { events } from './data/events'
 import { initializeTracking, track } from './lib/tracking'
 import { submitLead, type LeadResult } from './lib/submitLead'
 import { navigate, packUrl } from './lib/navigation'
+import {
+  downloadLiveCalendar,
+  getPublishedLive,
+  googleCalendarUrl,
+  type LiveSettings,
+} from './lib/live'
 
 const packHref = packUrl()
 
@@ -235,8 +240,8 @@ function Hero({ lang, onConcern }: { lang: Language; onConcern: (id: string) => 
         </motion.div>
         <motion.div className="hero-visual" style={{ y }}>
           <div className="image-frame">
-            <img src="./assets/hero-editorial.webp" alt={lang === 'fr' ? 'Portrait éditorial illustrant l’observation de la peau' : 'صورة توضيحية لمراقبة البشرة'} width="1536" height="1024" />
-            <span className="visual-label">{lang === 'fr' ? 'Illustration éditoriale • image non testimoniale' : 'صورة توضيحية • ماشي شهادة'}</span>
+            <img src="./assets/expert-ecolyn.jpg" alt={lang === 'fr' ? 'Conseillère experte ECOLYN dans son espace de consultation' : 'خبيرة إيكولين في فضاء الاستشارة'} width="800" height="1600" />
+            <span className="visual-label">{lang === 'fr' ? 'Votre conseillère ECOLYN' : 'خبيرة إيكولين ديالك'}</span>
           </div>
           <div className="skin-map" aria-label={lang === 'fr' ? 'Choisir un sujet' : 'اختيار موضوع'}>
             {concerns.slice(0, 8).map((concern, index) => (
@@ -429,7 +434,10 @@ function Expert({ lang }: { lang: Language }) {
   return (
     <Reveal className="expert-section">
       <div className="expert-backdrop">
-        <div className="expert-monogram"><span>E</span><small>{lang === 'fr' ? 'Portrait de l’experte à ajouter' : 'خاص إضافة صورة الخبيرة'}</small></div>
+        <div className="expert-portrait">
+          <img src="./assets/expert-ecolyn.jpg" loading="lazy" width="800" height="1600" alt={lang === 'fr' ? 'Conseillère experte ECOLYN' : 'خبيرة إيكولين'} />
+          <small>{lang === 'fr' ? 'Conseillère en soins & routines du visage' : 'خبيرة في العناية وروتين الوجه'}</small>
+        </div>
         <div className="expert-copy">
           <p className="eyebrow">{lang === 'fr' ? 'Une présence humaine' : 'مواكبة إنسانية'}</p>
           <h2>{lang === 'fr' ? 'Conseillère experte en soins et routines du visage' : 'خبيرة في روتين والعناية ببشرة الوجه'}</h2>
@@ -669,15 +677,64 @@ function LeadForm({ lang, concern, setConcern }: { lang: Language; concern: stri
 }
 
 function Events({ lang }: { lang: Language }) {
+  const [live, setLive] = useState<LiveSettings | null>(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    void getPublishedLive()
+      .then(setLive)
+      .finally(() => setLoading(false))
+  }, [])
+
+  const locale = lang === 'fr' ? 'fr-MA' : 'ar-MA'
+  const liveDate = live ? new Intl.DateTimeFormat(locale, {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    timeZone: live.timezone || 'Africa/Casablanca',
+  }).format(new Date(live.starts_at)) : ''
+  const title = live ? (lang === 'fr' ? live.title_fr : live.title_ar) || live.title_fr : ''
+  const description = live ? (lang === 'fr' ? live.description_fr : live.description_ar) || live.description_fr : ''
+
   return (
     <Reveal className="events-section" id="lives">
       <div className="section-wrap">
         <SectionIntro eyebrow={lang === 'fr' ? 'Agenda' : 'المواعيد'} title={lang === 'fr' ? 'Les prochains rendez-vous ECOLYN' : 'المواعيد الجاية ديال ECOLYN'} copy={lang === 'fr' ? 'Lives Instagram, sessions questions/réponses et mini-webinaires.' : 'لايفات إنستغرام، أسئلة وأجوبة ولقاءات قصيرة.'} />
-        {events.length ? <div>{events.map(event => <article key={event.id}>{lang === 'fr' ? event.titleFr : event.titleAr}</article>)}</div> : (
+        {loading ? <div className="live-loading" aria-label={lang === 'fr' ? 'Chargement du prochain live' : 'تحميل موعد اللايف'} /> : live ? (
+          <article className="live-event">
+            <div className="live-date">
+              <CalendarDays />
+              <span>{lang === 'fr' ? 'Prochain live' : 'اللايف الجاي'}</span>
+              <strong>{liveDate}</strong>
+            </div>
+            <div className="live-copy">
+              <p>{live.location || (lang === 'fr' ? 'En ligne' : 'عن بعد')}</p>
+              <h3>{title}</h3>
+              {description && <span>{description}</span>}
+            </div>
+            <div className="live-actions">
+              <button type="button" onClick={() => downloadLiveCalendar(live, lang)}>
+                <CalendarDays /> {lang === 'fr' ? 'Me prévenir' : 'فكروني'}
+              </button>
+              <a
+                href={googleCalendarUrl(live, lang)}
+                target="_blank"
+                rel="noreferrer"
+                onClick={() => track('live_calendar_click', { calendar_type: 'google', live_id: live.id })}
+              >
+                Google Agenda <ArrowUpRight />
+              </a>
+              <small>{lang === 'fr' ? 'Un rappel sera ajouté 30 min avant.' : 'غادي يزيد تذكير قبل بـ30 دقيقة.'}</small>
+            </div>
+          </article>
+        ) : (
           <div className="empty-event">
             <CalendarDays />
-            <div><p>{lang === 'fr' ? 'Agenda en préparation' : 'الأجندة كتوجد'}</p><h3>{lang === 'fr' ? 'Aucun live programmé pour le moment.' : 'ما كاين حتى لايف مبرمج دابا.'}</h3><span>{lang === 'fr' ? 'Laissez votre numéro pour recevoir la prochaine invitation.' : 'خلي الرقم باش توصلك الدعوة الجاية.'}</span></div>
-            <a href="#formulaire">{lang === 'fr' ? 'Me prévenir' : 'خبروني'} <ArrowDown /></a>
+            <div><p>{lang === 'fr' ? 'Agenda en préparation' : 'الأجندة كتوجد'}</p><h3>{lang === 'fr' ? 'Aucun live programmé pour le moment.' : 'ما كاين حتى لايف مبرمج دابا.'}</h3><span>{lang === 'fr' ? 'Le prochain rendez-vous apparaîtra ici dès sa publication.' : 'الموعد الجاي غادي يبان هنا ملي يتنشر.'}</span></div>
+            <a href="#formulaire">{lang === 'fr' ? 'Recevoir les actualités' : 'توصلو بالأخبار'} <ArrowDown /></a>
           </div>
         )}
       </div>
