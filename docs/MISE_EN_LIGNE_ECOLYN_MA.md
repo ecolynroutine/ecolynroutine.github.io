@@ -74,21 +74,15 @@ d'écriture.
 Ne transmettez ni mot de passe ni jeton. Dites seulement : « GitHub CLI est
 connecté ».
 
-## Étape 6 — Variables GitHub
+## Étape 6 — Aucune variable GitHub à ajouter
 
-Une fois le projet envoyé, ouvrez :
+Les valeurs publiques Supabase, l'adresse `ecolyn.ma` et le numéro WhatsApp sont
+déjà configurés dans le projet. Vous n'avez rien à copier dans les secrets
+GitHub.
 
-**GitHub → dépôt → Settings → Secrets and variables → Actions**
-
-Dans l'onglet **Secrets**, ajoutez :
-
-- `VITE_SUPABASE_URL`
-- `VITE_SUPABASE_ANON_KEY`
-
-Dans l'onglet **Variables**, ajoutez :
-
-- `VITE_SITE_URL` avec la valeur `https://ecolyn.ma`
-- `VITE_WHATSAPP_NUMBER` avec le numéro WhatsApp international sans `+`
+La clé utilisée commence par `sb_publishable_`. C'est une clé publique prévue
+pour les sites web. Les données restent protégées par les règles RLS installées
+à l'étape 1. Aucune clé `secret` ou `service_role` n'est présente dans le dépôt.
 
 ## Étape 7 — Activer GitHub Pages
 
