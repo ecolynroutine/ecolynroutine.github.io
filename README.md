@@ -155,6 +155,9 @@ Les équivalents Meta sont envoyés automatiquement lorsque le Pixel est configu
 
 Le `base` relatif, la route statique `/pack/`, `404.html` et `CNAME` sont déjà configurés.
 
+Le guide pas à pas pour la mise en production sur `ecolyn.ma` se trouve dans
+[`docs/MISE_EN_LIGNE_ECOLYN_MA.md`](docs/MISE_EN_LIGNE_ECOLYN_MA.md).
+
 ## Confidentialité
 
 La photo est facultative. Le consentement de contact et le consentement marketing sont séparés. Aucune photo ne doit être publiée ou réutilisée en publicité sans autorisation explicite distincte.
