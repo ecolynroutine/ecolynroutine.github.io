@@ -3,15 +3,16 @@ import { AnimatePresence, motion, useReducedMotion, useScroll, useSpring, useTra
 import { useTranslation } from 'react-i18next'
 import {
   ArrowDown, ArrowLeft, ArrowRight, ArrowUpRight, BookOpen, CalendarDays, Check,
-  ChevronDown, CirclePlay, Clock3, Droplets, Eye, FileText, HeartHandshake,
-  Languages, LockKeyhole, Menu, MessageCircle, MoonStar, MoveRight, Play, ShieldCheck,
-  Sparkles, Sun, Upload, X
+  ChevronDown, Clock3, Droplets, Eye, FileText, HeartHandshake,
+  Languages, LockKeyhole, Menu, MessageCircle, MoonStar, MoveRight, Pause, Play,
+  ShieldCheck, Sparkles, Sun, Upload, Utensils, Volume2, X
 } from 'lucide-react'
-import type { Article, Language, Localized } from './types'
+import type { Article, EvidenceLevel, Language, Localized, Testimonial } from './types'
 import { articles, quickTips } from './data/articles'
 import { skinCases } from './data/cases'
 import { testimonials } from './data/testimonials'
-import { videoSlots } from './data/videos'
+import { nutritionChapters } from './data/nutrition'
+import { siteConfig } from './data/site'
 import { faqs } from './data/faqs'
 import { initializeTracking, track } from './lib/tracking'
 import { submitLead, type LeadResult } from './lib/submitLead'
@@ -116,6 +117,15 @@ function useLanguage() {
     document.documentElement.lang = lang
     document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr'
     localStorage.setItem('ecolyn-language', lang)
+    const title = lang === 'fr' ? 'ECOLYN — Conseils gratuits pour mieux comprendre sa peau' : 'ECOLYN — نصائح مجانية باش تفهمي بشرتك'
+    const description = lang === 'fr'
+      ? 'Conseils prudents et sourcés pour comprendre sa peau, simplifier sa routine et poser ses questions gratuitement.'
+      : 'نصائح حذرة وبالمصادر باش تفهمي بشرتك، تبسطي الروتين وتسولي أسئلتك مجاناً.'
+    document.title = title
+    document.querySelector<HTMLMetaElement>('meta[name="description"]')?.setAttribute('content', description)
+    document.querySelector<HTMLMetaElement>('meta[property="og:title"]')?.setAttribute('content', title)
+    document.querySelector<HTMLMetaElement>('meta[property="og:description"]')?.setAttribute('content', description)
+    document.querySelector<HTMLMetaElement>('meta[property="og:locale"]')?.setAttribute('content', lang === 'fr' ? 'fr_MA' : 'ar_MA')
   }, [lang])
   return lang
 }
@@ -126,14 +136,15 @@ function local<T extends Localized>(value: T, lang: Language) {
 
 function Reveal({ children, className = '', id }: { children: React.ReactNode; className?: string; id?: string }) {
   const reduced = useReducedMotion()
+  const mobile = window.matchMedia('(max-width: 820px)').matches
   return (
     <motion.section
       id={id}
       className={className}
-      variants={reduced ? undefined : sectionMotion}
+      variants={reduced ? undefined : mobile ? { hidden: { opacity: 0, y: 14 }, visible: { opacity: 1, y: 0, transition: { duration: .42 } } } : sectionMotion}
       initial={reduced ? undefined : 'hidden'}
       whileInView={reduced ? undefined : 'visible'}
-      viewport={{ once: true, margin: '-12% 0px' }}
+      viewport={{ once: true, margin: mobile ? '12% 0px' : '4% 0px' }}
     >
       {children}
     </motion.section>
@@ -146,6 +157,77 @@ function SectionIntro({ eyebrow, title, copy, dark = false }: { eyebrow: string;
       <p className="eyebrow">{eyebrow}</p>
       <h2>{title}</h2>
       {copy && <p className="section-lede">{copy}</p>}
+    </div>
+  )
+}
+
+function evidenceLabel(level: EvidenceLevel, lang: Language) {
+  const labels: Record<EvidenceLevel, Localized> = {
+    established: { fr: 'Bien établi', ar: 'معلومة مثبتة' },
+    encouraging: { fr: 'Données encourageantes', ar: 'معطيات مشجعة' },
+    limited: { fr: 'Preuves limitées', ar: 'الدليل محدود' },
+    myth: { fr: 'Idée reçue', ar: 'فكرة منتشرة' },
+  }
+  return local(labels[level], lang)
+}
+
+function RailNavigation({ railRef, count, lang, label }: {
+  railRef: React.RefObject<HTMLDivElement | null>
+  count: number
+  lang: Language
+  label: string
+}) {
+  const [index, setIndex] = useState(0)
+
+  useEffect(() => {
+    const rail = railRef.current
+    if (!rail) return
+    const update = () => {
+      const children = Array.from(rail.children) as HTMLElement[]
+      const railBox = rail.getBoundingClientRect()
+      const start = lang === 'ar' ? railBox.right : railBox.left
+      let nearest = 0
+      let distance = Number.POSITIVE_INFINITY
+      children.forEach((child, childIndex) => {
+        const box = child.getBoundingClientRect()
+        const childStart = lang === 'ar' ? box.right : box.left
+        const nextDistance = Math.abs(childStart - start)
+        if (nextDistance < distance) {
+          distance = nextDistance
+          nearest = childIndex
+        }
+      })
+      setIndex(nearest)
+    }
+    update()
+    rail.addEventListener('scroll', update, { passive: true })
+    window.addEventListener('resize', update)
+    return () => {
+      rail.removeEventListener('scroll', update)
+      window.removeEventListener('resize', update)
+    }
+  }, [lang, railRef])
+
+  const move = (delta: number) => {
+    const next = Math.max(0, Math.min(count - 1, index + delta))
+    const target = railRef.current?.children[next] as HTMLElement | undefined
+    target?.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'start' })
+    setIndex(next)
+  }
+
+  if (count < 2) return null
+  return (
+    <div className="rail-navigation" aria-label={label}>
+      <div className="rail-controls">
+        <button type="button" onClick={() => move(-1)} disabled={index === 0} aria-label={lang === 'fr' ? 'Élément précédent' : 'العنصر السابق'}>
+          {lang === 'fr' ? <ArrowLeft /> : <ArrowRight />}
+        </button>
+        <button type="button" onClick={() => move(1)} disabled={index === count - 1} aria-label={lang === 'fr' ? 'Élément suivant' : 'العنصر التالي'}>
+          {lang === 'fr' ? <ArrowRight /> : <ArrowLeft />}
+        </button>
+      </div>
+      <span aria-live="polite">{index + 1} / {count}</span>
+      <i><b style={{ width: `${((index + 1) / count) * 100}%` }} /></i>
     </div>
   )
 }
@@ -166,7 +248,8 @@ function Header({ lang, menuOpen, setMenuOpen }: { lang: Language; menuOpen: boo
   }, [menuOpen])
   const links = [
     ['#accueil', t('nav.home')], ['#conseils', t('nav.advice')], ['#cas', t('nav.cases')],
-    ['#experiences', t('nav.stories')], ['#lives', t('nav.lives')]
+    ['#experiences', t('nav.stories')], ['#nutrition', lang === 'fr' ? 'Nutrition' : 'التغذية'],
+    ['#experte', lang === 'fr' ? 'L’experte' : 'المستشارة']
   ]
   const changeLanguage = () => {
     i18n.changeLanguage(lang === 'fr' ? 'ar' : 'fr')
@@ -200,8 +283,8 @@ function Header({ lang, menuOpen, setMenuOpen }: { lang: Language; menuOpen: boo
             </div>
             <nav>
               {links.map(([href, label], index) => <a key={href} href={href} onClick={() => setMenuOpen(false)}><span>0{index + 1}</span>{label}</a>)}
-              <a href="#formulaire" onClick={() => setMenuOpen(false)}><span>06</span>{t('nav.ask')}</a>
-              <a href={packHref}><span>07</span>{t('nav.pack')} <ArrowUpRight /></a>
+              <a href="#formulaire" onClick={() => setMenuOpen(false)}><span>{String(links.length + 1).padStart(2, '0')}</span>{t('nav.ask')}</a>
+              <a href={packHref}><span>{String(links.length + 2).padStart(2, '0')}</span>{t('nav.pack')} <ArrowUpRight /></a>
             </nav>
             <button className="mobile-language" onClick={changeLanguage}>{lang === 'fr' ? 'النسخة العربية' : 'Version française'}</button>
           </motion.div>
@@ -214,8 +297,9 @@ function Header({ lang, menuOpen, setMenuOpen }: { lang: Language; menuOpen: boo
 function Hero({ lang, onConcern }: { lang: Language; onConcern: (id: string) => void }) {
   const { t } = useTranslation()
   const reduced = useReducedMotion()
+  const mobile = window.matchMedia('(max-width: 820px)').matches
   const { scrollYProgress } = useScroll()
-  const y = useTransform(scrollYProgress, [0, .22], [0, reduced ? 0 : 85])
+  const y = useTransform(scrollYProgress, [0, .22], [0, reduced || mobile ? 0 : 85])
   return (
     <section className="hero" id="accueil">
       <div className="hero-noise" />
@@ -240,8 +324,15 @@ function Hero({ lang, onConcern }: { lang: Language; onConcern: (id: string) => 
         </motion.div>
         <motion.div className="hero-visual" style={{ y }}>
           <div className="image-frame">
-            <img src="./assets/expert-ecolyn.jpg" alt={lang === 'fr' ? 'Conseillère experte ECOLYN dans son espace de consultation' : 'خبيرة إيكولين في فضاء الاستشارة'} width="800" height="1600" />
-            <span className="visual-label">{lang === 'fr' ? 'Votre conseillère ECOLYN' : 'خبيرة إيكولين ديالك'}</span>
+            <img
+              src={siteConfig.assets.expertHero}
+              alt={lang === 'fr' ? 'Conseillère ECOLYN spécialisée en soins et routines du visage' : 'مستشارة إيكولين متخصصة في العناية وروتين بشرة الوجه'}
+              width="1200"
+              height="1500"
+              fetchPriority="high"
+              decoding="async"
+            />
+            <span className="visual-label">{local(siteConfig.expert.role, lang)}</span>
           </div>
           <div className="skin-map" aria-label={lang === 'fr' ? 'Choisir un sujet' : 'اختيار موضوع'}>
             {concerns.slice(0, 8).map((concern, index) => (
@@ -285,7 +376,7 @@ function ConcernExplorer({ lang, selected, setSelected, describe }: { lang: Lang
                 className={`concern-pill concern-pill--${(index % 4) + 1}${selected === concern.id ? ' is-active' : ''}`}
                 onClick={() => {
                   setSelected(concern.id)
-                  track('select_skin_concern', { skin_concern: concern.id })
+                  track('select_skin_concern', { selection_source: 'explorer' })
                 }}
               >
                 <span>{String(index + 1).padStart(2, '0')}</span>
@@ -295,7 +386,7 @@ function ConcernExplorer({ lang, selected, setSelected, describe }: { lang: Lang
           </div>
           <AnimatePresence mode="wait">
             <motion.article className="concern-answer" key={active.id} initial={{ opacity: 0, x: lang === 'ar' ? -24 : 24 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: lang === 'ar' ? 20 : -20 }} transition={{ duration: .35 }}>
-              <p className="answer-index">ECOLYN / {active.id.toUpperCase()}</p>
+              <p className="answer-index">ECOLYN / {local(active.short, lang).toUpperCase()}</p>
               <h3>{local(active.label, lang)}</h3>
               <p>{local(active.summary, lang)}</p>
               <ol>{active.tips[lang].map(tip => <li key={tip}><Check size={15} />{tip}</li>)}</ol>
@@ -313,6 +404,7 @@ function ConcernExplorer({ lang, selected, setSelected, describe }: { lang: Lang
 
 function AdviceRail({ lang, openArticle }: { lang: Language; openArticle: (article: Article) => void }) {
   const { t } = useTranslation()
+  const railRef = useRef<HTMLDivElement>(null)
   return (
     <Reveal className="advice-section" id="conseils">
       <div className="section-wrap">
@@ -322,16 +414,17 @@ function AdviceRail({ lang, openArticle }: { lang: Language; openArticle: (artic
             title={lang === 'fr' ? 'Commencez par ces gestes simples' : 'بداي بهاد الخطوات البسيطة'}
             copy={lang === 'fr' ? 'Des repères courts à lire maintenant, et des articles complets à ouvrir sans quitter la page.' : 'نقاط قصيرة دابا، ومقالات كاملة كتفتحيها بلا ما تخرجي من الصفحة.'}
           />
-          <div className="rail-hint"><MoveRight /> {lang === 'fr' ? 'Faites glisser pour explorer' : 'جرّي باش تشوفي أكثر'}</div>
+          <RailNavigation railRef={railRef} count={quickTips.length} lang={lang} label={lang === 'fr' ? 'Navigation des conseils' : 'التنقل بين النصائح'} />
         </div>
-        <div className="advice-rail">
+        <div className="advice-rail" ref={railRef}>
           {quickTips.map(({ article, id, symbol }, index) => (
             <motion.article className={`advice-card advice-card--${(index % 3) + 1}`} key={article.slug} whileHover={{ y: -8 }}>
               <div className="advice-card-top"><span>{String(id).padStart(2, '0')}</span><b>{symbol}</b></div>
-              <p className="advice-category">{article.category}</p>
+              <p className="advice-category">{local(article.category, lang)}</p>
               <h3>{local(article.title, lang)}</h3>
               <p>{local(article.summary, lang)}</p>
-              <button onClick={() => openArticle(article)}>{t('common.read')} <ArrowUpRight size={17} /></button>
+              <span className={`evidence-badge evidence-badge--${article.evidence}`}>{evidenceLabel(article.evidence, lang)}</span>
+              <button onClick={() => openArticle(article)}>{lang === 'fr' ? 'Voir pourquoi' : 'نفهمو علاش'} <ArrowUpRight size={17} /></button>
             </motion.article>
           ))}
         </div>
@@ -354,7 +447,7 @@ function Cases({ lang, describe }: { lang: Language; describe: (id: string) => v
           {skinCases.map((item, index) => (
             <article className="case-row" key={item.id}>
               <div className="case-number">0{index + 1}</div>
-              <div className="case-statement"><span>{item.category}</span><h3>« {local(item.statement, lang)} »</h3></div>
+              <div className="case-statement"><span>{local(item.category, lang)}</span><h3>« {local(item.statement, lang)} »</h3></div>
               <div className="case-analysis">
                 <p><b>{lang === 'fr' ? 'Ce qui peut se jouer' : 'شنو ممكن يكون'}</b>{local(item.possible, lang)}</p>
                 <p><b>{lang === 'fr' ? 'Première piste' : 'أول خطوة'}</b>{local(item.guidance, lang)}</p>
@@ -369,30 +462,50 @@ function Cases({ lang, describe }: { lang: Language; describe: (id: string) => v
 }
 
 function Proofs({ lang }: { lang: Language }) {
-  const [filter, setFilter] = useState(0)
+  const [position, setPosition] = useState(50)
+  const tracked = useRef(false)
+  const update = (value: number) => {
+    setPosition(value)
+    if (!tracked.current) {
+      tracked.current = true
+      track('before_after_interaction', { interaction_type: 'slider' })
+    }
+  }
   return (
-    <Reveal className="proofs-section">
+    <Reveal className="proofs-section" id="preuves">
       <div className="section-wrap">
         <SectionIntro
           eyebrow={lang === 'fr' ? 'Preuves avec intégrité' : 'دلائل بكل وضوح'}
-          title={lang === 'fr' ? 'Des routines plus claires, des habitudes mieux comprises' : 'روتين أوضح وعادات مفهومة أكثر'}
-          copy={lang === 'fr' ? 'Aucun faux avant/après. Cet espace est prêt à recevoir uniquement des cas autorisés par les utilisatrices.' : 'ما كاين حتى قبل/بعد مزيف. هاد المساحة واجدة غير للحالات اللي عندها موافقة.'}
+          title={lang === 'fr' ? 'Comparer sans déformer la réalité' : 'نقارنو بلا ما نبدلو الحقيقة'}
+          copy={lang === 'fr' ? 'Même cadrage, même espace, aucun titre médical inventé. Faites glisser pour observer cette expérience individuelle.' : 'نفس الكادر ونفس المساحة، بلا تشخيص مخترع. حركي المؤشر باش تشوفي هاد التجربة الفردية.'}
         />
-        <div className="filter-row">
-          {beforeAfterFilters.map((item, index) => <button className={filter === index ? 'is-active' : ''} key={item.fr} onClick={() => setFilter(index)}>{local(item, lang)}</button>)}
-        </div>
         <div className="proof-editorial">
-          <div className="proof-visual" aria-label={lang === 'fr' ? 'Emplacement avant après' : 'مكان قبل وبعد'}>
-            <div className="skin-texture skin-texture--before"><span>{lang === 'fr' ? 'AVANT' : 'قبل'}</span></div>
-            <div className="skin-divider"><Eye /></div>
-            <div className="skin-texture skin-texture--after"><span>{lang === 'fr' ? 'APRÈS' : 'بعد'}</span></div>
+          <div className="before-after" style={{ '--position': `${position}%` } as React.CSSProperties}>
+            <img className="before-after__after" src={siteConfig.assets.after} loading="lazy" decoding="async" width="900" height="1125" alt={lang === 'fr' ? 'Photographie après, expérience individuelle' : 'صورة من بعد، تجربة فردية'} />
+            <div className="before-after__before">
+              <img src={siteConfig.assets.before} loading="lazy" decoding="async" width="900" height="1125" alt={lang === 'fr' ? 'Photographie avant, expérience individuelle' : 'صورة قبل، تجربة فردية'} />
+            </div>
+            <span className="before-after__label before-after__label--before">{lang === 'fr' ? 'Avant' : 'قبل'}</span>
+            <span className="before-after__label before-after__label--after">{lang === 'fr' ? 'Après' : 'بعد'}</span>
+            <div className="before-after__line"><span><ArrowLeft /><ArrowRight /></span></div>
+            <input
+              type="range"
+              min="0"
+              max="100"
+              value={position}
+              onChange={event => update(Number(event.target.value))}
+              aria-label={lang === 'fr' ? 'Comparer la photographie avant et après' : 'قارني الصورة قبل ومن بعد'}
+            />
           </div>
           <div className="proof-copy">
-            <p className="proof-badge">{lang === 'fr' ? 'STRUCTURE EN ATTENTE DE MÉDIAS AUTORISÉS' : 'الهيكلة كتسنى وسائط عندها موافقة'}</p>
-            <h3>{local(beforeAfterFilters[filter], lang)}</h3>
-            <p>{lang === 'fr' ? 'Le cas publié ici pourra préciser la durée, les habitudes modifiées, le retour personnel et la variabilité des résultats.' : 'الحالة اللي غتنشر هنا تقدر توضح المدة، العادات اللي تبدلات، الرأي الشخصي واختلاف النتائج.'}</p>
-            <div className="proof-meta"><span><Clock3 /> {lang === 'fr' ? 'Durée documentée' : 'مدة موثقة'}</span><span><ShieldCheck /> {lang === 'fr' ? 'Autorisation séparée' : 'موافقة مستقلة'}</span></div>
-            <small>{lang === 'fr' ? 'Illustration éditoriale — ne représente pas un résultat réel.' : 'توضيح بصري — ما كيمثلش نتيجة حقيقية.'}</small>
+            <p className="proof-badge">{lang === 'fr' ? 'EXPÉRIENCE INDIVIDUELLE' : 'تجربة فردية'}</p>
+            <h3>{lang === 'fr' ? 'Une comparaison, pas une promesse' : 'مقارنة، ماشي وعد'}</h3>
+            <p>{lang === 'fr' ? 'Expérience partagée à titre individuel. L’évolution de la peau peut varier selon la personne, les habitudes et la régularité.' : 'تجربة فردية، والنتائج يمكن تختلف من شخص لآخر حسب البشرة، العادات والاستمرارية.'}</p>
+            <div className="proof-buttons">
+              <button type="button" onClick={() => update(100)}>{lang === 'fr' ? 'Voir avant' : 'شوفي قبل'}</button>
+              <button type="button" onClick={() => update(0)}>{lang === 'fr' ? 'Voir après' : 'شوفي من بعد'}</button>
+            </div>
+            <small><ShieldCheck /> {lang === 'fr' ? 'Les résultats peuvent varier. Ces images ne constituent ni un diagnostic ni une garantie.' : 'النتائج كتختلف. الصور ماشي تشخيص وماشي ضمان.'}</small>
           </div>
         </div>
       </div>
@@ -400,31 +513,143 @@ function Proofs({ lang }: { lang: Language }) {
   )
 }
 
+function formatAudioTime(value: number) {
+  if (!Number.isFinite(value)) return '0:00'
+  const minutes = Math.floor(value / 60)
+  const seconds = Math.floor(value % 60).toString().padStart(2, '0')
+  return `${minutes}:${seconds}`
+}
+
+function AudioCard({ item, lang, active, setActive }: {
+  item: Testimonial
+  lang: Language
+  active: boolean
+  setActive: (id: number | null) => void
+}) {
+  const audioRef = useRef<HTMLAudioElement>(null)
+  const sentMilestones = useRef(new Set<number>())
+  const [playing, setPlaying] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState(false)
+  const [current, setCurrent] = useState(0)
+  const [duration, setDuration] = useState(0)
+  const [volume, setVolume] = useState(.85)
+
+  useEffect(() => {
+    if (!active && audioRef.current && !audioRef.current.paused) {
+      audioRef.current.pause()
+      setPlaying(false)
+    }
+  }, [active])
+
+  const toggle = async () => {
+    const audio = audioRef.current
+    if (!audio || error) return
+    if (!audio.paused) {
+      audio.pause()
+      setPlaying(false)
+      setActive(null)
+      return
+    }
+    setLoading(true)
+    setActive(item.id)
+    try {
+      await audio.play()
+      setPlaying(true)
+      setLoading(false)
+      track('audio_play', { audio_id: item.id })
+    } catch {
+      setLoading(false)
+      setError(true)
+    }
+  }
+
+  const updateTime = () => {
+    const audio = audioRef.current
+    if (!audio) return
+    setCurrent(audio.currentTime)
+    if (!audio.duration) return
+    const percent = (audio.currentTime / audio.duration) * 100
+    ;[25, 50, 75].forEach(milestone => {
+      if (percent >= milestone && !sentMilestones.current.has(milestone)) {
+        sentMilestones.current.add(milestone)
+        track(`audio_progress_${milestone}`, { audio_id: item.id })
+      }
+    })
+  }
+
+  return (
+    <article className="audio-card">
+      <img src={item.image} loading="lazy" decoding="async" width="560" height="700" alt={`${item.name} — ${lang === 'fr' ? 'témoignage audio' : 'تجربة صوتية'}`} />
+      <div className="audio-card__body">
+        <div className="audio-card__identity"><span>{item.name}</span><small>{lang === 'fr' ? 'Témoignage audio' : 'تجربة صوتية'}</small></div>
+        <button type="button" className="audio-play" onClick={toggle} aria-label={playing ? (lang === 'fr' ? `Mettre le témoignage de ${item.name} en pause` : `وقفي تجربة ${item.name}`) : (lang === 'fr' ? `Écouter le témoignage de ${item.name}` : `سمعي تجربة ${item.name}`)}>
+          {loading ? <i /> : playing ? <Pause fill="currentColor" /> : <Play fill="currentColor" />}
+        </button>
+        <audio
+          ref={audioRef}
+          src={item.audio}
+          preload="none"
+          onLoadedMetadata={event => setDuration(event.currentTarget.duration)}
+          onTimeUpdate={updateTime}
+          onWaiting={() => setLoading(true)}
+          onCanPlay={() => setLoading(false)}
+          onPause={() => setPlaying(false)}
+          onEnded={() => {
+            setPlaying(false)
+            setActive(null)
+            track('audio_complete', { audio_id: item.id })
+          }}
+          onError={() => { setLoading(false); setError(true) }}
+        />
+        {error ? <p className="audio-error" role="status">{lang === 'fr' ? 'L’audio ne peut pas être chargé pour le moment.' : 'الصوت ما قدرش يتحمل دابا.'}</p> : (
+          <>
+            <input
+              className="audio-progress"
+              type="range"
+              min="0"
+              max={duration || 0}
+              step=".1"
+              value={Math.min(current, duration || 0)}
+              onChange={event => {
+                const value = Number(event.target.value)
+                if (audioRef.current) audioRef.current.currentTime = value
+                setCurrent(value)
+              }}
+              aria-label={lang === 'fr' ? `Progression du témoignage de ${item.name}` : `تقدم تجربة ${item.name}`}
+            />
+            <div className="audio-meta">
+              <span>{formatAudioTime(current)} / {formatAudioTime(duration)}</span>
+              <label><Volume2 /><input type="range" min="0" max="1" step=".05" value={volume} onChange={event => {
+                const value = Number(event.target.value)
+                setVolume(value)
+                if (audioRef.current) audioRef.current.volume = value
+              }} aria-label={lang === 'fr' ? `Volume du témoignage de ${item.name}` : `صوت تجربة ${item.name}`} /></label>
+            </div>
+          </>
+        )}
+      </div>
+    </article>
+  )
+}
+
 function Experiences({ lang }: { lang: Language }) {
   const railRef = useRef<HTMLDivElement>(null)
-  const scrollRail = (direction: number) => railRef.current?.scrollBy({ left: direction * 340, behavior: 'smooth' })
+  const [active, setActive] = useState<number | null>(null)
   return (
     <Reveal className="experiences-section" id="experiences">
       <div className="section-wrap">
         <div className="intro-split">
           <SectionIntro
             eyebrow={lang === 'fr' ? 'Voix & expériences' : 'أصوات وتجارب'}
-            title={lang === 'fr' ? 'Elles racontent leur expérience' : 'كيحكيو على التجربة ديالهم'}
-            copy={lang === 'fr' ? 'Les médias existants sont conservés. Les verbatims et autorisations doivent être validés avant publication définitive.' : 'الوسائط الموجودة محفوظة. خاص تأكيد الكلام والموافقات قبل النشر النهائي.'}
+            title={lang === 'fr' ? 'Écoutez leurs expériences' : 'سمعي تجاربهم'}
+            copy={lang === 'fr' ? 'Six témoignages à lancer uniquement quand vous le souhaitez. Un seul audio joue à la fois.' : 'ست تجارب صوتية كتسمعيهم غير ملي بغيتي. كيتشغل غير صوت واحد فكل مرة.'}
           />
-          <div className="rail-controls"><button onClick={() => scrollRail(-1)} aria-label="Précédent"><ArrowLeft /></button><button onClick={() => scrollRail(1)} aria-label="Suivant"><ArrowRight /></button></div>
+          <RailNavigation railRef={railRef} count={testimonials.length} lang={lang} label={lang === 'fr' ? 'Navigation des témoignages audio' : 'التنقل بين التجارب الصوتية'} />
         </div>
-        <div className="experience-rail" ref={railRef}>
-          {testimonials.map((item, index) => (
-            <article className={`experience-card experience-card--${index % 3}`} key={item.id}>
-              <img src={item.image} loading="lazy" alt="" />
-              <div className="experience-shade" />
-              <button className="play-button" aria-label={lang === 'fr' ? 'Voir le témoignage' : 'نشوف التجربة'} onClick={() => track('video_start', { video_id: item.id, status: 'media_pending' })}><Play fill="currentColor" /></button>
-              <div className="experience-copy"><span>{item.name}</span><h3>{local(item.category, lang)}</h3><p>{local(item.note, lang)}</p></div>
-            </article>
-          ))}
+        <div className="audio-rail" ref={railRef}>
+          {testimonials.map(item => <AudioCard item={item} lang={lang} active={active === item.id} setActive={setActive} key={item.id} />)}
         </div>
-        <div className="video-slots-summary"><CirclePlay /><p><b>{videoSlots.length} {lang === 'fr' ? 'emplacements vidéo configurés' : 'أماكن فيديو واجدة'}</b><span>{lang === 'fr' ? 'Ajoutez les fichiers ou URL dans src/data/videos.' : 'زيدو الملفات أو الروابط فـ src/data/videos.'}</span></p></div>
       </div>
     </Reveal>
   )
@@ -432,15 +657,15 @@ function Experiences({ lang }: { lang: Language }) {
 
 function Expert({ lang }: { lang: Language }) {
   return (
-    <Reveal className="expert-section">
+    <Reveal className="expert-section" id="experte">
       <div className="expert-backdrop">
         <div className="expert-portrait">
-          <img src="./assets/expert-ecolyn.jpg" loading="lazy" width="800" height="1600" alt={lang === 'fr' ? 'Conseillère experte ECOLYN' : 'خبيرة إيكولين'} />
-          <small>{lang === 'fr' ? 'Conseillère en soins & routines du visage' : 'خبيرة في العناية وروتين الوجه'}</small>
+          <img src={siteConfig.assets.expertProfile} loading="lazy" decoding="async" width="1200" height="1500" alt={lang === 'fr' ? 'Conseillère ECOLYN spécialisée en soins et routines du visage' : 'مستشارة إيكولين متخصصة في العناية وروتين بشرة الوجه'} />
+          <small>{local(siteConfig.expert.role, lang)}</small>
         </div>
         <div className="expert-copy">
           <p className="eyebrow">{lang === 'fr' ? 'Une présence humaine' : 'مواكبة إنسانية'}</p>
-          <h2>{lang === 'fr' ? 'Conseillère experte en soins et routines du visage' : 'خبيرة في روتين والعناية ببشرة الوجه'}</h2>
+          <h2>{local(siteConfig.expert.role, lang)}</h2>
           <p>{lang === 'fr' ? 'Son approche part des informations que vous partagez : votre confort, vos habitudes, vos réactions et votre objectif. Elle simplifie avant d’ajouter et oriente vers un dermatologue lorsque la situation le nécessite.' : 'المقاربة كتبدا من المعلومات اللي كتعطي: الراحة، العادات، التفاعلات والهدف. كتبسط قبل ما تزيد، وكتوجه لطبيب الجلد ملي الحالة كتحتاج.'}</p>
           <ul>
             {(lang === 'fr'
@@ -456,9 +681,12 @@ function Expert({ lang }: { lang: Language }) {
 }
 
 function Library({ lang, openArticle }: { lang: Language; openArticle: (article: Article) => void }) {
-  const [category, setCategory] = useState('Tout')
-  const categories = ['Tout', ...Array.from(new Set(articles.map(article => article.category)))]
-  const visible = category === 'Tout' ? articles : articles.filter(article => article.category === category)
+  const [category, setCategory] = useState('all')
+  const categories = [
+    { key: 'all', label: lang === 'fr' ? 'Tout' : 'الكل' },
+    ...Array.from(new Map(articles.map(article => [article.category.fr, { key: article.category.fr, label: local(article.category, lang) }])).values()),
+  ]
+  const visible = category === 'all' ? articles : articles.filter(article => article.category.fr === category)
   return (
     <Reveal className="library-section" id="bibliotheque">
       <div className="section-wrap">
@@ -468,21 +696,81 @@ function Library({ lang, openArticle }: { lang: Language; openArticle: (article:
           copy={lang === 'fr' ? 'Des contenus structurés, conçus pour être utiles sans dramatiser ni promettre l’impossible.' : 'محتوى منظم ومفيد، بلا تهويل وبلا وعود مستحيلة.'}
         />
         <div className="category-tabs" role="tablist">
-          {categories.map(item => <button role="tab" aria-selected={category === item} className={category === item ? 'is-active' : ''} key={item} onClick={() => setCategory(item)}>{item === 'Tout' && lang === 'ar' ? 'الكل' : item}</button>)}
+          {categories.map(item => <button role="tab" aria-selected={category === item.key} className={category === item.key ? 'is-active' : ''} key={item.key} onClick={() => setCategory(item.key)}>{item.label}</button>)}
         </div>
         <motion.div className="article-grid" layout>
           <AnimatePresence mode="popLayout">
             {visible.map((article, index) => (
               <motion.article className={`article-teaser article-teaser--${index % 4}`} layout key={article.slug} initial={{ opacity: 0, scale: .96 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: .96 }}>
-                <div className="article-visual"><span>{article.category.slice(0, 2).toUpperCase()}</span><div /></div>
-                <p className="article-meta">{article.category} <i /> {article.time} {lang === 'fr' ? 'min' : 'دقائق'}</p>
+                <div className="article-visual"><span>{local(article.category, lang).slice(0, 2).toUpperCase()}</span><div /></div>
+                <p className="article-meta">{local(article.category, lang)} <i /> {article.time} {lang === 'fr' ? 'min' : 'دقائق'}</p>
                 <h3>{local(article.title, lang)}</h3>
                 <p>{local(article.summary, lang)}</p>
-                <button onClick={() => openArticle(article)}>{lang === 'fr' ? 'Lire l’article' : 'نقرا المقال'} <ArrowUpRight /></button>
+                <span className={`evidence-badge evidence-badge--${article.evidence}`}>{evidenceLabel(article.evidence, lang)}</span>
+                <button onClick={() => openArticle(article)}>{lang === 'fr' ? 'Comprendre en profondeur' : 'نفهمو بالتفصيل'} <ArrowUpRight /></button>
               </motion.article>
             ))}
           </AnimatePresence>
         </motion.div>
+      </div>
+    </Reveal>
+  )
+}
+
+function Nutrition({ lang }: { lang: Language }) {
+  const railRef = useRef<HTMLDivElement>(null)
+  const [open, setOpen] = useState(nutritionChapters[0].id)
+  return (
+    <Reveal className="nutrition-section" id="nutrition">
+      <div className="section-wrap">
+        <div className="nutrition-heading">
+          <SectionIntro
+            eyebrow={lang === 'fr' ? 'Nutrition & peau' : 'التغذية والبشرة'}
+            title={lang === 'fr' ? 'Ce que votre assiette peut — et ne peut pas — faire pour votre peau' : 'شنو يقدر يدير الماكلة لبشرتك… وشنو ما تقدرش تدير'}
+            copy={lang === 'fr' ? 'L’alimentation peut soutenir le fonctionnement normal de la peau, mais elle ne remplace ni une routine adaptée, ni la protection solaire, ni l’avis d’un professionnel lorsque le problème persiste.' : 'التغذية المتوازنة تقدر تعاون وظائف البشرة الطبيعية، ولكن ما كتبدلش روتين مناسب، ولا الحماية من الشمس، ولا رأي الطبيب إلا كان المشكل مستمر.'}
+          />
+          <div className="simple-plate" aria-label={lang === 'fr' ? 'Exemple d’une assiette simple et équilibrée' : 'مثال ديال طبسيل بسيط ومتوازن'}>
+            <span className="simple-plate__veg">{lang === 'fr' ? 'Légumes colorés' : 'خضر ملونة'}</span>
+            <span className="simple-plate__protein">{lang === 'fr' ? 'Protéines' : 'بروتين'}</span>
+            <span className="simple-plate__starch">{lang === 'fr' ? 'Féculent' : 'نشويات'}</span>
+            <span className="simple-plate__fat">{lang === 'fr' ? 'Un peu de bon gras' : 'شوية دهون مزيانة'}</span>
+            <i><Droplets /> {lang === 'fr' ? 'Eau selon les besoins' : 'الماء حسب الحاجة'}</i>
+          </div>
+        </div>
+        <div className="nutrition-toolbar">
+          <p><Utensils /> {lang === 'fr' ? 'Huit chapitres, sans menu miracle ni interdictions générales.' : 'ثمانية فصول، بلا منيو سحري وبلا ممنوعات عامة.'}</p>
+          <RailNavigation railRef={railRef} count={nutritionChapters.length} lang={lang} label={lang === 'fr' ? 'Navigation des chapitres nutrition' : 'التنقل بين فصول التغذية'} />
+        </div>
+        <div className="nutrition-rail" ref={railRef}>
+          {nutritionChapters.map((chapter, index) => {
+            const expanded = open === chapter.id
+            return (
+              <article className={`nutrition-card${expanded ? ' is-open' : ''}`} key={chapter.id}>
+                <div className="nutrition-card__top"><span>{String(index + 1).padStart(2, '0')}</span><b className={`evidence-badge evidence-badge--${chapter.evidence}`}>{evidenceLabel(chapter.evidence, lang)}</b></div>
+                <h3>{local(chapter.title, lang)}</h3>
+                <p className="nutrition-fact">{local(chapter.fact, lang)}</p>
+                <button type="button" aria-expanded={expanded} onClick={() => {
+                  setOpen(expanded ? '' : chapter.id)
+                  if (!expanded) track('nutrition_content_open', { nutrition_chapter: chapter.id })
+                }}>{expanded ? (lang === 'fr' ? 'Réduire' : 'نقص التفاصيل') : (lang === 'fr' ? 'Comprendre en profondeur' : 'نفهمو بالتفصيل')} <ChevronDown /></button>
+                {expanded && (
+                  <div className="nutrition-details">
+                    <dl>
+                      <div><dt>{lang === 'fr' ? 'Comment ça fonctionne' : 'كيفاش كيخدم'}</dt><dd>{local(chapter.mechanism, lang)}</dd></div>
+                      <div><dt>{lang === 'fr' ? 'Exemples accessibles' : 'أمثلة موجودة'}</dt><dd>{local(chapter.foods, lang)}</dd></div>
+                      <div><dt>{lang === 'fr' ? 'Ce que nous savons' : 'شنو عارفين'}</dt><dd>{local(chapter.known, lang)}</dd></div>
+                      <div><dt>{lang === 'fr' ? 'Ce qui reste incertain' : 'شنو باقي ما واضحش'}</dt><dd>{local(chapter.uncertain, lang)}</dd></div>
+                      <div><dt>{lang === 'fr' ? 'Sans excès' : 'بلا إفراط'}</dt><dd>{local(chapter.apply, lang)}</dd></div>
+                    </dl>
+                    <p className="nutrition-myth"><X /> {local(chapter.myth, lang)}</p>
+                    <div className="source-links">{chapter.sources.map(source => <a key={source.url} href={source.url} target="_blank" rel="noreferrer">{source.label} <ArrowUpRight /></a>)}</div>
+                  </div>
+                )}
+              </article>
+            )
+          })}
+        </div>
+        <p className="nutrition-disclaimer"><ShieldCheck /> {lang === 'fr' ? 'Ces informations sont éducatives. En cas d’allergie, de grossesse, de traitement, de maladie chronique ou de changement alimentaire important, demandez l’avis d’un professionnel qualifié.' : 'هاد المعلومات للتوعية فقط. إلا كانت عندك حساسية، حمل، مرض مزمن، علاج معين، أو بغيتي تديري تغيير كبير فالتغذية ديالك، استاشري مع مختص مؤهل.'}</p>
       </div>
     </Reveal>
   )
@@ -516,7 +804,7 @@ function HowItWorks({ lang }: { lang: Language }) {
         <div className="service-notes">
           <span><Sparkles /> {lang === 'fr' ? 'Gratuit' : 'مجاني'}</span>
           <span><HeartHandshake /> {lang === 'fr' ? 'Sans obligation d’achat' : 'بلا إجبار على الشراء'}</span>
-          <span><Clock3 /> {lang === 'ar' ? (window.ECOLYN_CONFIG?.responseDelayAr || '24 حتى 48 ساعة') : (window.ECOLYN_CONFIG?.responseDelay || '24 à 48 heures')}</span>
+          <span><Clock3 /> {lang === 'ar' ? (window.ECOLYN_CONFIG?.responseDelayAr || 'الجواب في أقرب وقت ممكن') : (window.ECOLYN_CONFIG?.responseDelay || 'Réponse dès que possible')}</span>
           <span><LockKeyhole /> {lang === 'fr' ? 'Confidentiel' : 'خاص'}</span>
         </div>
       </div>
@@ -569,7 +857,8 @@ function LeadForm({ lang, concern, setConcern }: { lang: Language; concern: stri
     setError('')
     try {
       const nextResult = await submitLead(formRef.current)
-      track('form_submit', { skin_concern: concern, submission_mode: nextResult.mode })
+      track('form_submit', { submission_mode: nextResult.mode })
+      track('generate_lead', { submission_mode: nextResult.mode })
       if (nextResult.mode === 'supabase' || nextResult.mode === 'endpoint') {
         sessionStorage.setItem('ecolyn-last-lead', JSON.stringify({
           reference: nextResult.reference,
@@ -626,35 +915,44 @@ function LeadForm({ lang, concern, setConcern }: { lang: Language; concern: stri
           <p className="medical-note">{lang === 'fr' ? 'Les conseils proposés sont informatifs et ne remplacent pas l’avis d’un dermatologue en cas de problème sévère, inhabituel ou persistant.' : 'هذه النصائح توعوية ولا تعوض استشارة طبيب الجلد في حالة وجود مشكلة قوية، غير عادية أو مستمرة.'}</p>
         </div>
         <form ref={formRef} onSubmit={onSubmit} onFocus={begin} className="lead-form">
-          <AnimatePresence mode="wait" initial={false}>
-            <motion.div key={step} className="form-step" data-form-step={step} initial={{ opacity: 0, x: lang === 'ar' ? -24 : 24 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: lang === 'ar' ? 24 : -24 }} transition={{ duration: .3 }}>
-              <div className="form-step-heading"><span>0{step + 1}</span><div><p>{lang === 'fr' ? 'Étape' : 'المرحلة'}</p><h3>{labels[step]}</h3></div></div>
-              {step === 0 && <div className="form-grid">
-                <Field label={lang === 'fr' ? 'Type de peau' : 'نوع البشرة'}><select name="skinType" required defaultValue=""><option value="" disabled>{lang === 'fr' ? 'Sélectionner' : 'اختاري'}</option><option>Normale</option><option>Sèche / جافة</option><option>Grasse / دهنية</option><option>Mixte / مختلطة</option><option>Sensible / حساسة</option><option>Je ne sais pas / ما عارفاش</option></select></Field>
+          {Array.from({ length: total }, (_, formStep) => (
+            <motion.div
+              key={formStep}
+              className="form-step"
+              data-form-step={formStep}
+              hidden={formStep !== step}
+              aria-hidden={formStep !== step}
+              initial={false}
+              animate={{ opacity: formStep === step ? 1 : 0, x: formStep === step ? 0 : (lang === 'ar' ? -18 : 18) }}
+              transition={{ duration: .3 }}
+            >
+              <div className="form-step-heading"><span>0{formStep + 1}</span><div><p>{lang === 'fr' ? 'Étape' : 'المرحلة'}</p><h3>{labels[formStep]}</h3></div></div>
+              {formStep === 0 && <div className="form-grid">
+                <Field label={lang === 'fr' ? 'Type de peau' : 'نوع البشرة'}><select name="skinType" required defaultValue=""><option value="" disabled>{lang === 'fr' ? 'Sélectionner' : 'اختاري'}</option><option value="normal">{lang === 'fr' ? 'Normale' : 'عادية'}</option><option value="dry">{lang === 'fr' ? 'Sèche' : 'جافة'}</option><option value="oily">{lang === 'fr' ? 'Grasse' : 'دهنية'}</option><option value="combination">{lang === 'fr' ? 'Mixte' : 'مختلطة'}</option><option value="sensitive">{lang === 'fr' ? 'Sensible' : 'حساسة'}</option><option value="unknown">{lang === 'fr' ? 'Je ne sais pas' : 'ما عارفاش'}</option></select></Field>
                 <Field label={lang === 'fr' ? 'Âge approximatif' : 'العمر التقريبي'}><select name="ageRange" required defaultValue=""><option value="" disabled>—</option><option>18–24</option><option>25–34</option><option>35–44</option><option>45–54</option><option>55+</option></select></Field>
                 <Field label={lang === 'fr' ? 'Ville' : 'المدينة'}><input name="city" required autoComplete="address-level2" /></Field>
-                <Field label={lang === 'fr' ? 'Depuis combien de temps ?' : 'من شحال هاد المشكل؟'}><select name="duration" required defaultValue=""><option value="" disabled>—</option><option>Moins d’un mois</option><option>1–6 mois</option><option>6–12 mois</option><option>Plus d’un an</option></select></Field>
+                <Field label={lang === 'fr' ? 'Depuis combien de temps ?' : 'من شحال هاد المشكل؟'}><select name="duration" required defaultValue=""><option value="" disabled>—</option><option value="under-1-month">{lang === 'fr' ? 'Moins d’un mois' : 'أقل من شهر'}</option><option value="1-6-months">{lang === 'fr' ? '1–6 mois' : 'من شهر حتى 6 شهور'}</option><option value="6-12-months">{lang === 'fr' ? '6–12 mois' : 'من 6 حتى 12 شهر'}</option><option value="over-1-year">{lang === 'fr' ? 'Plus d’un an' : 'أكثر من عام'}</option></select></Field>
               </div>}
-              {step === 1 && <div className="form-grid">
+              {formStep === 1 && <div className="form-grid">
                 <Field label={lang === 'fr' ? 'Problème principal' : 'المشكل الرئيسي'} wide><select name="primaryConcern" value={concern} onChange={e => setConcern(e.target.value)} required>{concerns.map(item => <option value={item.id} key={item.id}>{local(item.label, lang)}</option>)}</select></Field>
                 <Field label={lang === 'fr' ? 'Problèmes secondaires' : 'مشاكل أخرى'}><input name="secondaryConcerns" placeholder={lang === 'fr' ? 'Optionnel' : 'اختياري'} /></Field>
-                <Field label={lang === 'fr' ? 'Zone concernée' : 'المنطقة'}><select name="area" defaultValue=""><option value="">—</option><option>Visage entier</option><option>Joues</option><option>Front</option><option>Menton</option><option>Contour des yeux</option></select></Field>
-                <Field label={lang === 'fr' ? 'Niveau de gêne' : 'مستوى الإزعاج'}><input name="discomfort" type="range" min="1" max="5" defaultValue="3" aria-label="Niveau de gêne" /></Field>
+                <Field label={lang === 'fr' ? 'Zone concernée' : 'المنطقة'}><select name="area" defaultValue=""><option value="">—</option><option value="whole-face">{lang === 'fr' ? 'Visage entier' : 'الوجه كامل'}</option><option value="cheeks">{lang === 'fr' ? 'Joues' : 'الخدود'}</option><option value="forehead">{lang === 'fr' ? 'Front' : 'الجبهة'}</option><option value="chin">{lang === 'fr' ? 'Menton' : 'الذقن'}</option><option value="eye-area">{lang === 'fr' ? 'Contour des yeux' : 'محيط العينين'}</option></select></Field>
+                <Field label={lang === 'fr' ? 'Niveau de gêne' : 'مستوى الإزعاج'}><input name="discomfort" type="range" min="1" max="5" defaultValue="3" aria-label={lang === 'fr' ? 'Niveau de gêne' : 'مستوى الإزعاج'} /></Field>
                 <Field label={lang === 'fr' ? 'Objectif principal' : 'الهدف الرئيسي'}><input name="goal" required /></Field>
               </div>}
-              {step === 2 && <div className="form-grid">
+              {formStep === 2 && <div className="form-grid">
                 <Field label={lang === 'fr' ? 'Produits utilisés' : 'المنتجات المستعملة'} wide><textarea name="products" rows={3} placeholder={lang === 'fr' ? 'Nettoyant, sérum, crème…' : 'منظف، سيروم، كريم…'} /></Field>
-                <Field label={lang === 'fr' ? 'Fréquence de nettoyage' : 'مرات التنظيف'}><select name="cleansing" defaultValue=""><option value="">—</option><option>Une fois / مرة</option><option>Deux fois / جوج مرات</option><option>Plus de deux fois / أكثر</option></select></Field>
-                <Field label={lang === 'fr' ? 'Utilisez-vous un SPF ?' : 'كتستعملي SPF؟'}><select name="spf" required defaultValue=""><option value="" disabled>—</option><option>Tous les jours / كل نهار</option><option>Parfois / مرات</option><option>Jamais / أبداً</option></select></Field>
+                <Field label={lang === 'fr' ? 'Fréquence de nettoyage' : 'مرات التنظيف'}><select name="cleansing" defaultValue=""><option value="">—</option><option value="once">{lang === 'fr' ? 'Une fois' : 'مرة وحدة'}</option><option value="twice">{lang === 'fr' ? 'Deux fois' : 'جوج مرات'}</option><option value="more">{lang === 'fr' ? 'Plus de deux fois' : 'أكثر من جوج مرات'}</option></select></Field>
+                <Field label={lang === 'fr' ? 'Utilisez-vous un SPF ?' : 'كتستعملي SPF؟'}><select name="spf" required defaultValue=""><option value="" disabled>—</option><option value="daily">{lang === 'fr' ? 'Tous les jours' : 'كل نهار'}</option><option value="sometimes">{lang === 'fr' ? 'Parfois' : 'مرات'}</option><option value="never">{lang === 'fr' ? 'Jamais' : 'أبداً'}</option></select></Field>
                 <Field label={lang === 'fr' ? 'Nouveau produit récent' : 'منتج جديد مؤخراً'}><input name="newProducts" /></Field>
                 <Field label={lang === 'fr' ? 'Réactions connues' : 'تفاعلات معروفة'}><input name="reactions" /></Field>
               </div>}
-              {step === 3 && <div className="form-grid">
+              {formStep === 3 && <div className="form-grid">
                 <Field label={lang === 'fr' ? 'Expliquez avec vos mots' : 'شرحي بكلامك'} wide><textarea name="description" rows={6} required placeholder={lang === 'fr' ? 'Ce que vous observez, ce qui vous gêne, ce que vous avez déjà essayé…' : 'شنو كتشوفي، شنو كيقلقك، وشنو جربتي…'} /></Field>
                 <Field label={lang === 'fr' ? 'Photo facultative' : 'صورة اختيارية'} wide><span className="file-input"><Upload /><input name="photo" type="file" accept="image/jpeg,image/png,image/webp" /><b>{lang === 'fr' ? 'JPG, PNG ou WebP • 8 Mo max' : 'JPG, PNG أو WebP • حتى 8MB'}</b></span></Field>
                 <label className="check-field field--wide"><input type="checkbox" name="photoConsent" value="yes" /><span>{lang === 'fr' ? 'Si j’ajoute une photo, j’autorise son utilisation uniquement pour examiner cette demande. Aucune publication ou publicité sans autorisation séparée.' : 'إلا زدت صورة، كنوافق تستعمل غير لهاد الطلب. ما كاين لا نشر لا إشهار بلا موافقة أخرى.'}</span></label>
               </div>}
-              {step === 4 && <div className="form-grid">
+              {formStep === 4 && <div className="form-grid">
                 <Field label={lang === 'fr' ? 'Prénom' : 'الاسم'}><input name="firstName" required autoComplete="given-name" /></Field>
                 <Field label={lang === 'fr' ? 'Numéro WhatsApp' : 'رقم واتساب'}><input name="whatsapp" required type="tel" inputMode="tel" autoComplete="tel" placeholder="06 12 34 56 78" /></Field>
                 <Field label={lang === 'fr' ? 'Email facultatif' : 'الإيميل اختياري'} wide><input name="email" type="email" autoComplete="email" /></Field>
@@ -662,7 +960,7 @@ function LeadForm({ lang, concern, setConcern }: { lang: Language; concern: stri
                 <label className="check-field field--wide"><input type="checkbox" name="marketingConsent" value="yes" /><span>{lang === 'fr' ? 'J’accepte séparément de recevoir de futurs contenus et offres. Optionnel.' : 'كنوافق بشكل منفصل نتوصل بمحتوى وعروض مستقبلاً. اختياري.'}</span></label>
               </div>}
             </motion.div>
-          </AnimatePresence>
+          ))}
           {error && <p className="form-error" role="alert">{error}</p>}
           <div className="form-navigation">
             <button type="button" className="button button--back" onClick={() => setStep(value => Math.max(0, value - 1))} disabled={step === 0}>{t('form.back')}</button>
@@ -702,7 +1000,7 @@ function Events({ lang }: { lang: Language }) {
   return (
     <Reveal className="events-section" id="lives">
       <div className="section-wrap">
-        <SectionIntro eyebrow={lang === 'fr' ? 'Agenda' : 'المواعيد'} title={lang === 'fr' ? 'Les prochains rendez-vous ECOLYN' : 'المواعيد الجاية ديال ECOLYN'} copy={lang === 'fr' ? 'Lives Instagram, sessions questions/réponses et mini-webinaires.' : 'لايفات إنستغرام، أسئلة وأجوبة ولقاءات قصيرة.'} />
+        <SectionIntro eyebrow={lang === 'fr' ? 'Agenda' : 'المواعيد'} title={live ? (lang === 'fr' ? 'Le prochain rendez-vous ECOLYN' : 'الموعد الجاي ديال ECOLYN') : (lang === 'fr' ? 'Soyez prévenue du prochain live' : 'خلي الخبر يوصلك على اللايف الجاي')} copy={live ? (lang === 'fr' ? 'Ajoutez le rendez-vous à votre calendrier en un geste.' : 'زيدي الموعد للأجندة ديالك بخطوة وحدة.') : (lang === 'fr' ? 'Aucune date n’est annoncée pour le moment. Laissez votre demande pour recevoir les prochaines actualités.' : 'ما كاين حتى تاريخ معلن دابا. خلي الطلب ديالك باش يوصلك الجديد.')} />
         {loading ? <div className="live-loading" aria-label={lang === 'fr' ? 'Chargement du prochain live' : 'تحميل موعد اللايف'} /> : live ? (
           <article className="live-event">
             <div className="live-date">
@@ -733,8 +1031,8 @@ function Events({ lang }: { lang: Language }) {
         ) : (
           <div className="empty-event">
             <CalendarDays />
-            <div><p>{lang === 'fr' ? 'Agenda en préparation' : 'الأجندة كتوجد'}</p><h3>{lang === 'fr' ? 'Aucun live programmé pour le moment.' : 'ما كاين حتى لايف مبرمج دابا.'}</h3><span>{lang === 'fr' ? 'Le prochain rendez-vous apparaîtra ici dès sa publication.' : 'الموعد الجاي غادي يبان هنا ملي يتنشر.'}</span></div>
-            <a href="#formulaire">{lang === 'fr' ? 'Recevoir les actualités' : 'توصلو بالأخبار'} <ArrowDown /></a>
+            <div><p>{lang === 'fr' ? 'Prochain rendez-vous' : 'الموعد الجاي'}</p><h3>{lang === 'fr' ? 'Nous vous préviendrons dès que la date sera fixée.' : 'غادي نخبروك ملي يتحدد التاريخ.'}</h3></div>
+            <a href="#formulaire">{lang === 'fr' ? 'Me tenir informée' : 'خبروني بالجديد'} <ArrowDown /></a>
           </div>
         )}
       </div>
@@ -770,9 +1068,9 @@ function Footer({ lang, openLegal }: { lang: Language; openLegal: (type: 'privac
   return (
     <footer>
       <div className="footer-main">
-        <div className="footer-brand"><img src="./assets/brand/logo.webp" alt="ECOLYN" /><p>{lang === 'fr' ? 'Une plateforme marocaine pour mieux comprendre sa peau, simplifier sa routine et recevoir des conseils gratuits.' : 'منصة مغربية باش تفهمي بشرتك، تبسطي الروتين وتستافدي من نصائح مجانية.'}</p><span>{lang === 'fr' ? 'Conseillère experte en soins et routines du visage' : 'خبيرة في روتين والعناية ببشرة الوجه'}</span></div>
-        <div className="footer-links"><h3>{lang === 'fr' ? 'Explorer' : 'تصفحي'}</h3><a href="#conseils">{lang === 'fr' ? 'Conseils' : 'النصائح'}</a><a href="#cas">{lang === 'fr' ? 'Cas pratiques' : 'حالات واقعية'}</a><a href="#experiences">{lang === 'fr' ? 'Expériences' : 'التجارب'}</a><a href="#lives">{lang === 'fr' ? 'Lives' : 'اللقاءات'}</a></div>
-        <div className="footer-links"><h3>{lang === 'fr' ? 'Agir' : 'تواصلي'}</h3><a href="#formulaire">{lang === 'fr' ? 'Demander des conseils' : 'طلب نصائح'}</a><a href={packHref}>{lang === 'fr' ? 'Routine ECOLYN' : 'روتين ECOLYN'} <ArrowUpRight /></a><a href="mailto:contact@ecolyn.com">contact@ecolyn.com</a></div>
+        <div className="footer-brand"><img src="./assets/brand/logo.webp" alt="ECOLYN" /><p>{lang === 'fr' ? 'Une plateforme marocaine pour mieux comprendre sa peau, simplifier sa routine et recevoir des conseils gratuits.' : 'منصة مغربية باش تفهمي بشرتك، تبسطي الروتين وتستافدي من نصائح مجانية.'}</p><span>{local(siteConfig.expert.role, lang)}</span></div>
+        <div className="footer-links"><h3>{lang === 'fr' ? 'Explorer' : 'تصفحي'}</h3><a href="#conseils">{lang === 'fr' ? 'Conseils' : 'النصائح'}</a><a href="#cas">{lang === 'fr' ? 'Cas pratiques' : 'حالات واقعية'}</a><a href="#experiences">{lang === 'fr' ? 'Expériences audio' : 'التجارب الصوتية'}</a><a href="#nutrition">{lang === 'fr' ? 'Nutrition' : 'التغذية'}</a><a href="#experte">{lang === 'fr' ? 'L’experte' : 'المستشارة'}</a></div>
+        <div className="footer-links"><h3>{lang === 'fr' ? 'Agir' : 'تواصلي'}</h3><a href="#formulaire">{lang === 'fr' ? 'Demander des conseils' : 'طلب نصائح'}</a><a href={packHref}>{lang === 'fr' ? 'Routine ECOLYN' : 'روتين ECOLYN'} <ArrowUpRight /></a><a href="mailto:ecolyn@proton.me">ecolyn@proton.me</a></div>
         <div className="footer-links"><h3>{lang === 'fr' ? 'Confiance' : 'الثقة'}</h3><button onClick={() => openLegal('privacy')}>{lang === 'fr' ? 'Politique de confidentialité' : 'سياسة الخصوصية'}</button><button onClick={() => openLegal('terms')}>{lang === 'fr' ? 'Conditions' : 'الشروط'}</button><button onClick={() => i18n.changeLanguage(lang === 'fr' ? 'ar' : 'fr')}>{lang === 'fr' ? 'العربية' : 'Français'} <Languages /></button></div>
       </div>
       <div className="footer-bottom"><span>© {new Date().getFullYear()} ECOLYN</span><p>{lang === 'fr' ? 'Les conseils sont informatifs et ne remplacent pas l’avis d’un dermatologue.' : 'النصائح توعوية وما كتعوضش رأي طبيب الجلد.'}</p><a href="#accueil"><ArrowDown /> {lang === 'fr' ? 'Retour en haut' : 'نرجعو للفوق'}</a></div>
@@ -781,6 +1079,7 @@ function Footer({ lang, openLegal }: { lang: Language; openLegal: (type: 'privac
 }
 
 function ArticleDrawer({ article, lang, close, next }: { article: Article; lang: Language; close: () => void; next: () => void }) {
+  const completed = useRef(false)
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => event.key === 'Escape' && close()
     document.addEventListener('keydown', onKey)
@@ -790,21 +1089,30 @@ function ArticleDrawer({ article, lang, close, next }: { article: Article; lang:
       document.body.classList.remove('modal-open')
     }
   }, [close])
+  useEffect(() => { completed.current = false }, [article.slug])
   return (
     <motion.div className="drawer-overlay" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onMouseDown={event => event.currentTarget === event.target && close()}>
-      <motion.article className="article-drawer" initial={{ x: lang === 'ar' ? '-100%' : '100%' }} animate={{ x: 0 }} exit={{ x: lang === 'ar' ? '-100%' : '100%' }} transition={{ duration: .55, ease: [0.22, 1, 0.36, 1] }}>
-        <div className="drawer-top"><div><span>{article.category}</span><p><Clock3 /> {article.time} {lang === 'fr' ? 'min de lecture' : 'دقائق للقراءة'}</p></div><button onClick={close} aria-label="Fermer"><X /></button></div>
-        <div className="drawer-hero"><p>ECOLYN / CONSEILS</p><h2>{local(article.title, lang)}</h2><b>{local(article.summary, lang)}</b></div>
+      <motion.article className="article-drawer" initial={{ x: lang === 'ar' ? '-100%' : '100%' }} animate={{ x: 0 }} exit={{ x: lang === 'ar' ? '-100%' : '100%' }} transition={{ duration: .55, ease: [0.22, 1, 0.36, 1] }} onScroll={event => {
+        const target = event.currentTarget
+        if (!completed.current && target.scrollTop + target.clientHeight >= target.scrollHeight * .85) {
+          completed.current = true
+          track('article_complete', { article_slug: article.slug })
+        }
+      }}>
+        <div className="drawer-top"><div><span>{local(article.category, lang)}</span><p><Clock3 /> {article.time} {lang === 'fr' ? 'min de lecture' : 'دقائق للقراءة'}</p></div><button onClick={close} aria-label={lang === 'fr' ? 'Fermer l’article' : 'سد المقال'}><X /></button></div>
+        <div className="drawer-hero"><p>ECOLYN / {lang === 'fr' ? 'CONSEILS' : 'نصائح'}</p><h2>{local(article.title, lang)}</h2><b>{local(article.summary, lang)}</b><span className={`evidence-badge evidence-badge--${article.evidence}`}>{evidenceLabel(article.evidence, lang)}</span></div>
         <div className="article-body">
           <p className="article-intro">{local(article.introduction, lang)}</p>
           <h3>{lang === 'fr' ? 'Ce qu’il faut comprendre' : 'شنو خاص نفهمو'}</h3><p>{local(article.explanation, lang)}</p>
+          <h3>{lang === 'fr' ? 'Ce que vous pouvez observer' : 'شنو تقدري تراقبي'}</h3><p>{local(article.observe, lang)}</p>
           <h3>{lang === 'fr' ? 'Erreurs fréquentes' : 'أخطاء متكررة'}</h3><ul>{article.mistakes[lang].map(item => <li key={item}><X />{item}</li>)}</ul>
           <h3>{lang === 'fr' ? 'Gestes utiles' : 'خطوات مفيدة'}</h3><ul className="positive">{article.gestures[lang].map(item => <li key={item}><Check />{item}</li>)}</ul>
           <div className="watch-box"><Eye /><div><h3>{lang === 'fr' ? 'Point à surveiller' : 'نقطة خاص نراقبوها'}</h3><p>{local(article.watch, lang)}</p></div></div>
           <div className="professional-box"><ShieldCheck /><p>{local(article.professional, lang)}</p></div>
+          <div className="article-sources"><h3>{lang === 'fr' ? 'Sources' : 'المصادر'}</h3>{article.sources.map(source => <a href={source.url} target="_blank" rel="noreferrer" key={source.url}>{source.label} <ArrowUpRight /></a>)}</div>
           <a href="#formulaire" className="button button--primary" onClick={close}>{lang === 'fr' ? 'Demander des conseils personnalisés' : 'نطلب نصائح مناسبة'} <MessageCircle /></a>
         </div>
-        <button className="drawer-next" onClick={next}>{lang === 'fr' ? 'Article suivant' : 'المقال التالي'} <ArrowRight /></button>
+        <button className="drawer-next" onClick={next}>{lang === 'fr' ? 'Article suivant' : 'المقال التالي'} {lang === 'fr' ? <ArrowRight /> : <ArrowLeft />}</button>
       </motion.article>
     </motion.div>
   )
@@ -821,8 +1129,8 @@ function LegalModal({ type, lang, close }: { type: 'privacy' | 'terms'; lang: La
         {privacy ? <>
           <p>{lang === 'fr' ? 'Les informations servent uniquement à examiner votre demande, vous contacter et, si vous y consentez séparément, vous envoyer de futurs contenus.' : 'المعلومات كتستعمل غير لمراجعة الطلب، التواصل معاك، وإلا وافقتي بوحدها، إرسال محتوى مستقبلي.'}</p>
           <h3>{lang === 'fr' ? 'Photos facultatives' : 'الصور اختيارية'}</h3><p>{lang === 'fr' ? 'Aucune photo n’est obligatoire, publiée ou utilisée dans une publicité sans autorisation séparée et explicite.' : 'حتى صورة ما إجبارية، وما تنشرش وما تستعملش فالإشهار بلا موافقة واضحة بوحدها.'}</p>
-          <h3>{lang === 'fr' ? 'Stockage' : 'التخزين'}</h3><p>{lang === 'fr' ? 'En production, configurez un endpoint sécurisé dans config.js. Ne stockez jamais les leads dans un dépôt public.' : 'فالإطلاق، خاص تضبطو endpoint آمن فـ config.js. عمر البيانات تتخزن فمستودع عمومي.'}</p>
-          <h3>{lang === 'fr' ? 'Vos droits' : 'الحقوق ديالك'}</h3><p>{lang === 'fr' ? 'Vous pouvez demander l’accès, la correction ou la suppression de vos données à contact@ecolyn.com.' : 'تقدري تطلبي الاطلاع، التصحيح أو الحذف عبر contact@ecolyn.com.'}</p>
+          <h3>{lang === 'fr' ? 'Stockage' : 'التخزين'}</h3><p>{lang === 'fr' ? 'Les demandes sont enregistrées dans un espace sécurisé. Les visiteurs ne peuvent ni lire, ni modifier, ni supprimer ces informations.' : 'الطلبات كتتخزن فمساحة محمية. الزوار ما يقدروش يقراو ولا يبدلو ولا يمسحو هاد المعلومات.'}</p>
+          <h3>{lang === 'fr' ? 'Vos droits' : 'الحقوق ديالك'}</h3><p>{lang === 'fr' ? 'Vous pouvez demander l’accès, la correction ou la suppression de vos données à ecolyn@proton.me.' : 'تقدري تطلبي الاطلاع، التصحيح أو الحذف عبر ecolyn@proton.me.'}</p>
         </> : <>
           <p>{lang === 'fr' ? 'Le service fournit des informations de routine à partir des éléments déclarés. Il ne constitue ni un diagnostic ni une consultation médicale.' : 'الخدمة كتقدم معلومات للروتين حسب المعطيات اللي قلتي. ماشي تشخيص ولا استشارة طبية.'}</p>
           <h3>{lang === 'fr' ? 'Limites' : 'الحدود'}</h3><p>{lang === 'fr' ? 'Les résultats et la tolérance varient selon les personnes. Aucun résultat n’est garanti.' : 'النتائج والتحمل كيختلفو من شخص لآخر. ما كاين حتى ضمان للنتيجة.'}</p>
@@ -848,14 +1156,14 @@ export default function App() {
 
   const openArticle = (nextArticle: Article) => {
     setArticle(nextArticle)
-    track('article_open', { article_slug: nextArticle.slug, article_category: nextArticle.category })
+    track('article_open', { article_slug: nextArticle.slug, article_category: nextArticle.category.fr })
   }
   const nextArticle = () => {
     if (!article) return
     const index = articles.findIndex(item => item.slug === article.slug)
     const next = articles[(index + 1) % articles.length]
     setArticle(next)
-    track('article_open', { article_slug: next.slug, article_category: next.category, source: 'drawer_next' })
+    track('article_open', { article_slug: next.slug, article_category: next.category.fr, source: 'drawer_next' })
   }
   const describe = (id: string) => {
     const mapped = concerns.find(item => item.id === id)?.id
@@ -866,7 +1174,7 @@ export default function App() {
   const selectHeroConcern = (id: string) => {
     setSelectedConcern(id)
     setTimeout(() => document.getElementById('besoins')?.scrollIntoView({ behavior: reduced ? 'auto' : 'smooth' }), 40)
-    track('select_skin_concern', { skin_concern: id, source: 'hero' })
+    track('select_skin_concern', { selection_source: 'hero' })
   }
 
   const currentConcernLabel = useMemo(() => local(concerns.find(item => item.id === formConcern)?.short || concerns[0].short, lang), [formConcern, lang])
@@ -884,6 +1192,7 @@ export default function App() {
         <Experiences lang={lang} />
         <Expert lang={lang} />
         <Library lang={lang} openArticle={openArticle} />
+        <Nutrition lang={lang} />
         <HowItWorks lang={lang} />
         <LeadForm lang={lang} concern={formConcern} setConcern={setFormConcern} />
         <Events lang={lang} />

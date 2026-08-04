@@ -4,6 +4,7 @@ import { getAdminSession, signInAdmin } from '../lib/admin'
 import { navigate, routeUrl } from '../lib/navigation'
 import { isSupabaseConfigured } from '../lib/supabase'
 import { initializeTracking } from '../lib/tracking'
+import './admin.css'
 
 export default function AdminLogin() {
   const [email, setEmail] = useState('')

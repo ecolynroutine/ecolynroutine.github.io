@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import './admin.css'
 import {
   ArrowLeft, CalendarDays, Check, ChevronRight, Download, FileText, LayoutDashboard,
   LogOut, RefreshCw, Search, Settings2, SlidersHorizontal, UserRound, X,

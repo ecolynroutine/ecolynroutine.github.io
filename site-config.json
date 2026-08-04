@@ -1,0 +1,31 @@
+{
+  "officialUrl": "https://ecolyn.ma",
+  "githubUrl": "https://ecolynroutine.github.io",
+  "expert": {
+    "name": "",
+    "qualifications": "",
+    "role": {
+      "fr": "Conseillère spécialisée en soins et routines du visage",
+      "ar": "مستشارة متخصصة في العناية وروتين بشرة الوجه"
+    }
+  },
+  "pack": {
+    "currentPriceDh": 350,
+    "formerPriceDh": 450
+  },
+  "assets": {
+    "favicon": "https://cdn.gamestrats.com/ecln/favicon.ico",
+    "expertHero": "https://cdn.gamestrats.com/ecln/Accueil/expert-ecolyn.webp",
+    "expertProfile": "https://cdn.gamestrats.com/ecln/Accueil/expert-ecolyn2.webp",
+    "before": "https://cdn.gamestrats.com/ecln/Avant%20Apres/peau%20malade.webp",
+    "after": "https://cdn.gamestrats.com/ecln/Avant%20Apres/peau%20saine.webp",
+    "testimonials": [
+      { "name": "Imane", "image": "https://cdn.gamestrats.com/ecln/Testimonials/Photos%20Ts/Testimonial%20photo%20Imane.webp", "audio": "https://cdn.gamestrats.com/ecln/Testimonials/Audios%20Ts/1.mp3" },
+      { "name": "Amal", "image": "https://cdn.gamestrats.com/ecln/Testimonials/Photos%20Ts/Testimonial%20photo%20amal.webp", "audio": "https://cdn.gamestrats.com/ecln/Testimonials/Audios%20Ts/2.mp3" },
+      { "name": "Karima", "image": "https://cdn.gamestrats.com/ecln/Testimonials/Photos%20Ts/Testimonial%20photo%20karima.webp", "audio": "https://cdn.gamestrats.com/ecln/Testimonials/Audios%20Ts/3.mp3" },
+      { "name": "Khadija", "image": "https://cdn.gamestrats.com/ecln/Testimonials/Photos%20Ts/Testimonial%20photo%20khadija.webp", "audio": "https://cdn.gamestrats.com/ecln/Testimonials/Audios%20Ts/4.mp3" },
+      { "name": "Najat", "image": "https://cdn.gamestrats.com/ecln/Testimonials/Photos%20Ts/Testimonial%20photo%20najat.webp", "audio": "https://cdn.gamestrats.com/ecln/Testimonials/Audios%20Ts/5.mp3" },
+      { "name": "Sara", "image": "https://cdn.gamestrats.com/ecln/Testimonials/Photos%20Ts/Testimonial%20photo%20sara.webp", "audio": "https://cdn.gamestrats.com/ecln/Testimonials/Audios%20Ts/6.mp3" }
+    ]
+  }
+}

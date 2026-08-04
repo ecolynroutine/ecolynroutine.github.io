@@ -1,14 +1,13 @@
-import { StrictMode, useEffect, useState } from 'react'
+import { lazy, StrictMode, Suspense, useEffect, useState } from 'react'
 import { createRoot } from 'react-dom/client'
 import './i18n'
-import App from './App'
-import AdminLogin from './admin/AdminLogin'
-import AdminDashboard from './admin/AdminDashboard'
-import ThankYou from './pages/ThankYou'
 import { getAppRoute } from './lib/navigation'
 import './styles.css'
-import './admin/admin.css'
-import './pages/system-pages.css'
+
+const App = lazy(() => import('./App'))
+const AdminLogin = lazy(() => import('./admin/AdminLogin'))
+const AdminDashboard = lazy(() => import('./admin/AdminDashboard'))
+const ThankYou = lazy(() => import('./pages/ThankYou'))
 
 const runtimeValue = (value?: string) => value?.startsWith('__VITE_') ? '' : value
 
@@ -33,10 +32,14 @@ function RootApp() {
     return () => window.removeEventListener('popstate', syncRoute)
   }, [])
 
-  if (route === 'admin-login') return <AdminLogin />
-  if (route === 'admin') return <AdminDashboard />
-  if (route === 'thank-you') return <ThankYou />
-  return <App />
+  const page = route === 'admin-login'
+    ? <AdminLogin />
+    : route === 'admin'
+      ? <AdminDashboard />
+      : route === 'thank-you'
+        ? <ThankYou />
+        : <App />
+  return <Suspense fallback={<main className="route-loading" aria-label="Chargement"><span>ECOLYN</span></main>}>{page}</Suspense>
 }
 
 createRoot(document.getElementById('root')!).render(

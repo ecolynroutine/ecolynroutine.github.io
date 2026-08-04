@@ -22,3 +22,10 @@ for (const [token, value] of Object.entries(replacements)) {
 }
 
 await writeFile(configPath, source, 'utf8')
+
+const siteConfig = JSON.parse(await readFile(resolve(projectDir, 'site-config.json'), 'utf8'))
+await writeFile(
+  resolve(projectDir, 'dist', 'site-config.js'),
+  `window.ECOLYN_SITE_CONFIG=${JSON.stringify(siteConfig)};\n`,
+  'utf8',
+)

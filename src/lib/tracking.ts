@@ -15,21 +15,26 @@ const metaMap: Record<string, string> = {
   page_view: 'PageView',
   view_content: 'ViewContent',
   article_open: 'ViewContent',
+  pack_view: 'ViewContent',
   form_submit: 'Lead',
   generate_lead: 'Lead',
   whatsapp_click: 'Contact',
   pack_cta_click: 'InitiateCheckout',
+  initiate_checkout: 'InitiateCheckout',
 }
 
 const tiktokMap: Record<string, string> = {
   page_view: 'PageView',
   view_content: 'ViewContent',
   article_open: 'ViewContent',
+  pack_view: 'ViewContent',
   form_start: 'InitiateCheckout',
   form_submit: 'SubmitForm',
   generate_lead: 'SubmitForm',
   whatsapp_click: 'Contact',
   pack_cta_click: 'InitiateCheckout',
+  initiate_checkout: 'InitiateCheckout',
+  order_submit: 'SubmitForm',
 }
 
 let settingsPromise: Promise<TrackingSettings> | null = null
@@ -166,16 +171,18 @@ export async function initializeTracking(pageType = 'advice_home') {
 }
 
 export function track(event: string, payload: EventPayload = {}) {
+  const blockedKeys = /^(?:first_?name|last_?name|full_?name|email|phone|telephone|whatsapp|description|photo|message|free_?text|reference)$/i
+  const safePayload = Object.fromEntries(Object.entries(payload).filter(([key]) => !blockedKeys.test(key))) as EventPayload
   const normalized = {
     event,
     page_path: window.location.pathname,
     language: document.documentElement.lang || 'fr',
-    ...payload,
+    ...safePayload,
   }
 
   window.dataLayer = window.dataLayer || []
   window.dataLayer.push(normalized)
-  void ensureTracking().then(settings => sendToPlatforms(event, payload, settings))
+  void ensureTracking().then(settings => sendToPlatforms(event, safePayload, settings))
 }
 
 export function resetTrackingForTests() {

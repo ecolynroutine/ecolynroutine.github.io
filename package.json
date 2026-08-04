@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite --configLoader runner --config vite.config.ts",
-    "build": "tsc -p tsconfig.app.json && vite build --configLoader runner --config vite.config.ts && node scripts/build-runtime-config.mjs && node scripts/inline-build.mjs",
+    "build": "tsc -p tsconfig.app.json && vite build --configLoader runner --config vite.config.ts && node scripts/build-runtime-config.mjs",
     "preview": "vite preview",
     "check": "tsc -p tsconfig.app.json --pretty false"
   },

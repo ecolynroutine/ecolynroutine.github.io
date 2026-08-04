@@ -2,10 +2,28 @@
   'use strict';
 
   var config = window.ECOLYN_CONFIG || {};
+  var siteConfig = window.ECOLYN_SITE_CONFIG || {};
   var supabaseUrl = clean(config.supabaseUrl);
   var supabaseKey = clean(config.supabaseAnonKey);
   var configured = /^https:\/\//.test(supabaseUrl) && supabaseKey.length > 20;
   var settings = null;
+
+  function applyPackConfig() {
+    var pack = siteConfig.pack || {};
+    var current = Number(pack.currentPriceDh) || 350;
+    var former = Number(pack.formerPriceDh) || 450;
+    document.querySelectorAll('[data-pack-price-current-number]').forEach(function (element) {
+      element.textContent = String(current);
+    });
+    document.querySelectorAll('[data-pack-price-current]').forEach(function (element) {
+      element.textContent = current + (element.classList.contains('ar-inline') ? ' د.م.' : ' DH');
+    });
+    document.querySelectorAll('[data-pack-price-former]').forEach(function (element) {
+      element.textContent = former + (element.classList.contains('ar-inline') ? ' د.م.' : ' DH');
+    });
+  }
+
+  applyPackConfig();
 
   function clean(value) {
     value = String(value || '').trim();
@@ -101,15 +119,19 @@
     page_view: 'PageView',
     view_content: 'ViewContent',
     form_submit: 'Lead',
+    order_submit: 'Lead',
     whatsapp_click: 'Contact',
-    pack_cta_click: 'InitiateCheckout'
+    pack_cta_click: 'InitiateCheckout',
+    initiate_checkout: 'InitiateCheckout'
   };
   var tiktokEvents = {
     page_view: 'PageView',
     view_content: 'ViewContent',
     form_submit: 'SubmitForm',
+    order_submit: 'SubmitForm',
     whatsapp_click: 'Contact',
-    pack_cta_click: 'InitiateCheckout'
+    pack_cta_click: 'InitiateCheckout',
+    initiate_checkout: 'InitiateCheckout'
   };
 
   function send(eventName, payload) {
@@ -127,6 +149,11 @@
 
   window.ecolynTrack = function (eventName, payload) {
     payload = payload || {};
+    var blocked = /^(first_?name|last_?name|full_?name|nom|email|phone|telephone|tel|whatsapp|description|photo|message|free_?text|reference)$/i;
+    payload = Object.keys(payload).reduce(function (safe, key) {
+      if (!blocked.test(key)) safe[key] = payload[key];
+      return safe;
+    }, {});
     window.dataLayer = window.dataLayer || [];
     window.dataLayer.push(Object.assign({
       event: eventName,
@@ -143,6 +170,7 @@
       cta_location: locationName,
       content_name: 'Routine ECOLYN'
     });
+    window.ecolynTrack('initiate_checkout', { cta_location: locationName });
   };
 
   function randomId() {

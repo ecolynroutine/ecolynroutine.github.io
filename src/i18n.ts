@@ -33,8 +33,8 @@ i18n.use(initReactI18next).init({
           title: 'Parlez-nous de votre peau',
           copy: 'Cinq étapes courtes pour nous aider à comprendre votre contexte. La photo reste toujours facultative.',
           next: 'Continuer', back: 'Retour', submit: 'Envoyer ma demande de conseils',
-          successTitle: 'Votre demande est bien préparée.',
-          successCopy: 'Merci. Si aucun stockage externe n’est configuré, un message WhatsApp prérempli vous permet d’envoyer réellement votre demande.',
+          successTitle: 'Votre demande est prête.',
+          successCopy: 'Merci. Confirmez simplement l’envoi sur WhatsApp pour nous transmettre votre demande.',
           whatsapp: 'Envoyer ma demande sur WhatsApp',
           group: 'Rejoindre le groupe WhatsApp'
         }
@@ -68,7 +68,7 @@ i18n.use(initReactI18next).init({
           copy: 'خمس مراحل قصيرة باش نفهمو السياق ديالك. الصورة ديما اختيارية.',
           next: 'نكمل', back: 'نرجع', submit: 'نرسل طلب النصائح',
           successTitle: 'الطلب ديالك واجد.',
-          successCopy: 'شكراً. إلا ما كانش التخزين الخارجي مربوط، غادي نوجهوك لواتساب برسالة معمرة باش توصلي الطلب فعلياً.',
+          successCopy: 'شكراً. أكدي الإرسال عبر واتساب باش يوصلنا الطلب ديالك.',
           whatsapp: 'نرسل الطلب عبر واتساب',
           group: 'ننضم لمجموعة واتساب'
         }

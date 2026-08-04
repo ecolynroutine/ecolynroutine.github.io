@@ -22,9 +22,9 @@ pnpm run build
 
 Le résultat est généré dans `dist/`.
 
-Le build est autonome : `dist/index.html` peut être ouvert directement par
-double-clic, sans serveur local. Le lien « Routine ECOLYN » utilise alors
-automatiquement `dist/pack/index.html`.
+Le résultat de production doit être servi par GitHub Pages ou par `pnpm run
+preview`. Ne pas ouvrir `dist/index.html` par double-clic : les modules web
+modernes peuvent être bloqués en `file://`, ce qui donnerait une page blanche.
 
 ## Backend Supabase et administration
 
@@ -59,16 +59,19 @@ La clé `service_role` ne doit jamais être ajoutée au frontend, à un fichier
 
 ## Configuration
 
-La configuration publique modifiable sans recompiler se trouve dans `public/config.js`.
+La configuration publique du backend se trouve dans `public/config.js`. Les
+informations éditoriales partagées par la plateforme et `/pack/` (URLs, rôle de
+la conseillère, médias CDN et prix) ont une seule source : `site-config.json`.
 
 ```js
 window.ECOLYN_CONFIG = {
   leadEndpoint: "",
   whatsappNumber: "212699072913",
   whatsappGroupUrl: "",
-  responseDelay: "24 à 48 heures",
-  responseDelayAr: "24 حتى 48 ساعة",
+  responseDelay: "Réponse dès que possible",
+  responseDelayAr: "الجواب في أقرب وقت ممكن",
   metaPixelId: "",
+  tiktokPixelId: "",
   ga4MeasurementId: "",
   siteUrl: ""
 };
@@ -76,25 +79,19 @@ window.ECOLYN_CONFIG = {
 
 Les mêmes valeurs peuvent être fournies au build via `.env` en copiant `.env.example`.
 
-## Collecte des leads
+## Collecte des prospects
 
-### Option recommandée : endpoint sécurisé
+Le mode normal utilise Supabase avec la clé publique du navigateur. Le visiteur
+peut uniquement insérer une demande ; les règles RLS interdisent la lecture, la
+modification et la suppression anonymes. Les réponses des cinq étapes, les
+consentements, la langue, la source, les UTM et la photo facultative compressée
+sont enregistrés dans la table privée `prospects`.
 
-Renseigner `leadEndpoint` avec une URL HTTPS acceptant un `POST multipart/form-data`. Le formulaire envoie tous les champs, la catégorie choisie, les consentements, la photo facultative, la langue, la source, la date et une référence.
+Après un enregistrement réussi, le site ouvre `/merci` avec une référence liée
+à la session. Un accès direct à `/merci` ne simule jamais une demande reçue.
 
-L’endpoint peut être :
-
-- Supabase Edge Function ;
-- Firebase Cloud Function ;
-- Formspree ;
-- Google Apps Script ;
-- une API privée.
-
-Ne jamais placer de clé secrète dans `config.js` ou dans le dépôt.
-
-### Mode de secours
-
-Sans endpoint, la demande est préparée dans WhatsApp avec un message prérempli. Une courte file locale reste sur l’appareil pour éviter une perte immédiate, mais elle ne remplace pas un stockage serveur. La photo n’est jamais stockée localement.
+`leadEndpoint` et le mode WhatsApp restent des solutions de secours uniquement.
+Ne jamais placer de clé `service_role` ou d’autre secret dans le navigateur.
 
 ## Ajouter un article
 
@@ -109,20 +106,15 @@ Dupliquer une entrée dans `src/data/articles/index.ts`. Chaque article contient
 
 Le drawer éditorial et la bibliothèque se mettent à jour automatiquement.
 
-## Ajouter une vidéo
+## Médias, témoignages et avant/après
 
-Modifier `src/data/videos/index.ts` :
+Les médias officiels sont déclarés dans `site-config.json` et chargés directement
+depuis le CDN ECOLYN. Ils ne sont pas dupliqués dans `public/`.
 
-1. placer la vidéo compressée dans `public/assets/videos/` ou utiliser une URL autorisée ;
-2. renseigner `source`, `poster`, `duration` et `category` ;
-3. passer `published` à `true` ;
-4. ajouter des sous-titres WebVTT dans `public/assets/captions/`.
-
-Dix emplacements sont déjà prévus. Aucun faux témoignage n’est publié.
-
-## Ajouter un vrai avant/après
-
-Conserver une autorisation séparée de l’utilisatrice. Documenter la durée, les habitudes, le contexte et la variabilité des résultats. Ne pas présenter une illustration comme une preuve.
+Les six témoignages utilisent un lecteur audio sans autoplay, avec progression,
+volume, états de chargement/erreur et lecture exclusive. Le comparateur tactile
+et clavier présente un avertissement clair : une expérience individuelle n’est
+ni une preuve clinique, ni une garantie.
 
 ## Modifier WhatsApp
 
@@ -131,20 +123,19 @@ Conserver une autorisation séparée de l’utilisatrice. Documenter la durée, 
 
 Le lien du groupe reste caché avant la soumission.
 
-## Meta Pixel et GA4
+## Trackings
 
-Renseigner :
+Meta Pixel, TikTok Pixel et GA4 sont activés séparément depuis `/admin`. Le site
+charge uniquement les scripts dont l’identifiant est renseigné et activé.
 
-- `metaPixelId` ;
-- `ga4MeasurementId`.
+La couche `dataLayer` reçoit notamment : `page_view`, `view_content`,
+`article_open`, `article_complete`, `audio_start`, `audio_25`, `audio_50`,
+`audio_75`, `audio_complete`, `before_after_interaction`, `form_start`,
+`form_step_complete`, `form_submit`, `generate_lead`, `whatsapp_click`,
+`pack_view`, `pack_cta_click`, `initiate_checkout` et `order_submit`.
 
-La couche `dataLayer` reçoit les événements :
-
-- `page_view`, `select_skin_concern`, `article_open`, `video_start`,
-  `case_study_view`, `form_start`, `form_step_complete`, `generate_lead`,
-  `whatsapp_click`, `join_whatsapp_group`, `pack_view`, `pack_cta_click`.
-
-Les équivalents Meta sont envoyés automatiquement lorsque le Pixel est configuré.
+Les noms, téléphones, e-mails, photos, références et textes libres sont filtrés
+avant tout envoi vers `dataLayer`, Meta, TikTok ou GA4.
 
 ## Déploiement GitHub Pages
 

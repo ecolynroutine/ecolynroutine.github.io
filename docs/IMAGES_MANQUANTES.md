@@ -1,29 +1,30 @@
-# Images et médias à fournir avant publication
+# Statut des médias ECOLYN
 
-## Priorité haute
+## Intégrés depuis le CDN officiel
 
-- Portrait professionnel réel de la propriétaire / conseillère.
-- Courte vidéo de présentation de l’experte, avec sous-titres FR et AR.
-- Vidéos de témoignages autorisées. Dix emplacements sont configurés.
-- Verbatims, prénoms ou initiales et catégories validés pour les six médias de témoignage existants.
-- Autorisations écrites de diffusion pour chaque témoignage.
+- favicon ECOLYN ;
+- deux portraits de la conseillère ;
+- paire avant/après ;
+- six portraits de témoignage et les six URLs audio associées.
 
-## Preuves
+La liste canonique des URLs se trouve dans `site-config.json`. Ces fichiers ne
+sont pas téléchargés ni dupliqués dans `public/`.
 
-- Vrais avant/après autorisés.
-- Durée approximative de chaque cas.
-- Habitudes et produits modifiés.
-- Retour personnel validé.
-- Autorisation séparée pour toute utilisation publicitaire.
+## Points à conserver côté métier
 
-## Agenda
+- autorisation de diffusion pour chaque portrait, audio et avant/après ;
+- contexte et durée documentés pour l’avant/après ;
+- transcription validée si un verbatim écrit est ajouté plus tard ;
+- liste d’ingrédients et précautions du pack vérifiées sur l’emballage actuel ;
+- nom et qualifications de la conseillère laissés vides tant qu’ils ne sont pas
+  confirmés officiellement.
 
-- Visuels et dates des prochains lives Instagram.
-- Liens d’inscription ou de rappel.
+`public/og.png` reste la carte sociale locale du site. Les visuels commerciaux
+propres à `/pack/` sont conservés dans cette page séparée.
 
-## Statut des visuels générés
+## Incident CDN constaté le 4 août 2026
 
-- `public/assets/hero-editorial.webp` : illustration éditoriale générée, jamais présentée comme témoignage.
-- `public/og.png` : carte sociale générée pour les aperçus de lien.
-
-Les images commerciales, le logo et les six photos de témoignage fournies dans le zip ont été conservés.
+Les fichiers `1.mp3`, `2.mp3`, `3.mp3` et `6.mp3` répondent HTTP 200. Les URLs
+exactes fournies pour `4.mp3` (Khadija) et `5.mp3` (Najat) répondent HTTP 404.
+Le lecteur affiche un message de secours traduit ; les deux fichiers doivent être
+remis en ligne à ces mêmes URLs côté CDN.

@@ -6,9 +6,12 @@
     <title>ECOLYN</title>
     <script>
       var path = location.pathname.replace(/\/+$/, '');
-      var pack = /\/pack$/.test(path);
-      if (pack) location.replace(path + '/');
-      else location.replace(location.pathname.split('/').slice(0, -1).join('/') + '/');
+      var base = location.pathname.indexOf('/ecolynroutine.github.io/') === 0 ? '/ecolynroutine.github.io/' : '/';
+      if (/\/pack$/.test(path)) location.replace(path + '/');
+      else if (/\/merci$/.test(path)) location.replace(base + '?ecolyn_route=merci' + location.search.replace(/^\?/, '&'));
+      else if (/\/admin\/login$/.test(path)) location.replace(base + '?ecolyn_route=admin-login');
+      else if (/\/admin$/.test(path)) location.replace(base + '?ecolyn_route=admin');
+      else location.replace(base);
     </script>
   </head>
   <body></body>

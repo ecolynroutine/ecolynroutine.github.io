@@ -3,6 +3,7 @@ import { ArrowLeft, ArrowUpRight, Check, HeartHandshake, MessageCircle, ShieldCh
 import { useTranslation } from 'react-i18next'
 import { routeUrl } from '../lib/navigation'
 import { initializeTracking, track } from '../lib/tracking'
+import './system-pages.css'
 
 interface SavedLead {
   reference?: string
@@ -22,7 +23,9 @@ export default function ThankYou() {
   const lang = i18n.language.startsWith('ar') ? 'ar' : 'fr'
   const query = new URLSearchParams(window.location.search)
   const saved = readSavedLead()
-  const reference = query.get('ref') || saved.reference || ''
+  const queryReference = query.get('ref') || ''
+  const confirmed = Boolean(saved.reference && (!queryReference || queryReference === saved.reference))
+  const reference = confirmed ? saved.reference || '' : ''
   const number = (window.ECOLYN_CONFIG?.whatsappNumber || '212699072913').replace(/\D/g, '')
   const whatsappUrl = saved.whatsappUrl || `https://wa.me/${number}`
   const groupUrl = window.ECOLYN_CONFIG?.whatsappGroupUrl
@@ -31,8 +34,8 @@ export default function ThankYou() {
     document.documentElement.lang = lang
     document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr'
     void initializeTracking('thank_you')
-    track('view_content', { content_name: 'lead_thank_you', reference_present: Boolean(reference) })
-  }, [lang, reference])
+    track('view_content', { content_name: confirmed ? 'lead_thank_you' : 'thank_you_direct_access', submission_confirmed: confirmed })
+  }, [confirmed, lang])
 
   return (
     <main className="thank-you-page">
@@ -40,25 +43,29 @@ export default function ThankYou() {
       <div className="thank-you-orbit thank-you-orbit--two" />
       <a className="thank-you-brand" href={routeUrl('home')}><span>ECOLYN</span><small>{lang === 'fr' ? 'COMPRENDRE SA PEAU' : 'نفهمو البشرة'}</small></a>
       <section className="thank-you-card">
-        <div className="thank-you-check"><Check /></div>
-        <p className="thank-you-kicker">{lang === 'fr' ? 'Demande enregistrée' : 'تسجل الطلب ديالك'}</p>
-        <h1>{lang === 'fr' ? 'Merci pour votre confiance.' : 'شكراً على الثقة ديالك.'}</h1>
+        <div className="thank-you-check">{confirmed ? <Check /> : <MessageCircle />}</div>
+        <p className="thank-you-kicker">{confirmed ? (lang === 'fr' ? 'Demande enregistrée' : 'تسجل الطلب ديالك') : (lang === 'fr' ? 'Espace de confirmation' : 'فضاء التأكيد')}</p>
+        <h1>{confirmed ? (lang === 'fr' ? 'Merci pour votre confiance.' : 'شكراً على الثقة ديالك.') : (lang === 'fr' ? 'Vous n’avez pas encore envoyé de demande.' : 'مازال ما صيفطتي حتى طلب.')}</h1>
         <p className="thank-you-copy">
-          {lang === 'fr'
+          {confirmed ? (lang === 'fr'
             ? 'Votre demande est maintenant enregistrée de façon sécurisée. Notre équipe l’examinera avant de vous contacter.'
-            : 'الطلب ديالك تسجل بطريقة آمنة. الفريق ديالنا غادي يراجعو قبل ما يتواصل معاك.'}
+            : 'الطلب ديالك تسجل بطريقة آمنة. الفريق ديالنا غادي يراجعو قبل ما يتواصل معاك.') : (lang === 'fr'
+              ? 'Cette page confirme uniquement les demandes réellement envoyées. Commencez le formulaire pour nous expliquer votre situation.'
+              : 'هاد الصفحة كتأكد غير الطلبات اللي تصيفطو بصح. بداي الاستمارة وشرحي لينا الحالة ديالك.')}
         </p>
-        {reference && <span className="thank-you-reference">{reference}</span>}
-        <div className="thank-you-timeline">
+        {confirmed && reference && <span className="thank-you-reference">{reference}</span>}
+        {confirmed && <div className="thank-you-timeline">
           <div><span><Check /></span><p><strong>{lang === 'fr' ? 'Demande reçue' : 'توصلنا بالطلب'}</strong><small>{lang === 'fr' ? 'Vos informations sont protégées.' : 'المعلومات ديالك محمية.'}</small></p></div>
           <div><span><HeartHandshake /></span><p><strong>{lang === 'fr' ? 'Analyse personnalisée' : 'مراجعة شخصية'}</strong><small>{lang === 'fr' ? 'Une conseillère étudie votre situation.' : 'مستشارة غادي تشوف الحالة ديالك.'}</small></p></div>
           <div><span><MessageCircle /></span><p><strong>{lang === 'fr' ? 'Réponse sur WhatsApp' : 'الجواب فالواتساب'}</strong><small>{lang === 'fr' ? 'Vous recevrez les prochaines étapes.' : 'غادي توصلك الخطوات الجاية.'}</small></p></div>
-        </div>
+        </div>}
         <div className="thank-you-actions">
-          <a className="thank-you-primary" href={whatsappUrl} target="_blank" rel="noreferrer" onClick={() => track('whatsapp_click', { source: 'thank_you' })}>
-            {lang === 'fr' ? 'Ouvrir WhatsApp' : 'فتح واتساب'} <MessageCircle />
-          </a>
-          {groupUrl && <a className="thank-you-secondary" href={groupUrl} target="_blank" rel="noreferrer" onClick={() => track('whatsapp_click', { source: 'thank_you_group' })}>{lang === 'fr' ? 'Rejoindre la communauté' : 'الانضمام للمجموعة'} <ArrowUpRight /></a>}
+          {confirmed ? <>
+            <a className="thank-you-primary" href={whatsappUrl} target="_blank" rel="noreferrer" onClick={() => track('whatsapp_click', { source: 'thank_you' })}>
+              {lang === 'fr' ? 'Ouvrir WhatsApp' : 'فتح واتساب'} <MessageCircle />
+            </a>
+            {groupUrl && <a className="thank-you-secondary" href={groupUrl} target="_blank" rel="noreferrer" onClick={() => track('join_whatsapp_group', { source: 'thank_you_group' })}>{lang === 'fr' ? 'Rejoindre la communauté' : 'الانضمام للمجموعة'} <ArrowUpRight /></a>}
+          </> : <a className="thank-you-primary" href={`${routeUrl('home')}#formulaire`}>{lang === 'fr' ? 'Remplir le formulaire' : 'نعمر الاستمارة'} <ArrowUpRight /></a>}
         </div>
         <a className="thank-you-return" href={routeUrl('home')}><ArrowLeft /> {lang === 'fr' ? 'Retourner aux conseils' : 'الرجوع للنصائح'}</a>
         <p className="thank-you-privacy"><ShieldCheck /> {lang === 'fr' ? 'Vos données ne sont accessibles qu’aux administrateurs autorisés.' : 'غير المسؤولين المسموح لهم يقدرو يشوفو المعلومات ديالك.'}</p>
