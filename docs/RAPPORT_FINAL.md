@@ -82,6 +82,14 @@ Les URLs CDN exactes fournies pour `4.mp3` (Khadija) et `5.mp3` (Najat) réponde
 
 Le tableau de bord authentifié complet n’a pas été ouvert pendant la vérification faute de mot de passe administrateur. La route protégée, les règles RLS et les parcours anonymes ont néanmoins été vérifiés.
 
+Le workflow GitHub Pages final s’est terminé avec succès. L’accueil et `/pack/`
+répondent HTTP 200 sur `https://ecolynroutine.github.io/`. Le domaine
+`https://ecolyn.ma/` pointe bien vers l’infrastructure GitHub, mais sert encore
+une ancienne version et `https://ecolyn.ma/pack/` répond HTTP 404. Le domaine doit
+donc encore être rattaché au dépôt `ecolynroutine.github.io` dans **Settings →
+Pages → Custom domain**. Cette opération appartient aux réglages du compte
+GitHub et ne peut pas être remplacée par un changement de code.
+
 Deux prospects de test sont présents dans Supabase avec le téléphone `0600000000`. Ils peuvent être classés « Archivé » depuis l’administration après connexion.
 
 ## Mesures de performance
