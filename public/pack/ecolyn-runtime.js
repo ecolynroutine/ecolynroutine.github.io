@@ -67,7 +67,7 @@
     window.dataLayer = window.dataLayer || [];
     window.gtag = function () { window.dataLayer.push(arguments); };
     window.gtag('js', new Date());
-    window.gtag('config', id, { anonymize_ip: true });
+    window.gtag('config', id, { anonymize_ip: true, send_page_view: false });
     var script = document.createElement('script');
     script.async = true;
     script.src = 'https://www.googletagmanager.com/gtag/js?id=' + encodeURIComponent(id);
@@ -118,32 +118,29 @@
   var metaEvents = {
     page_view: 'PageView',
     view_content: 'ViewContent',
-    form_submit: 'Lead',
     order_submit: 'Lead',
     whatsapp_click: 'Contact',
-    pack_cta_click: 'InitiateCheckout',
     initiate_checkout: 'InitiateCheckout'
   };
   var tiktokEvents = {
     page_view: 'PageView',
     view_content: 'ViewContent',
-    form_submit: 'SubmitForm',
     order_submit: 'SubmitForm',
     whatsapp_click: 'Contact',
-    pack_cta_click: 'InitiateCheckout',
     initiate_checkout: 'InitiateCheckout'
   };
 
-  function send(eventName, payload) {
+  function send(eventName, payload, eventId) {
     if (!settings) return;
     if (settings.ga4_enabled && window.gtag) window.gtag('event', eventName, payload);
     if (settings.meta_enabled && window.fbq) {
-      if (metaEvents[eventName]) window.fbq('track', metaEvents[eventName], payload);
-      else window.fbq('trackCustom', eventName, payload);
+      if (metaEvents[eventName]) window.fbq('track', metaEvents[eventName], payload, { eventID: eventId });
+      else window.fbq('trackCustom', eventName, payload, { eventID: eventId });
     }
     if (settings.tiktok_enabled && window.ttq) {
-      if (tiktokEvents[eventName] === 'PageView') window.ttq.page(payload);
-      else window.ttq.track(tiktokEvents[eventName] || eventName, payload);
+      var tiktokPayload = Object.assign({ event_id: eventId }, payload);
+      if (tiktokEvents[eventName] === 'PageView') window.ttq.page(tiktokPayload);
+      else window.ttq.track(tiktokEvents[eventName] || eventName, tiktokPayload);
     }
   }
 
@@ -154,13 +151,16 @@
       if (!blocked.test(key)) safe[key] = payload[key];
       return safe;
     }, {});
+    var eventId = randomId();
     window.dataLayer = window.dataLayer || [];
     window.dataLayer.push(Object.assign({
       event: eventName,
+      event_id: eventId,
       page_path: window.location.pathname,
       language: document.documentElement.lang || 'fr'
     }, payload));
-    ready.then(function () { send(eventName, payload); });
+    ready.then(function () { send(eventName, payload, eventId); });
+    return eventId;
   };
 
   window.trackCTA = function (event) {

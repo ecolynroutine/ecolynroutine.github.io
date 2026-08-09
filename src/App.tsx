@@ -264,7 +264,7 @@ function Header({ lang, menuOpen, setMenuOpen }: { lang: Language; menuOpen: boo
         </a>
         <nav className="desktop-nav" aria-label={lang === 'fr' ? 'Navigation principale' : 'التنقل الرئيسي'}>
           {links.map(([href, label]) => <a key={href} href={href}>{label}</a>)}
-          <a className="pack-link" href={packHref}>{t('nav.pack')} <ArrowUpRight size={14} /></a>
+          <a className="pack-link" href={packHref} onClick={() => { track('pack_cta_click', { cta_location: 'desktop_nav' }); track('initiate_checkout', { cta_location: 'desktop_nav' }) }}>{t('nav.pack')} <ArrowUpRight size={14} /></a>
         </nav>
         <div className="nav-actions">
           <button className="language-button" onClick={changeLanguage} aria-label="Changer de langue">
@@ -284,7 +284,7 @@ function Header({ lang, menuOpen, setMenuOpen }: { lang: Language; menuOpen: boo
             <nav>
               {links.map(([href, label], index) => <a key={href} href={href} onClick={() => setMenuOpen(false)}><span>0{index + 1}</span>{label}</a>)}
               <a href="#formulaire" onClick={() => setMenuOpen(false)}><span>{String(links.length + 1).padStart(2, '0')}</span>{t('nav.ask')}</a>
-              <a href={packHref}><span>{String(links.length + 2).padStart(2, '0')}</span>{t('nav.pack')} <ArrowUpRight /></a>
+              <a href={packHref} onClick={() => { track('pack_cta_click', { cta_location: 'mobile_menu' }); track('initiate_checkout', { cta_location: 'mobile_menu' }) }}><span>{String(links.length + 2).padStart(2, '0')}</span>{t('nav.pack')} <ArrowUpRight /></a>
             </nav>
             <button className="mobile-language" onClick={changeLanguage}>{lang === 'fr' ? 'النسخة العربية' : 'Version française'}</button>
           </motion.div>
@@ -434,16 +434,22 @@ function AdviceRail({ lang, openArticle }: { lang: Language; openArticle: (artic
 }
 
 function Cases({ lang, describe }: { lang: Language; describe: (id: string) => void }) {
+  const railRef = useRef<HTMLDivElement>(null)
   return (
     <Reveal className="cases-section" id="cas">
       <div className="section-wrap">
-        <SectionIntro
-          eyebrow={lang === 'fr' ? 'Cas pratiques' : 'حالات واقعية'}
-          title={lang === 'fr' ? 'Des situations que beaucoup de femmes rencontrent' : 'حالات كيدوزو منها بزاف ديال النساء'}
-          copy={lang === 'fr' ? 'Chaque peau peut réagir différemment. Ces cas servent à mieux formuler votre situation, pas à poser un diagnostic.' : 'كل بشرة كتقدر تتفاعل بشكل مختلف. هاد الحالات باش نوضحو الوضع، ماشي باش نديرو تشخيص.'}
-          dark
-        />
-        <div className="case-timeline">
+        <div className="intro-split">
+          <SectionIntro
+            eyebrow={lang === 'fr' ? 'Cas pratiques' : 'حالات واقعية'}
+            title={lang === 'fr' ? 'Des situations que beaucoup de femmes rencontrent' : 'حالات كيدوزو منها بزاف ديال النساء'}
+            copy={lang === 'fr' ? 'Chaque peau peut réagir différemment. Ces cas servent à mieux formuler votre situation, pas à poser un diagnostic.' : 'كل بشرة كتقدر تتفاعل بشكل مختلف. هاد الحالات باش نوضحو الوضع، ماشي باش نديرو تشخيص.'}
+            dark
+          />
+          <div className="mobile-only-navigation">
+            <RailNavigation railRef={railRef} count={skinCases.length} lang={lang} label={lang === 'fr' ? 'Navigation des cas pratiques' : 'التنقل بين الحالات'} />
+          </div>
+        </div>
+        <div className="case-timeline" ref={railRef}>
           {skinCases.map((item, index) => (
             <article className="case-row" key={item.id}>
               <div className="case-number">0{index + 1}</div>
@@ -682,6 +688,7 @@ function Expert({ lang }: { lang: Language }) {
 
 function Library({ lang, openArticle }: { lang: Language; openArticle: (article: Article) => void }) {
   const [category, setCategory] = useState('all')
+  const railRef = useRef<HTMLDivElement>(null)
   const categories = [
     { key: 'all', label: lang === 'fr' ? 'Tout' : 'الكل' },
     ...Array.from(new Map(articles.map(article => [article.category.fr, { key: article.category.fr, label: local(article.category, lang) }])).values()),
@@ -690,15 +697,20 @@ function Library({ lang, openArticle }: { lang: Language; openArticle: (article:
   return (
     <Reveal className="library-section" id="bibliotheque">
       <div className="section-wrap">
-        <SectionIntro
-          eyebrow={lang === 'fr' ? 'Mini-bibliothèque' : 'مكتبة صغيرة'}
-          title={lang === 'fr' ? 'Lire, comprendre, puis choisir' : 'قراي، فهمي، ومن بعد اختاري'}
-          copy={lang === 'fr' ? 'Des contenus structurés, conçus pour être utiles sans dramatiser ni promettre l’impossible.' : 'محتوى منظم ومفيد، بلا تهويل وبلا وعود مستحيلة.'}
-        />
+        <div className="intro-split">
+          <SectionIntro
+            eyebrow={lang === 'fr' ? 'Mini-bibliothèque' : 'مكتبة صغيرة'}
+            title={lang === 'fr' ? 'Lire, comprendre, puis choisir' : 'قراي، فهمي، ومن بعد اختاري'}
+            copy={lang === 'fr' ? 'Des contenus structurés, conçus pour être utiles sans dramatiser ni promettre l’impossible.' : 'محتوى منظم ومفيد، بلا تهويل وبلا وعود مستحيلة.'}
+          />
+          <div className="mobile-only-navigation">
+            <RailNavigation railRef={railRef} count={visible.length} lang={lang} label={lang === 'fr' ? 'Navigation de la bibliothèque' : 'التنقل في المكتبة'} />
+          </div>
+        </div>
         <div className="category-tabs" role="tablist">
           {categories.map(item => <button role="tab" aria-selected={category === item.key} className={category === item.key ? 'is-active' : ''} key={item.key} onClick={() => setCategory(item.key)}>{item.label}</button>)}
         </div>
-        <motion.div className="article-grid" layout>
+        <motion.div className="article-grid" layout ref={railRef}>
           <AnimatePresence mode="popLayout">
             {visible.map((article, index) => (
               <motion.article className={`article-teaser article-teaser--${index % 4}`} layout key={article.slug} initial={{ opacity: 0, scale: .96 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: .96 }}>
@@ -719,7 +731,7 @@ function Library({ lang, openArticle }: { lang: Language; openArticle: (article:
 
 function Nutrition({ lang }: { lang: Language }) {
   const railRef = useRef<HTMLDivElement>(null)
-  const [open, setOpen] = useState(nutritionChapters[0].id)
+  const [open, setOpen] = useState('')
   return (
     <Reveal className="nutrition-section" id="nutrition">
       <div className="section-wrap">
@@ -827,6 +839,26 @@ function LeadForm({ lang, concern, setConcern }: { lang: Language; concern: stri
   const total = 5
   const labels = lang === 'fr' ? ['Votre peau', 'Votre besoin', 'Votre routine', 'Expliquez-nous', 'Contact'] : ['بشرتك', 'الحاجة ديالك', 'الروتين ديالك', 'شرحي لينا', 'التواصل']
 
+  useEffect(() => {
+    const section = document.getElementById('formulaire')
+    if (!section) return
+    const observer = new IntersectionObserver(([entry]) => {
+      document.body.classList.toggle('form-in-view', entry.isIntersecting)
+    }, { threshold: .08 })
+    observer.observe(section)
+    return () => {
+      observer.disconnect()
+      document.body.classList.remove('form-in-view')
+    }
+  }, [])
+
+  const goToStep = (nextStep: number) => {
+    setStep(Math.max(0, Math.min(total - 1, nextStep)))
+    if (window.matchMedia('(max-width: 820px)').matches) {
+      requestAnimationFrame(() => formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }))
+    }
+  }
+
   const begin = () => {
     if (!started) {
       setStarted(true)
@@ -848,7 +880,7 @@ function LeadForm({ lang, concern, setConcern }: { lang: Language; concern: stri
     begin()
     if (!validateCurrent()) return
     track('form_step_complete', { form_step: step + 1, form_step_name: labels[step] })
-    setStep(value => Math.min(total - 1, value + 1))
+    goToStep(step + 1)
   }
   const onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
@@ -857,8 +889,12 @@ function LeadForm({ lang, concern, setConcern }: { lang: Language; concern: stri
     setError('')
     try {
       const nextResult = await submitLead(formRef.current)
+      const marketingConsent = new FormData(formRef.current).get('marketingConsent') === 'yes'
       track('form_submit', { submission_mode: nextResult.mode })
-      track('generate_lead', { submission_mode: nextResult.mode })
+      track('generate_lead', { submission_mode: nextResult.mode }, {
+        metaCapi: marketingConsent && (nextResult.mode === 'supabase' || nextResult.mode === 'endpoint'),
+        metaCapiReference: nextResult.reference,
+      })
       if (nextResult.mode === 'supabase' || nextResult.mode === 'endpoint') {
         sessionStorage.setItem('ecolyn-last-lead', JSON.stringify({
           reference: nextResult.reference,
@@ -957,13 +993,13 @@ function LeadForm({ lang, concern, setConcern }: { lang: Language; concern: stri
                 <Field label={lang === 'fr' ? 'Numéro WhatsApp' : 'رقم واتساب'}><input name="whatsapp" required type="tel" inputMode="tel" autoComplete="tel" placeholder="06 12 34 56 78" /></Field>
                 <Field label={lang === 'fr' ? 'Email facultatif' : 'الإيميل اختياري'} wide><input name="email" type="email" autoComplete="email" /></Field>
                 <label className="check-field field--wide"><input type="checkbox" name="contactConsent" value="yes" required /><span>{lang === 'fr' ? 'J’accepte d’être contactée au sujet de cette demande de conseils.' : 'كنوافق يتواصلو معايا بخصوص هاد الطلب.'}</span></label>
-                <label className="check-field field--wide"><input type="checkbox" name="marketingConsent" value="yes" /><span>{lang === 'fr' ? 'J’accepte séparément de recevoir de futurs contenus et offres. Optionnel.' : 'كنوافق بشكل منفصل نتوصل بمحتوى وعروض مستقبلاً. اختياري.'}</span></label>
+                <label className="check-field field--wide"><input type="checkbox" name="marketingConsent" value="yes" /><span>{lang === 'fr' ? 'J’accepte séparément de recevoir de futurs contenus et offres. Si cette case est cochée, mes coordonnées hachées peuvent aussi aider Meta à mesurer cette demande. Optionnel.' : 'كنوافق بشكل منفصل نتوصل بمحتوى وعروض مستقبلاً. إلا علمت على هاد الخانة، معلومات التواصل المشفرة تقدر تعاون Meta تقيس هاد الطلب. اختياري.'}</span></label>
               </div>}
             </motion.div>
           ))}
           {error && <p className="form-error" role="alert">{error}</p>}
           <div className="form-navigation">
-            <button type="button" className="button button--back" onClick={() => setStep(value => Math.max(0, value - 1))} disabled={step === 0}>{t('form.back')}</button>
+            <button type="button" className="button button--back" onClick={() => goToStep(step - 1)} disabled={step === 0}>{t('form.back')}</button>
             {step < total - 1
               ? <button type="button" className="button button--primary" onClick={next}>{t('form.next')} {lang === 'fr' ? <ArrowRight /> : <ArrowLeft />}</button>
               : <button type="submit" className="button button--primary" disabled={sending}>{sending ? (lang === 'fr' ? 'Envoi…' : 'الإرسال…') : t('form.submit')} <ArrowUpRight /></button>}
@@ -1070,7 +1106,7 @@ function Footer({ lang, openLegal }: { lang: Language; openLegal: (type: 'privac
       <div className="footer-main">
         <div className="footer-brand"><img src="./assets/brand/logo.webp" alt="ECOLYN" /><p>{lang === 'fr' ? 'Une plateforme marocaine pour mieux comprendre sa peau, simplifier sa routine et recevoir des conseils gratuits.' : 'منصة مغربية باش تفهمي بشرتك، تبسطي الروتين وتستافدي من نصائح مجانية.'}</p><span>{local(siteConfig.expert.role, lang)}</span></div>
         <div className="footer-links"><h3>{lang === 'fr' ? 'Explorer' : 'تصفحي'}</h3><a href="#conseils">{lang === 'fr' ? 'Conseils' : 'النصائح'}</a><a href="#cas">{lang === 'fr' ? 'Cas pratiques' : 'حالات واقعية'}</a><a href="#experiences">{lang === 'fr' ? 'Expériences audio' : 'التجارب الصوتية'}</a><a href="#nutrition">{lang === 'fr' ? 'Nutrition' : 'التغذية'}</a><a href="#experte">{lang === 'fr' ? 'L’experte' : 'المستشارة'}</a></div>
-        <div className="footer-links"><h3>{lang === 'fr' ? 'Agir' : 'تواصلي'}</h3><a href="#formulaire">{lang === 'fr' ? 'Demander des conseils' : 'طلب نصائح'}</a><a href={packHref}>{lang === 'fr' ? 'Routine ECOLYN' : 'روتين ECOLYN'} <ArrowUpRight /></a><a href="mailto:ecolyn@proton.me">ecolyn@proton.me</a></div>
+        <div className="footer-links"><h3>{lang === 'fr' ? 'Agir' : 'تواصلي'}</h3><a href="#formulaire">{lang === 'fr' ? 'Demander des conseils' : 'طلب نصائح'}</a><a href={packHref} onClick={() => { track('pack_cta_click', { cta_location: 'footer' }); track('initiate_checkout', { cta_location: 'footer' }) }}>{lang === 'fr' ? 'Routine ECOLYN' : 'روتين ECOLYN'} <ArrowUpRight /></a><a href="mailto:ecolyn@proton.me">ecolyn@proton.me</a></div>
         <div className="footer-links"><h3>{lang === 'fr' ? 'Confiance' : 'الثقة'}</h3><button onClick={() => openLegal('privacy')}>{lang === 'fr' ? 'Politique de confidentialité' : 'سياسة الخصوصية'}</button><button onClick={() => openLegal('terms')}>{lang === 'fr' ? 'Conditions' : 'الشروط'}</button><button onClick={() => i18n.changeLanguage(lang === 'fr' ? 'ar' : 'fr')}>{lang === 'fr' ? 'العربية' : 'Français'} <Languages /></button></div>
       </div>
       <div className="footer-bottom"><span>© {new Date().getFullYear()} ECOLYN</span><p>{lang === 'fr' ? 'Les conseils sont informatifs et ne remplacent pas l’avis d’un dermatologue.' : 'النصائح توعوية وما كتعوضش رأي طبيب الجلد.'}</p><a href="#accueil"><ArrowDown /> {lang === 'fr' ? 'Retour en haut' : 'نرجعو للفوق'}</a></div>
@@ -1130,6 +1166,7 @@ function LegalModal({ type, lang, close }: { type: 'privacy' | 'terms'; lang: La
           <p>{lang === 'fr' ? 'Les informations servent uniquement à examiner votre demande, vous contacter et, si vous y consentez séparément, vous envoyer de futurs contenus.' : 'المعلومات كتستعمل غير لمراجعة الطلب، التواصل معاك، وإلا وافقتي بوحدها، إرسال محتوى مستقبلي.'}</p>
           <h3>{lang === 'fr' ? 'Photos facultatives' : 'الصور اختيارية'}</h3><p>{lang === 'fr' ? 'Aucune photo n’est obligatoire, publiée ou utilisée dans une publicité sans autorisation séparée et explicite.' : 'حتى صورة ما إجبارية، وما تنشرش وما تستعملش فالإشهار بلا موافقة واضحة بوحدها.'}</p>
           <h3>{lang === 'fr' ? 'Stockage' : 'التخزين'}</h3><p>{lang === 'fr' ? 'Les demandes sont enregistrées dans un espace sécurisé. Les visiteurs ne peuvent ni lire, ni modifier, ni supprimer ces informations.' : 'الطلبات كتتخزن فمساحة محمية. الزوار ما يقدروش يقراو ولا يبدلو ولا يمسحو هاد المعلومات.'}</p>
+          <h3>{lang === 'fr' ? 'Mesure publicitaire facultative' : 'قياس الإعلانات اختياري'}</h3><p>{lang === 'fr' ? 'Seulement si vous cochez le consentement marketing séparé, vos coordonnées normalisées et hachées peuvent être transmises à Meta pour mesurer la demande. Les identifiants publicitaires restent désactivables depuis l’administration.' : 'غير إلا وافقتي على التسويق بوحدو، معلومات التواصل كتتهيا وكتتشفر قبل ما تتبعث لـ Meta باش نقيسو الطلب. أدوات الإشهار يمكن توقيفها من الإدارة.'}</p>
           <h3>{lang === 'fr' ? 'Vos droits' : 'الحقوق ديالك'}</h3><p>{lang === 'fr' ? 'Vous pouvez demander l’accès, la correction ou la suppression de vos données à ecolyn@proton.me.' : 'تقدري تطلبي الاطلاع، التصحيح أو الحذف عبر ecolyn@proton.me.'}</p>
         </> : <>
           <p>{lang === 'fr' ? 'Le service fournit des informations de routine à partir des éléments déclarés. Il ne constitue ni un diagnostic ni une consultation médicale.' : 'الخدمة كتقدم معلومات للروتين حسب المعطيات اللي قلتي. ماشي تشخيص ولا استشارة طبية.'}</p>

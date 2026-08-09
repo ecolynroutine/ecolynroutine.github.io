@@ -8,7 +8,7 @@ import type { User } from '@supabase/supabase-js'
 import { getAdminSession, signOutAdmin } from '../lib/admin'
 import { navigate, routeUrl } from '../lib/navigation'
 import { getSupabase } from '../lib/supabase'
-import { initializeTracking } from '../lib/tracking'
+import { getTrackingDiagnostics, initializeTracking, track, type TrackingDiagnostics } from '../lib/tracking'
 
 type Tab = 'prospects' | 'live' | 'trackings'
 type ProspectStatus = 'nouveau' | 'a_contacter' | 'contacte' | 'qualifie' | 'converti' | 'archive'
@@ -323,6 +323,7 @@ function TrackingPanel() {
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState('')
   const [error, setError] = useState('')
+  const [diagnostics, setDiagnostics] = useState<TrackingDiagnostics>(() => getTrackingDiagnostics())
 
   useEffect(() => {
     const load = async () => {
@@ -341,6 +342,13 @@ function TrackingPanel() {
       setLoading(false)
     }
     void load()
+  }, [])
+
+  useEffect(() => {
+    const refresh = () => setDiagnostics(getTrackingDiagnostics())
+    refresh()
+    window.addEventListener('ecolyn:tracking-status', refresh)
+    return () => window.removeEventListener('ecolyn:tracking-status', refresh)
   }, [])
 
   const update = <K extends keyof TrackingForm>(key: K, value: TrackingForm[K]) => setForm(current => ({ ...current, [key]: value }))
@@ -387,6 +395,28 @@ function TrackingPanel() {
       <div className="tracking-events">
         <p className="admin-kicker">Événements couverts</p>
         <div>{['PageView', 'ViewContent', 'Lead', 'Contact', 'InitiateCheckout', 'form_start', 'form_submit', 'whatsapp_click', 'pack_view', 'pack_cta_click', 'live_calendar_click'].map(event => <span key={event}>{event}</span>)}</div>
+      </div>
+      <div className="tracking-diagnostics">
+        <div className="tracking-diagnostics__head">
+          <div><p className="admin-kicker">Diagnostic navigateur</p><strong>État du chargement sur cette page</strong></div>
+          <button className="admin-secondary-button" type="button" onClick={() => {
+            track('view_content', { content_name: 'admin_tracking_test', tracking_test: true })
+            setMessage('Événement test déclenché. Vérifiez Meta « Tester les événements » et GA4 « Temps réel ».')
+          }}><RefreshCw /> Envoyer un test</button>
+        </div>
+        <p className="tracking-source">Configuration : <b>{diagnostics.settingsSource === 'supabase' ? 'Supabase chargée' : diagnostics.settingsSource === 'fallback' ? 'configuration de secours' : 'chargement…'}</b>{diagnostics.settingsError ? ` — ${diagnostics.settingsError}` : ''}</p>
+        <div className="tracking-status-grid">
+          {([
+            ['Meta Pixel', diagnostics.meta],
+            ['GA4', diagnostics.ga4],
+            ['TikTok', diagnostics.tiktok],
+          ] as const).map(([name, status]) => (
+            <article key={name} className={`tracking-status tracking-status--${status.script}`}>
+              <span>{name}</span><b>{status.enabled ? status.script === 'ready' ? 'Chargé' : status.script === 'blocked' ? 'Bloqué' : 'En cours' : 'Désactivé'}</b><small>{status.id || 'Aucun identifiant'}</small>
+            </article>
+          ))}
+        </div>
+        <small className="tracking-last-event">Dernier événement : {diagnostics.lastEvent || 'aucun'}{diagnostics.lastEventId ? ` · ${diagnostics.lastEventId.slice(0, 13)}…` : ''}</small>
       </div>
       {error && <p className="admin-alert" role="alert">{error}</p>}
       {message && <p className="admin-success" role="status"><Check /> {message}</p>}

@@ -126,7 +126,9 @@ Le lien du groupe reste caché avant la soumission.
 ## Trackings
 
 Meta Pixel, TikTok Pixel et GA4 sont activés séparément depuis `/admin`. Le site
-charge uniquement les scripts dont l’identifiant est renseigné et activé.
+charge uniquement les scripts dont l’identifiant est renseigné et activé. Le
+même onglet contient maintenant un diagnostic de chargement et un bouton pour
+envoyer un événement de test.
 
 La couche `dataLayer` reçoit notamment : `page_view`, `view_content`,
 `article_open`, `article_complete`, `audio_start`, `audio_25`, `audio_50`,
@@ -136,6 +138,11 @@ La couche `dataLayer` reçoit notamment : `page_view`, `view_content`,
 
 Les noms, téléphones, e-mails, photos, références et textes libres sont filtrés
 avant tout envoi vers `dataLayer`, Meta, TikTok ou GA4.
+
+La fonction Supabase `meta-capi` complète le Pixel pour les leads consentis. Le
+jeton Meta reste dans les secrets Supabase et les coordonnées sont hachées côté
+serveur avant l’envoi. Les quelques actions manuelles sont détaillées dans
+[`docs/META_CAPI_SUPABASE.md`](docs/META_CAPI_SUPABASE.md).
 
 ## Déploiement GitHub Pages
 
