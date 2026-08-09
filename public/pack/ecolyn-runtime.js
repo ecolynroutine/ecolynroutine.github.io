@@ -67,7 +67,11 @@
     window.dataLayer = window.dataLayer || [];
     window.gtag = function () { window.dataLayer.push(arguments); };
     window.gtag('js', new Date());
-    window.gtag('config', id, { anonymize_ip: true, send_page_view: false });
+    window.gtag('config', id, {
+      anonymize_ip: true,
+      page_title: document.title,
+      page_location: window.location.href
+    });
     var script = document.createElement('script');
     script.async = true;
     script.src = 'https://www.googletagmanager.com/gtag/js?id=' + encodeURIComponent(id);
@@ -132,7 +136,7 @@
 
   function send(eventName, payload, eventId) {
     if (!settings) return;
-    if (settings.ga4_enabled && window.gtag) window.gtag('event', eventName, payload);
+    if (settings.ga4_enabled && window.gtag && eventName !== 'page_view') window.gtag('event', eventName, payload);
     if (settings.meta_enabled && window.fbq) {
       if (metaEvents[eventName]) window.fbq('track', metaEvents[eventName], payload, { eventID: eventId });
       else window.fbq('trackCustom', eventName, payload, { eventID: eventId });

@@ -25,6 +25,7 @@ export interface TrackingDiagnostics {
 interface TrackOptions {
   metaCapi?: boolean
   metaCapiReference?: string
+  gaDebug?: boolean
 }
 
 const metaMap: Record<string, string> = {
@@ -162,12 +163,15 @@ function attachScript(src: string, platform: 'meta' | 'tiktok' | 'ga4') {
 function loadGa4(id: string) {
   if (!id || window.gtag) return
   window.dataLayer = window.dataLayer || []
-  window.gtag = (...args: unknown[]) => window.dataLayer?.push(args)
+  window.gtag = function () {
+    window.dataLayer?.push(arguments as unknown as unknown[])
+  }
   window.gtag('js', new Date())
   window.gtag('config', id, {
     anonymize_ip: true,
-    send_page_view: false,
     debug_mode: isDebugMode(),
+    page_title: document.title,
+    page_location: window.location.href,
   })
   attachScript(`https://www.googletagmanager.com/gtag/js?id=${encodeURIComponent(id)}`, 'ga4')
 }
@@ -252,7 +256,9 @@ function sendToPlatforms(event: string, payload: EventPayload, settings: Trackin
     page_location: window.location.href,
     ...payload,
   }
-  if (settings.ga4Enabled) window.gtag?.('event', event, { ...pageContext, debug_mode: isDebugMode() })
+  if (settings.ga4Enabled && event !== 'page_view') {
+    window.gtag?.('event', event, { ...pageContext, debug_mode: Boolean(options.gaDebug || isDebugMode()) })
+  }
 
   const metaEvent = metaMap[event]
   if (settings.metaEnabled && window.fbq) {

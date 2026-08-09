@@ -400,8 +400,8 @@ function TrackingPanel() {
         <div className="tracking-diagnostics__head">
           <div><p className="admin-kicker">Diagnostic navigateur</p><strong>État du chargement sur cette page</strong></div>
           <button className="admin-secondary-button" type="button" onClick={() => {
-            track('view_content', { content_name: 'admin_tracking_test', tracking_test: true })
-            setMessage('Événement test déclenché. Vérifiez Meta « Tester les événements » et GA4 « Temps réel ».')
+            track('view_content', { content_name: 'admin_tracking_test', tracking_test: true }, { gaDebug: true })
+            setMessage('Événement test envoyé en mode débogage. Vérifiez Meta « Tester les événements » et GA4 « DebugView ».')
           }}><RefreshCw /> Envoyer un test</button>
         </div>
         <p className="tracking-source">Configuration : <b>{diagnostics.settingsSource === 'supabase' ? 'Supabase chargée' : diagnostics.settingsSource === 'fallback' ? 'configuration de secours' : 'chargement…'}</b>{diagnostics.settingsError ? ` — ${diagnostics.settingsError}` : ''}</p>

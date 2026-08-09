@@ -8,3 +8,4 @@ vite.config.d.ts
 captures/
 preview.log
 preview-error.log
+supabase/.temp/
