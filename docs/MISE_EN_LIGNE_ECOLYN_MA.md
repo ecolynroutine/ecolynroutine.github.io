@@ -1,5 +1,9 @@
 # Mettre ECOLYN en ligne sur `ecolyn.ma`
 
+> État vérifié le 9 août 2026 : les quatre entrées `A` et le `CNAME www`
+> pointent déjà correctement vers GitHub Pages. Si `ecolyn.ma` affiche encore
+> l’ancienne version, ne touchez plus aux DNS : terminez seulement l’étape 9.
+
 Ce guide contient uniquement les actions qui doivent être faites dans les
 comptes du propriétaire. Ne partagez jamais vos mots de passe, une clé
 `service_role`, une clé `secret` ou le mot de passe de la base de données.

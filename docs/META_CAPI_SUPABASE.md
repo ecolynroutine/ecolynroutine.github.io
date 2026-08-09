@@ -14,8 +14,7 @@ Le code est déjà prêt. Le jeton Meta reste uniquement dans les secrets Supaba
 
    ```powershell
    npx supabase login
-   npx supabase link --project-ref kzygabpjpdzbjfglmppj
-   npx supabase functions deploy meta-capi --no-verify-jwt
+   npx supabase functions deploy meta-capi --project-ref kzygabpjpdzbjfglmppj --no-verify-jwt
    ```
 
 ## Fonctionnement et confidentialité
