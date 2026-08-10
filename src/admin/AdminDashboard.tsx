@@ -394,7 +394,7 @@ function TrackingPanel() {
       )}
       <div className="tracking-events">
         <p className="admin-kicker">Événements couverts</p>
-        <div>{['PageView', 'ViewContent', 'Lead', 'Contact', 'InitiateCheckout', 'form_start', 'form_submit', 'whatsapp_click', 'pack_view', 'pack_cta_click', 'live_calendar_click'].map(event => <span key={event}>{event}</span>)}</div>
+        <div>{['PageView', 'ViewContent', 'Lead / generate_lead', 'SkinConcernSelected', 'JoinWhatsappGroup', 'Contact', 'InitiateCheckout', 'form_start', 'form_submit', 'whatsapp_click', 'pack_view', 'pack_cta_click', 'live_calendar_click'].map(event => <span key={event}>{event}</span>)}</div>
       </div>
       <div className="tracking-diagnostics">
         <div className="tracking-diagnostics__head">
@@ -416,6 +416,7 @@ function TrackingPanel() {
             </article>
           ))}
         </div>
+        <small className="tracking-last-event">Meta CAPI : {diagnostics.capi.state === 'idle' ? 'en attente d’un vrai lead' : diagnostics.capi.message}</small>
         <small className="tracking-last-event">Dernier événement : {diagnostics.lastEvent || 'aucun'}{diagnostics.lastEventId ? ` · ${diagnostics.lastEventId.slice(0, 13)}…` : ''}</small>
       </div>
       {error && <p className="admin-alert" role="alert">{error}</p>}

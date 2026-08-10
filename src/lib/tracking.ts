@@ -20,6 +20,7 @@ export interface TrackingDiagnostics {
   ga4: { enabled: boolean; id: string; script: ScriptState }
   lastEvent: string
   lastEventId: string
+  capi: { state: 'idle' | 'sending' | 'accepted' | 'skipped' | 'error'; message: string }
 }
 
 interface TrackOptions {
@@ -37,6 +38,11 @@ const metaMap: Record<string, string> = {
   whatsapp_click: 'Contact',
   initiate_checkout: 'InitiateCheckout',
   order_submit: 'Lead',
+}
+
+const metaCustomMap: Record<string, string> = {
+  select_skin_concern: 'SkinConcernSelected',
+  join_whatsapp_group: 'JoinWhatsappGroup',
 }
 
 const tiktokMap: Record<string, string> = {
@@ -61,6 +67,7 @@ const diagnostics: TrackingDiagnostics = {
   ga4: { enabled: false, id: '', script: 'idle' },
   lastEvent: '',
   lastEventId: '',
+  capi: { state: 'idle', message: '' },
 }
 
 function masked(value: string) {
@@ -234,8 +241,14 @@ function cookieValue(name: string) {
 
 async function sendMetaCapi(eventName: string, eventId: string, reference?: string) {
   const supabase = getSupabase()
-  if (!supabase) return
-  const { error } = await supabase.functions.invoke('meta-capi', {
+  if (!supabase) {
+    diagnostics.capi = { state: 'error', message: 'Supabase indisponible' }
+    notifyDiagnostics()
+    return
+  }
+  diagnostics.capi = { state: 'sending', message: 'Envoi en cours' }
+  notifyDiagnostics()
+  const { data, error } = await supabase.functions.invoke('meta-capi', {
     body: {
       event_name: eventName,
       event_id: eventId,
@@ -247,7 +260,17 @@ async function sendMetaCapi(eventName: string, eventId: string, reference?: stri
       test: isDebugMode(),
     },
   })
-  if (error && isDebugMode()) console.warn('[ECOLYN tracking] CAPI:', error.message)
+  if (error) {
+    diagnostics.capi = { state: 'error', message: error.message.slice(0, 160) }
+    console.warn('[ECOLYN tracking] Meta CAPI', { event: eventName, status: 'error', event_id: eventId.slice(0, 12) })
+  } else if (data?.accepted === true) {
+    diagnostics.capi = { state: 'accepted', message: 'Événement accepté par Meta' }
+    console.info('[ECOLYN tracking] Meta CAPI', { event: eventName, status: 'accepted', event_id: eventId.slice(0, 12) })
+  } else {
+    diagnostics.capi = { state: 'skipped', message: data?.reason === 'CONSENT_REQUIRED' ? 'Consentement Meta non donné' : 'Événement non envoyé' }
+    console.info('[ECOLYN tracking] Meta CAPI', { event: eventName, status: 'skipped', event_id: eventId.slice(0, 12) })
+  }
+  notifyDiagnostics()
 }
 
 function sendToPlatforms(event: string, payload: EventPayload, settings: TrackingSettings, eventId: string, options: TrackOptions) {
@@ -261,9 +284,10 @@ function sendToPlatforms(event: string, payload: EventPayload, settings: Trackin
   }
 
   const metaEvent = metaMap[event]
+  const metaCustomEvent = metaCustomMap[event]
   if (settings.metaEnabled && window.fbq) {
     if (metaEvent) window.fbq('track', metaEvent, payload, { eventID: eventId })
-    else window.fbq('trackCustom', event, payload, { eventID: eventId })
+    else window.fbq('trackCustom', metaCustomEvent || event, payload, { eventID: eventId })
   }
   if (settings.metaEnabled && metaEvent && options.metaCapi) {
     void sendMetaCapi(metaEvent, eventId, options.metaCapiReference)
@@ -317,6 +341,7 @@ export function resetTrackingForTests() {
   diagnostics.settingsError = ''
   diagnostics.lastEvent = ''
   diagnostics.lastEventId = ''
+  diagnostics.capi = { state: 'idle', message: '' }
   for (const platform of ['meta', 'tiktok', 'ga4'] as const) {
     diagnostics[platform] = { enabled: false, id: '', script: 'idle' }
   }

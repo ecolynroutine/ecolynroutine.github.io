@@ -31,7 +31,7 @@ i18n.use(initReactI18next).init({
         form: {
           eyebrow: 'Votre demande, en confiance',
           title: 'Parlez-nous de votre peau',
-          copy: 'Cinq étapes courtes pour nous aider à comprendre votre contexte. La photo reste toujours facultative.',
+          copy: 'Une seule page courte. Les détails seront approfondis ensuite sur WhatsApp.',
           next: 'Continuer', back: 'Retour', submit: 'Envoyer ma demande de conseils',
           successTitle: 'Votre demande est prête.',
           successCopy: 'Merci. Confirmez simplement l’envoi sur WhatsApp pour nous transmettre votre demande.',
@@ -65,7 +65,7 @@ i18n.use(initReactI18next).init({
         form: {
           eyebrow: 'طلبك بكل ثقة',
           title: 'حكي لينا على بشرتك',
-          copy: 'خمس مراحل قصيرة باش نفهمو السياق ديالك. الصورة ديما اختيارية.',
+          copy: 'صفحة وحدة قصيرة. التفاصيل نكملوها من بعد فالواتساب.',
           next: 'نكمل', back: 'نرجع', submit: 'نرسل طلب النصائح',
           successTitle: 'الطلب ديالك واجد.',
           successCopy: 'شكراً. أكدي الإرسال عبر واتساب باش يوصلنا الطلب ديالك.',

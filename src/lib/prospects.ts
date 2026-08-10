@@ -138,7 +138,7 @@ export async function buildProspectInsert(
     first_name: scalar(form, 'firstName'),
     whatsapp: scalar(form, 'whatsapp'),
     email: scalar(form, 'email') || null,
-    city: scalar(form, 'city'),
+    city: scalar(form, 'city') || (language === 'ar' ? 'غير محددة' : 'Non renseignée'),
     primary_concern: scalar(form, 'primaryConcern'),
     skin_type: scalar(form, 'skinType') || null,
     goal: scalar(form, 'goal') || null,

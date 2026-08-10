@@ -95,6 +95,7 @@ Deno.serve(async request => {
     return response({ error: 'CONFIGURATION_LOOKUP_FAILED' }, 500, origin)
   }
   if (!prospect?.marketing_consent) {
+    console.info('Meta CAPI event skipped', { event_name: eventName, event_id: eventId.slice(0, 12), reason: 'CONSENT_REQUIRED' })
     return response({ accepted: false, reason: 'CONSENT_REQUIRED' }, 202, origin)
   }
 
@@ -142,9 +143,10 @@ Deno.serve(async request => {
   )
   const metaResult = await metaResponse.json().catch(() => ({})) as Record<string, unknown>
   if (!metaResponse.ok) {
-    console.error('Meta CAPI rejected an event', { status: metaResponse.status, reference, metaResult })
+    console.error('Meta CAPI rejected an event', { status: metaResponse.status, event_name: eventName, event_id: eventId.slice(0, 12) })
     return response({ error: 'META_REJECTED_EVENT' }, 502, origin)
   }
 
+  console.info('Meta CAPI event accepted', { event_name: eventName, event_id: eventId.slice(0, 12), events_received: metaResult.events_received ?? 1 })
   return response({ accepted: true, events_received: metaResult.events_received ?? 1 }, 200, origin)
 })

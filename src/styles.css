@@ -642,3 +642,65 @@ body.form-in-view .sticky-advice{opacity:0;pointer-events:none;transform:transla
   .form-navigation .button{min-height:50px;flex:1}
   .sticky-advice{transition:opacity .25s,transform .25s}
 }
+
+/* Parcours personnalisé et formulaire court */
+.hero-concern-hook{display:none}
+.concern-mini-path{display:grid;gap:12px;margin-top:18px}
+.concern-mini-path>div{position:relative;border:1px solid rgba(255,255,255,.12);border-radius:16px;padding:15px 16px;background:rgba(255,255,255,.055)}
+.concern-mini-path b{display:block;margin-bottom:8px;color:#ff9abd;font-size:.64rem;letter-spacing:.08em;text-transform:uppercase}
+.concern-mini-path ol{margin:0;gap:7px}
+.concern-mini-path li svg{color:#ff9abd;flex:0 0 auto}
+.concern-mini-path p{margin:0;color:rgba(255,255,255,.78);font-size:.8rem;line-height:1.55}
+.concern-case a{display:inline-flex;align-items:center;gap:6px;margin-top:10px;color:#fff;font-size:.7rem;font-weight:700;text-decoration:underline;text-underline-offset:4px}
+.concern-case a svg{width:.85rem}
+.form-section--short .form-shell{min-height:0}
+.short-form-benefits{position:relative;z-index:2;display:grid;gap:12px;margin-top:34px}
+.short-form-benefits span{display:flex;align-items:center;gap:9px;font-size:.76rem;font-weight:650;color:rgba(255,255,255,.82)}
+.short-form-benefits svg{color:#ff8db5;flex:0 0 auto}
+.lead-form--short{justify-content:center;padding-block:56px}
+.short-form-grid{align-content:start}
+.optional-photo{border:1px dashed rgba(212,20,90,.26);border-radius:16px;padding:13px;background:#fff8fa}
+.optional-photo summary{display:flex;align-items:center;gap:8px;cursor:pointer;color:var(--rose);font-size:.72rem;font-weight:750;list-style:none}
+.optional-photo summary::-webkit-details-marker{display:none}
+.optional-photo[open] summary{margin-bottom:12px}
+.optional-photo .file-input{min-height:78px}
+.optional-photo .check-field{margin-top:12px}
+.short-form-submit{align-items:center}
+.short-form-submit>p{display:flex;max-width:310px;align-items:flex-start;gap:7px;margin:0;color:rgba(9,55,74,.58);font-size:.66rem;line-height:1.45}
+.short-form-submit>p svg{flex:0 0 auto;color:var(--rose)}
+.whatsapp-group-float{position:fixed;z-index:82;left:18px;bottom:18px;display:flex;min-height:52px;align-items:center;gap:10px;border-radius:999px;padding:10px 17px 10px 12px;color:#fff;background:#25d366;box-shadow:0 16px 42px rgba(13,106,53,.28);font-size:.72rem;font-weight:800;transition:transform .25s var(--ease),box-shadow .25s var(--ease)}
+.whatsapp-group-float:hover{transform:translateY(-3px);box-shadow:0 22px 52px rgba(13,106,53,.34)}
+.whatsapp-group-float>svg{width:32px;height:32px;padding:7px;border-radius:50%;background:rgba(255,255,255,.18);animation:whatsapp-soft-pulse 2.4s ease-in-out infinite}
+@keyframes whatsapp-soft-pulse{50%{transform:scale(1.08)}}
+
+@media(max-width:820px){
+  .hero-concern-hook{display:block;margin:0 0 28px;border:1px solid rgba(9,55,74,.1);border-radius:24px;padding:20px 14px 14px;background:rgba(255,255,255,.72);box-shadow:0 18px 48px rgba(9,55,74,.08);backdrop-filter:blur(10px)}
+  .hero-concern-hook h2{max-width:none;margin:0 4px 16px;font-family:var(--serif);font-size:1.8rem;font-weight:600;line-height:1.04;letter-spacing:-.025em}
+  html[dir=rtl] .hero-concern-hook h2{font-family:Naskh,Cairo,serif;line-height:1.25;letter-spacing:0}
+  .hero-concern-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
+  .hero-concern-grid button{display:flex;min-height:46px;align-items:center;justify-content:space-between;gap:5px;border:1px solid rgba(9,55,74,.1);border-radius:13px;padding:8px 10px;text-align:start;background:#fff;color:var(--ink);font-size:.66rem;font-weight:750;line-height:1.2;cursor:pointer}
+  .hero-concern-grid button svg{flex:0 0 auto;color:var(--rose);font-size:.82rem}
+  .skin-map{display:none}
+  .concern-answer{min-height:0}
+  .concern-mini-path{gap:9px}
+  .concern-mini-path>div{padding:13px 14px}
+  .form-section--short .form-aside ol,.form-section--short .form-progress{display:none}
+  .lead-form--short{padding-block:28px}
+  .short-form-submit{position:static;flex-direction:column;align-items:stretch;margin:26px 0 0;padding:18px 0 0;background:transparent;box-shadow:none;backdrop-filter:none}
+  .short-form-submit>p{max-width:none}
+  .whatsapp-group-float{left:12px;bottom:calc(78px + env(safe-area-inset-bottom));width:50px;height:50px;min-height:0;justify-content:center;padding:0}
+  .whatsapp-group-float span{display:none}
+  .whatsapp-group-float>svg{width:34px;height:34px}
+  body.form-in-view .whatsapp-group-float{opacity:.25}
+}
+
+@media(max-width:540px){
+  .hero-concern-hook{margin-bottom:22px;padding:17px 11px 11px;border-radius:20px}
+  .hero-concern-hook h2{font-size:1.55rem;margin-bottom:13px}
+  .hero-concern-grid{gap:6px}
+  .hero-concern-grid button{min-height:43px;padding:7px 8px;font-size:.61rem}
+  .concern-answer>p:not(.answer-index){font-size:.82rem}
+  .concern-mini-path p,.concern-mini-path li{font-size:.72rem}
+  .short-form-grid{grid-template-columns:1fr}
+  .lead-form--short .form-step-heading h3{font-size:1.65rem}
+}

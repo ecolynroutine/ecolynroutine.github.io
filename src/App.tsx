@@ -25,77 +25,80 @@ import {
 } from './lib/live'
 
 const packHref = packUrl()
+const whatsappGroupHref = 'https://chat.whatsapp.com/IbrwixzaySqLYawg3D7WiP?s=cl&p=a&ilr=1'
 
 const concerns = [
   {
     id: 'taches',
-    label: { fr: 'Taches et teint irrégulier', ar: 'البقع ولون غير موحد' },
-    short: { fr: 'Taches', ar: 'البقع' },
-    summary: { fr: 'Comprendre les habitudes qui peuvent entretenir les irrégularités visibles.', ar: 'فهم العادات اللي تقدر تخلي اللون غير موحد.' },
-    tips: { fr: ['Protéger chaque matin', 'Éviter le frottement', 'Évaluer sur plusieurs semaines'], ar: ['الحماية كل صباح', 'تجنب الحك', 'التقييم على أسابيع'] }
+    label: { fr: 'Taches', ar: 'التصبغات' },
+    short: { fr: 'Taches', ar: 'التصبغات' },
+    summary: { fr: 'Les taches ont besoin de régularité et de protection, pas d’une succession de produits agressifs.', ar: 'التصبغات كتحتاج الاستمرار والحماية، ماشي تبديل المنتجات القوية.' },
+    mistakes: { fr: ['Oublier la protection solaire', 'Changer d’actif trop vite', 'Frotter ou exfolier trop fort'], ar: ['نسيان الواقي الشمسي', 'تبديل المواد الفعالة بسرعة', 'الحك أو التقشير القوي'] },
+    quickTip: { fr: 'Gardez une base douce et un SPF chaque matin pendant plusieurs semaines avant de juger.', ar: 'خلي روتين لطيف وSPF كل صباح لعدة أسابيع قبل ما تحكمي.' },
+    caseStudy: { fr: '« Mes taches reviennent malgré mon sérum. » Souvent, la protection quotidienne manque de régularité.', ar: '« التصبغات كترجع رغم السيروم. » غالباً الحماية اليومية ماشي منتظمة.' },
   },
   {
     id: 'traces',
-    label: { fr: 'Traces après les boutons', ar: 'آثار من بعد الحبوب' },
+    label: { fr: 'Traces de boutons', ar: 'آثار الحبوب' },
     short: { fr: 'Traces de boutons', ar: 'آثار الحبوب' },
-    summary: { fr: 'Distinguer les traces de couleur, l’inflammation et les cicatrices en relief.', ar: 'الفرق بين آثار اللون، الالتهاب والندوب البارزة.' },
-    tips: { fr: ['Ne pas manipuler', 'Introduire un actif à la fois', 'Maintenir le SPF'], ar: ['ما تلمسيش الحبوب', 'مادة فعالة وحدة فكل مرة', 'الاستمرار مع SPF'] }
+    summary: { fr: 'Une trace colorée, une inflammation et une cicatrice en relief ne se travaillent pas de la même façon.', ar: 'الأثر الملون، الالتهاب والندبة البارزة ما كيتعاملوش بنفس الطريقة.' },
+    mistakes: { fr: ['Toucher les boutons', 'Cumuler plusieurs exfoliants', 'Négliger le SPF'], ar: ['لمس الحبوب', 'جمع بزاف ديال المقشرات', 'إهمال SPF'] },
+    quickTip: { fr: 'Commencez par ne plus manipuler, protéger le matin et introduire un seul actif à la fois.', ar: 'بداي بلا لمس، الحماية فالصباح، ومادة فعالة وحدة فكل مرة.' },
+    caseStudy: { fr: '« Mes traces restent visibles longtemps. » Le toucher et le soleil peuvent entretenir leur couleur.', ar: '« آثار الحبوب كتبقى مدة طويلة. » اللمس والشمس يقدرو يزيدو يثبتو اللون.' },
   },
   {
     id: 'grasse',
     label: { fr: 'Peau grasse', ar: 'البشرة الدهنية' },
-    short: { fr: 'Excès de sébum', ar: 'الدهون الزائدة' },
+    short: { fr: 'Peau grasse', ar: 'البشرة الدهنية' },
     summary: { fr: 'Apaiser la brillance sans décaper ni assécher la peau.', ar: 'نقص اللمعان بلا ما نجففو أو نجهدو البشرة.' },
-    tips: { fr: ['Nettoyant doux', 'Hydratant léger', 'Observer la zone T'], ar: ['منظف لطيف', 'مرطب خفيف', 'مراقبة منطقة T'] }
+    mistakes: { fr: ['Nettoyer trop souvent', 'Sauter l’hydratant', 'Utiliser de l’eau très chaude'], ar: ['الغسيل بزاف', 'حبس المرطب', 'استعمال الماء السخون بزاف'] },
+    quickTip: { fr: 'Testez un nettoyant doux et un hydratant léger, puis observez la zone T.', ar: 'جربي منظف لطيف ومرطب خفيف وراقبي منطقة T.' },
+    caseStudy: { fr: '« Ma peau brille mais tire après le nettoyage. » Le nettoyage peut être trop intense.', ar: '« بشرتي كتلمع ولكن كتشّد بعد الغسيل. » ممكن التنظيف قوي بزاف.' },
   },
   {
     id: 'seche',
     label: { fr: 'Peau sèche', ar: 'البشرة الجافة' },
-    short: { fr: 'Sécheresse', ar: 'الجفاف' },
+    short: { fr: 'Peau sèche', ar: 'البشرة الجافة' },
     summary: { fr: 'Retrouver du confort sans accumuler des couches inutiles.', ar: 'نرجعو الراحة بلا طبقات ومنتجات كثيرة.' },
-    tips: { fr: ['Limiter l’eau chaude', 'Renforcer la crème', 'Tamponner pour sécher'], ar: ['نقص الماء السخون', 'كريم مريح أكثر', 'التنشيف بالتربيت'] }
-  },
-  {
-    id: 'sensible',
-    label: { fr: 'Peau sensible', ar: 'البشرة الحساسة' },
-    short: { fr: 'Sensibilité', ar: 'الحساسية' },
-    summary: { fr: 'Repérer les déclencheurs et simplifier avant d’ajouter.', ar: 'نعرفو المحفزات ونبسطو قبل ما نزيدو.' },
-    tips: { fr: ['Journal de réactions', 'Test localisé', 'Routine courte'], ar: ['دفتر للتفاعلات', 'اختبار فبلاصة صغيرة', 'روتين قصير'] }
+    mistakes: { fr: ['Eau trop chaude', 'Nettoyant décapant', 'Ajouter trop d’actifs'], ar: ['الماء السخون بزاف', 'منظف قوي', 'زيادة مواد فعالة كثيرة'] },
+    quickTip: { fr: 'Réduisez les agressions et appliquez une crème confortable sur peau légèrement humide.', ar: 'نقصي الحوايج القوية وديري كريم مريح والبشرة مازال رطبة شوية.' },
+    caseStudy: { fr: '« Ma peau tire juste après le lavage. » La barrière cutanée a peut-être surtout besoin de douceur.', ar: '« بشرتي كتشّد مباشرة بعد الغسيل. » ممكن الحاجز ديال البشرة محتاج اللطف.' },
   },
   {
     id: 'terne',
     label: { fr: 'Teint terne', ar: 'البشرة الباهتة' },
-    short: { fr: 'Peau terne', ar: 'البشرة الباهتة' },
+    short: { fr: 'Teint terne', ar: 'بهتان البشرة' },
     summary: { fr: 'Revenir aux gestes réguliers avant de chercher un produit miracle.', ar: 'نرجعو للعادات المنتظمة قبل ما نقلبو على منتج سحري.' },
-    tips: { fr: ['Hydratation régulière', 'Sommeil et confort', 'Protection solaire'], ar: ['ترطيب منتظم', 'النوم والراحة', 'الحماية من الشمس'] }
+    mistakes: { fr: ['Changer souvent de routine', 'Chercher un résultat immédiat', 'Négliger hydratation et SPF'], ar: ['تبديل الروتين بزاف', 'تسناي نتيجة سريعة', 'إهمال الترطيب وSPF'] },
+    quickTip: { fr: 'Stabilisez une routine simple deux semaines et observez le confort avant d’ajouter.', ar: 'ثبتي روتين بسيط جوج سيمانات وراقبي الراحة قبل ما تزيدي.' },
+    caseStudy: { fr: '« J’utilise plusieurs produits mais mon teint reste terne. » Trop d’objectifs peuvent brouiller la routine.', ar: '« كنستعمل منتجات كثيرة والبشرة باقا باهتة. » كثرة الأهداف تقدر تخربق الروتين.' },
+  },
+  {
+    id: 'sensible',
+    label: { fr: 'Peau sensible', ar: 'البشرة الحساسة' },
+    short: { fr: 'Peau sensible', ar: 'البشرة الحساسة' },
+    summary: { fr: 'Repérer les déclencheurs et simplifier avant d’ajouter.', ar: 'نعرفو المحفزات ونبسطو قبل ما نزيدو.' },
+    mistakes: { fr: ['Tester plusieurs nouveautés', 'Ignorer les picotements', 'Exfolier pendant une réaction'], ar: ['تجريب بزاف ديال الجديد', 'تجاهل اللسع', 'التقشير وقت التفاعل'] },
+    quickTip: { fr: 'Revenez à une routine courte et testez toute nouveauté sur une petite zone.', ar: 'رجعي لروتين قصير وجربي أي جديد فبلاصة صغيرة.' },
+    caseStudy: { fr: '« Tout me pique depuis quelques jours. » Une pause des nouveautés aide à identifier le déclencheur.', ar: '« كلشي كيحرقني هاد الأيام. » وقفي الجديد شوية باش تعرفي السبب.' },
   },
   {
     id: 'spf',
     label: { fr: 'Protection solaire', ar: 'الحماية من الشمس' },
     short: { fr: 'Protection solaire', ar: 'الحماية من الشمس' },
     summary: { fr: 'Transformer le SPF en vraie habitude quotidienne.', ar: 'نخليو SPF عادة يومية حقيقية.' },
-    tips: { fr: ['Dernière étape du matin', 'Quantité suffisante', 'Renouveler selon l’exposition'], ar: ['آخر خطوة فالصباح', 'كمية كافية', 'التجديد حسب التعرض'] }
-  },
-  {
-    id: 'routine',
-    label: { fr: 'Routine matin et soir', ar: 'روتين الصباح والليل' },
-    short: { fr: 'Routine confuse', ar: 'روتين مخربق' },
-    summary: { fr: 'Donner un rôle clair à chaque étape pour alléger la routine.', ar: 'نعطيو دور واضح لكل مرحلة باش نبسطو الروتين.' },
-    tips: { fr: ['Nettoyer', 'Hydrater', 'Protéger le matin'], ar: ['تنظيف', 'ترطيب', 'حماية فالصباح'] }
-  },
-  {
-    id: 'produits',
-    label: { fr: 'Choix des produits', ar: 'اختيار المنتجات' },
-    short: { fr: 'Choix des produits', ar: 'اختيار المنتجات' },
-    summary: { fr: 'Choisir selon le besoin prioritaire plutôt que selon la tendance.', ar: 'نختارو حسب الحاجة الرئيسية ماشي حسب الترند.' },
-    tips: { fr: ['Un objectif principal', 'Une nouveauté à la fois', 'Lire les indications'], ar: ['هدف رئيسي واحد', 'جديد واحد فكل مرة', 'قراية التعليمات'] }
+    mistakes: { fr: ['L’appliquer seulement à la plage', 'Mettre une quantité minime', 'Oublier de renouveler si exposée'], ar: ['استعمالو غير فالبحر', 'كمية قليلة بزاف', 'نسيان التجديد مع التعرض'] },
+    quickTip: { fr: 'Placez-le avec vos gestes du matin : dernière étape, quantité suffisante.', ar: 'خليه مع حاجيات الصباح: آخر خطوة وبكمية كافية.' },
+    caseStudy: { fr: '« J’utilise un sérum mais j’oublie le SPF. » L’actif ne remplace pas la protection quotidienne.', ar: '« كنستعمل سيروم ولكن كنسى SPF. » السيروم ما كيعوضش الحماية اليومية.' },
   },
   {
     id: 'inconnue',
-    label: { fr: 'Je ne connais pas mon type de peau', ar: 'ما عارفاش نوع البشرة ديالي' },
-    short: { fr: 'Type de peau ?', ar: 'نوع البشرة؟' },
+    label: { fr: 'Je ne comprends pas ma peau', ar: 'ما فاهمتش بشرتي' },
+    short: { fr: 'Je ne sais pas', ar: 'ما فاهمتش بشرتي' },
     summary: { fr: 'Observer les sensations, les zones et les moments de la journée.', ar: 'نراقبو الإحساس، المناطق وأوقات النهار.' },
-    tips: { fr: ['Observer sans produit 30 min', 'Comparer zone T et joues', 'Noter les tiraillements'], ar: ['مراقبة 30 دقيقة بلا منتج', 'مقارنة T مع الخدود', 'كتابة الإحساس بالشد'] }
+    mistakes: { fr: ['Se fier à une seule journée', 'Confondre type et réaction', 'Acheter avant d’observer'], ar: ['الحكم من نهار واحد', 'الخلط بين النوع والتفاعل', 'الشراء قبل المراقبة'] },
+    quickTip: { fr: 'Observez la zone T, les joues et les tiraillements 30 minutes après un nettoyage doux.', ar: 'راقبي منطقة T والخدود والشد 30 دقيقة من بعد تنظيف لطيف.' },
+    caseStudy: { fr: '« Je brille à certains endroits et je tire ailleurs. » Il peut s’agir d’une peau mixte ou déshydratée.', ar: '« كنلمع فبلايص وكنحس بالشد فبلايص. » ممكن بشرة مختلطة أو ناقصة ترطيب.' },
   }
 ]
 
@@ -126,6 +129,8 @@ function useLanguage() {
     document.querySelector<HTMLMetaElement>('meta[property="og:title"]')?.setAttribute('content', title)
     document.querySelector<HTMLMetaElement>('meta[property="og:description"]')?.setAttribute('content', description)
     document.querySelector<HTMLMetaElement>('meta[property="og:locale"]')?.setAttribute('content', lang === 'fr' ? 'fr_MA' : 'ar_MA')
+    document.querySelector<HTMLMetaElement>('meta[name="twitter:title"]')?.setAttribute('content', title)
+    document.querySelector<HTMLMetaElement>('meta[name="twitter:description"]')?.setAttribute('content', description)
   }, [lang])
   return lang
 }
@@ -307,6 +312,16 @@ function Hero({ lang, onConcern }: { lang: Language; onConcern: (id: string) => 
       <motion.div className="hero-layout">
         <motion.div className="hero-copy" initial={reduced ? undefined : { opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: .85 }}>
           <p className="eyebrow">{t('hero.eyebrow')}</p>
+          <div className="hero-concern-hook" aria-labelledby="hero-concern-question">
+            <h2 id="hero-concern-question">{lang === 'fr' ? 'Qu’est-ce qui vous dérange le plus avec votre peau aujourd’hui ?' : 'شنو أكثر حاجة مقلقاك فبشرتك دابا؟'}</h2>
+            <div className="hero-concern-grid">
+              {concerns.map(concern => (
+                <button type="button" key={concern.id} onClick={() => onConcern(concern.id)}>
+                  {local(concern.label, lang)} <ArrowUpRight />
+                </button>
+              ))}
+            </div>
+          </div>
           <h1>
             <span>{t('hero.titleA')}</span>
             <em>{t('hero.titleB')}</em>
@@ -356,7 +371,6 @@ function Hero({ lang, onConcern }: { lang: Language; onConcern: (id: string) => 
 }
 
 function ConcernExplorer({ lang, selected, setSelected, describe }: { lang: Language; selected: string; setSelected: (id: string) => void; describe: (id: string) => void }) {
-  const { t } = useTranslation()
   const active = concerns.find(c => c.id === selected) || concerns[0]
   return (
     <Reveal className="concern-section" id="besoins">
@@ -364,8 +378,8 @@ function ConcernExplorer({ lang, selected, setSelected, describe }: { lang: Lang
       <div className="section-wrap">
         <SectionIntro
           eyebrow={lang === 'fr' ? 'Point de départ' : 'نقطة البداية'}
-          title={lang === 'fr' ? 'Qu’aimeriez-vous mieux comprendre aujourd’hui ?' : 'شنو بغيتي تفهمي أكثر اليوم؟'}
-          copy={lang === 'fr' ? 'Choisissez le signe qui vous parle. La réponse se construit sans rechargement et sans vous enfermer dans une étiquette.' : 'اختاري الإشارة اللي كتشبه ليك. الجواب كيبان بلا تحميل وبلا ما نحكمو على نوع البشرة.'}
+          title={lang === 'fr' ? 'Qu’est-ce qui vous dérange le plus avec votre peau aujourd’hui ?' : 'شنو أكثر حاجة مقلقاك فبشرتك دابا؟'}
+          copy={lang === 'fr' ? 'Choisissez votre priorité : vous verrez tout de suite les erreurs fréquentes, une première piste et un cas qui ressemble au vôtre.' : 'اختاري المشكل الرئيسي: غادي تشوفي دابا الأخطاء الشائعة، أول نصيحة وحالة قريبة ليك.'}
         />
         <div className="concern-stage">
           <div className="concern-cloud" role="list">
@@ -376,7 +390,7 @@ function ConcernExplorer({ lang, selected, setSelected, describe }: { lang: Lang
                 className={`concern-pill concern-pill--${(index % 4) + 1}${selected === concern.id ? ' is-active' : ''}`}
                 onClick={() => {
                   setSelected(concern.id)
-                  track('select_skin_concern', { selection_source: 'explorer' })
+                  track('select_skin_concern', { selection_source: 'explorer', concern_id: concern.id })
                 }}
               >
                 <span>{String(index + 1).padStart(2, '0')}</span>
@@ -389,10 +403,24 @@ function ConcernExplorer({ lang, selected, setSelected, describe }: { lang: Lang
               <p className="answer-index">ECOLYN / {local(active.short, lang).toUpperCase()}</p>
               <h3>{local(active.label, lang)}</h3>
               <p>{local(active.summary, lang)}</p>
-              <ol>{active.tips[lang].map(tip => <li key={tip}><Check size={15} />{tip}</li>)}</ol>
+              <div className="concern-mini-path">
+                <div>
+                  <b>{lang === 'fr' ? '3 erreurs fréquentes' : '3 أخطاء شائعة'}</b>
+                  <ol>{active.mistakes[lang].map(mistake => <li key={mistake}><X size={15} />{mistake}</li>)}</ol>
+                </div>
+                <div className="concern-quick-tip">
+                  <b>{lang === 'fr' ? 'Conseil rapide' : 'نصيحة سريعة'}</b>
+                  <p>{local(active.quickTip, lang)}</p>
+                </div>
+                <div className="concern-case">
+                  <b>{lang === 'fr' ? 'Cas concret' : 'حالة واقعية'}</b>
+                  <p>{local(active.caseStudy, lang)}</p>
+                  <a href="#experiences" onClick={() => track('similar_case_open', { concern_id: active.id })}>{lang === 'fr' ? 'Voir une expérience de la communauté' : 'نشوف تجربة من المجتمع'} <ArrowDown /></a>
+                </div>
+              </div>
               <div className="answer-actions">
-                <a href="#conseils" className="text-link">{t('common.related')} <ArrowDown size={15} /></a>
-                <button onClick={() => describe(active.id)}>{t('common.describe')} <MessageCircle size={16} /></button>
+                <button onClick={() => describe(active.id)}>{lang === 'fr' ? 'Ma situation ressemble à ça' : 'حالتي كتشبه لهادي'} <MessageCircle size={16} /></button>
+                <a href="#formulaire" className="text-link" onClick={() => describe(active.id)}>{lang === 'fr' ? 'Recevoir mes conseils personnalisés' : 'نتوصل بالنصائح المناسبة ليا'} <ArrowDown size={15} /></a>
               </div>
             </motion.article>
           </AnimatePresence>
@@ -1010,6 +1038,120 @@ function LeadForm({ lang, concern, setConcern }: { lang: Language; concern: stri
   )
 }
 
+function SimpleLeadForm({ lang, concern, setConcern }: { lang: Language; concern: string; setConcern: (value: string) => void }) {
+  const { t } = useTranslation()
+  const [started, setStarted] = useState(false)
+  const [sending, setSending] = useState(false)
+  const [result, setResult] = useState<LeadResult | null>(null)
+  const [error, setError] = useState('')
+  const formRef = useRef<HTMLFormElement>(null)
+
+  useEffect(() => {
+    const section = document.getElementById('formulaire')
+    if (!section) return
+    const observer = new IntersectionObserver(([entry]) => {
+      document.body.classList.toggle('form-in-view', entry.isIntersecting)
+    }, { threshold: .08 })
+    observer.observe(section)
+    return () => {
+      observer.disconnect()
+      document.body.classList.remove('form-in-view')
+    }
+  }, [])
+
+  const begin = () => {
+    if (started) return
+    setStarted(true)
+    track('form_start', { source: 'short_form', concern_id: concern })
+  }
+
+  const onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    if (!formRef.current || !formRef.current.reportValidity()) return
+    setSending(true)
+    setError('')
+    try {
+      const nextResult = await submitLead(formRef.current)
+      if (nextResult.mode === 'supabase' || nextResult.mode === 'endpoint') {
+        track('form_submit', { submission_mode: nextResult.mode })
+        track('generate_lead', { submission_mode: nextResult.mode }, {
+          metaCapi: nextResult.mode === 'supabase',
+          metaCapiReference: nextResult.reference,
+        })
+        sessionStorage.setItem('ecolyn-last-lead', JSON.stringify({
+          reference: nextResult.reference,
+          whatsappUrl: nextResult.whatsappUrl,
+        }))
+        navigate('thank-you', { ref: nextResult.reference })
+      } else {
+        setResult(nextResult)
+      }
+    } catch (nextError) {
+      const code = nextError instanceof Error ? nextError.message : ''
+      setError(code === 'PHOTO_TOO_LARGE'
+        ? (lang === 'fr' ? 'La photo est trop lourde. Choisissez une image plus légère.' : 'الصورة كبيرة بزاف. اختاري صورة أخف.')
+        : code === 'PHOTO_CONSENT_REQUIRED'
+          ? (lang === 'fr' ? 'Cochez l’autorisation photo pour joindre cette image.' : 'وافقي على استعمال الصورة باش تزيديها.')
+          : (lang === 'fr' ? 'L’envoi sécurisé n’a pas abouti. Vérifiez votre connexion puis réessayez.' : 'الإرسال الآمن ما كملش. تأكدي من الإنترنت وعاودي.'))
+    } finally {
+      setSending(false)
+    }
+  }
+
+  if (result) {
+    return (
+      <Reveal className="form-section form-section--success" id="formulaire">
+        <div className="success-orbit"><Check /></div>
+        <p className="eyebrow">{lang === 'fr' ? 'Demande prête' : 'الطلب واجد'}</p>
+        <h2>{t('form.successTitle')}</h2>
+        <p>{lang === 'fr' ? 'Ouvrez WhatsApp pour nous transmettre votre demande.' : 'فتحي واتساب باش تصيفطي لينا الطلب.'}</p>
+        <a className="button button--primary" href={result.whatsappUrl} target="_blank" rel="noreferrer" onClick={() => track('whatsapp_click', { source: 'lead_fallback' })}>{t('form.whatsapp')} <MessageCircle /></a>
+      </Reveal>
+    )
+  }
+
+  return (
+    <Reveal className="form-section form-section--short" id="formulaire">
+      <div className="form-shell">
+        <div className="form-aside">
+          <p className="eyebrow">{t('form.eyebrow')}</p>
+          <h2>{lang === 'fr' ? 'Obtenez un premier conseil adapté' : 'خذي أول نصيحة مناسبة ليك'}</h2>
+          <p>{lang === 'fr' ? 'Une seule page, quelques informations utiles. Nous approfondirons ensuite avec vous sur WhatsApp.' : 'صفحة وحدة ومعلومات قليلة ومفيدة. من بعد نكملو معاك التفاصيل فالواتساب.'}</p>
+          <div className="short-form-benefits">
+            <span><Check /> {lang === 'fr' ? 'Moins de 2 minutes' : 'أقل من جوج دقايق'}</span>
+            <span><LockKeyhole /> {lang === 'fr' ? 'Informations confidentielles' : 'المعلومات ديالك خاصة'}</span>
+            <span><MessageCircle /> {lang === 'fr' ? 'Réponse sur WhatsApp' : 'الجواب فالواتساب'}</span>
+          </div>
+          <p className="medical-note">{lang === 'fr' ? 'Ces conseils sont informatifs. Une situation sévère, inhabituelle ou persistante doit être présentée à un dermatologue.' : 'هاد النصائح توعوية. أي حالة قوية، غريبة أو مستمرة خاصها طبيب الجلد.'}</p>
+        </div>
+        <form ref={formRef} onSubmit={onSubmit} onFocus={begin} className="lead-form lead-form--short">
+          <div className="form-step-heading"><span>01</span><div><p>{lang === 'fr' ? 'Votre demande' : 'الطلب ديالك'}</p><h3>{lang === 'fr' ? 'Parlez-nous brièvement de votre peau' : 'حكي لينا باختصار على بشرتك'}</h3></div></div>
+          <div className="form-grid short-form-grid">
+            <Field label={lang === 'fr' ? 'Prénom' : 'الاسم'}><input name="firstName" required autoComplete="given-name" /></Field>
+            <Field label={lang === 'fr' ? 'Numéro WhatsApp' : 'رقم واتساب'}><input name="whatsapp" required type="tel" inputMode="tel" autoComplete="tel" placeholder="06 12 34 56 78" pattern="[+0-9 ()-]{9,20}" /></Field>
+            <Field label={lang === 'fr' ? 'Problème principal' : 'المشكل الرئيسي'}><select name="primaryConcern" value={concern} onChange={event => { setConcern(event.target.value); track('select_skin_concern', { selection_source: 'short_form', concern_id: event.target.value }) }} required>{concerns.map(item => <option value={item.id} key={item.id}>{local(item.label, lang)}</option>)}</select></Field>
+            <Field label={lang === 'fr' ? 'Type de peau' : 'نوع البشرة'}><select name="skinType" required defaultValue=""><option value="" disabled>{lang === 'fr' ? 'Sélectionner' : 'اختاري'}</option><option value="oily">{lang === 'fr' ? 'Grasse' : 'دهنية'}</option><option value="dry">{lang === 'fr' ? 'Sèche' : 'جافة'}</option><option value="combination">{lang === 'fr' ? 'Mixte' : 'مختلطة'}</option><option value="sensitive">{lang === 'fr' ? 'Sensible' : 'حساسة'}</option><option value="unknown">{lang === 'fr' ? 'Je ne sais pas' : 'ما عارفاش'}</option></select></Field>
+            <Field label={lang === 'fr' ? 'Expliquez-nous brièvement ce qui vous dérange avec votre peau.' : 'شرحي لينا باختصار شنو كيقلقك فبشرتك.'} wide><textarea name="description" rows={4} required minLength={10} maxLength={1200} placeholder={lang === 'fr' ? 'Exemple : mes traces restent visibles et ma peau réagit facilement…' : 'مثال: آثار الحبوب كتبقى وبشرتي كتتفاعل بسرعة…'} /></Field>
+            <Field label={lang === 'fr' ? 'Email facultatif' : 'الإيميل اختياري'} wide><input name="email" type="email" autoComplete="email" /></Field>
+            <details className="optional-photo field--wide">
+              <summary><Upload /> {lang === 'fr' ? 'Ajouter une photo (facultatif)' : 'زيدي صورة (اختياري)'}</summary>
+              <span className="file-input"><Upload /><input name="photo" type="file" accept="image/jpeg,image/png,image/webp" /><b>{lang === 'fr' ? 'JPG, PNG ou WebP • 8 Mo max' : 'JPG, PNG أو WebP • حتى 8MB'}</b></span>
+              <label className="check-field"><input type="checkbox" name="photoConsent" value="yes" /><span>{lang === 'fr' ? 'J’autorise l’utilisation de cette photo uniquement pour examiner ma demande.' : 'كنوافق تستعمل الصورة غير باش يتراجع الطلب ديالي.'}</span></label>
+            </details>
+            <label className="check-field field--wide"><input type="checkbox" name="contactConsent" value="yes" required /><span>{lang === 'fr' ? 'J’accepte d’être contactée sur WhatsApp au sujet de cette demande.' : 'كنوافق يتواصلو معايا فالواتساب بخصوص هاد الطلب.'}</span></label>
+            <label className="check-field field--wide"><input type="checkbox" name="marketingConsent" value="yes" /><span>{lang === 'fr' ? 'J’accepte de recevoir de futurs conseils et d’aider ECOLYN à mesurer cette demande avec Meta. Facultatif.' : 'كنوافق نتوصل بنصائح من بعد ونعاون ECOLYN تقيس هاد الطلب مع Meta. اختياري.'}</span></label>
+          </div>
+          {error && <p className="form-error" role="alert">{error}</p>}
+          <div className="form-navigation short-form-submit">
+            <p><ShieldCheck /> {lang === 'fr' ? 'Enregistrement sécurisé avant toute mesure de conversion.' : 'التسجيل الآمن كيتم قبل قياس التحويل.'}</p>
+            <button type="submit" className="button button--primary" disabled={sending}>{sending ? (lang === 'fr' ? 'Envoi sécurisé…' : 'الإرسال الآمن…') : t('form.submit')} <ArrowUpRight /></button>
+          </div>
+        </form>
+      </div>
+    </Reveal>
+  )
+}
+
 function Events({ lang }: { lang: Language }) {
   const [live, setLive] = useState<LiveSettings | null>(null)
   const [loading, setLoading] = useState(true)
@@ -1181,8 +1323,10 @@ function LegalModal({ type, lang, close }: { type: 'privacy' | 'terms'; lang: La
 export default function App() {
   const lang = useLanguage()
   const [menuOpen, setMenuOpen] = useState(false)
-  const [selectedConcern, setSelectedConcern] = useState('taches')
-  const [formConcern, setFormConcern] = useState('taches')
+  const savedConcern = localStorage.getItem('ecolyn-skin-concern') || 'taches'
+  const initialConcern = concerns.some(item => item.id === savedConcern) ? savedConcern : 'taches'
+  const [selectedConcern, setSelectedConcern] = useState(initialConcern)
+  const [formConcern, setFormConcern] = useState(initialConcern)
   const [article, setArticle] = useState<Article | null>(null)
   const [legal, setLegal] = useState<'privacy' | 'terms' | null>(null)
   const { scrollYProgress } = useScroll()
@@ -1204,14 +1348,24 @@ export default function App() {
   }
   const describe = (id: string) => {
     const mapped = concerns.find(item => item.id === id)?.id
-      || (id === 'grasse-tire' ? 'grasse' : id === 'spf-oublie' ? 'spf' : id === 'routine-change' ? 'routine' : id)
+      || (id === 'grasse-tire' ? 'grasse' : id === 'spf-oublie' ? 'spf' : id === 'routine-change' ? 'inconnue' : id)
     setFormConcern(mapped)
+    if (concerns.some(item => item.id === mapped)) {
+      setSelectedConcern(mapped)
+      localStorage.setItem('ecolyn-skin-concern', mapped)
+    }
+    track('form_start', { source: 'concern_path', concern_id: mapped })
     setTimeout(() => document.getElementById('formulaire')?.scrollIntoView({ behavior: reduced ? 'auto' : 'smooth' }), 40)
   }
-  const selectHeroConcern = (id: string) => {
+  const chooseConcern = (id: string) => {
     setSelectedConcern(id)
+    setFormConcern(id)
+    localStorage.setItem('ecolyn-skin-concern', id)
+  }
+  const selectHeroConcern = (id: string) => {
+    chooseConcern(id)
     setTimeout(() => document.getElementById('besoins')?.scrollIntoView({ behavior: reduced ? 'auto' : 'smooth' }), 40)
-    track('select_skin_concern', { selection_source: 'hero' })
+    track('select_skin_concern', { selection_source: 'hero', concern_id: id })
   }
 
   const currentConcernLabel = useMemo(() => local(concerns.find(item => item.id === formConcern)?.short || concerns[0].short, lang), [formConcern, lang])
@@ -1222,7 +1376,7 @@ export default function App() {
       <Header lang={lang} menuOpen={menuOpen} setMenuOpen={setMenuOpen} />
       <main>
         <Hero lang={lang} onConcern={selectHeroConcern} />
-        <ConcernExplorer lang={lang} selected={selectedConcern} setSelected={setSelectedConcern} describe={describe} />
+        <ConcernExplorer lang={lang} selected={selectedConcern} setSelected={chooseConcern} describe={describe} />
         <AdviceRail lang={lang} openArticle={openArticle} />
         <Cases lang={lang} describe={describe} />
         <Proofs lang={lang} />
@@ -1231,13 +1385,23 @@ export default function App() {
         <Library lang={lang} openArticle={openArticle} />
         <Nutrition lang={lang} />
         <HowItWorks lang={lang} />
-        <LeadForm lang={lang} concern={formConcern} setConcern={setFormConcern} />
+        <SimpleLeadForm lang={lang} concern={formConcern} setConcern={chooseConcern} />
         <Events lang={lang} />
         <FAQ lang={lang} />
       </main>
       <Footer lang={lang} openLegal={setLegal} />
       <a className="sticky-advice" href="#formulaire" onClick={() => track('form_start', { source: 'sticky' })}>
         <span><MessageCircle /></span><b>{currentConcernLabel}</b><em>{lang === 'fr' ? 'Recevoir mes conseils' : 'نستافد من النصائح'}</em><ArrowUpRight />
+      </a>
+      <a
+        className="whatsapp-group-float"
+        href={whatsappGroupHref}
+        target="_blank"
+        rel="noreferrer"
+        onClick={() => track('join_whatsapp_group', { source: 'floating_button' })}
+        aria-label={lang === 'fr' ? 'Rejoindre le groupe conseils sur WhatsApp' : 'انضمي لمجموعة النصائح على واتساب'}
+      >
+        <MessageCircle /><span>{lang === 'fr' ? 'Rejoindre le groupe conseils' : 'انضمي لمجموعة النصائح'}</span>
       </a>
       <AnimatePresence>
         {article && <ArticleDrawer article={article} lang={lang} close={() => setArticle(null)} next={nextArticle} />}

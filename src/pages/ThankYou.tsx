@@ -28,7 +28,7 @@ export default function ThankYou() {
   const reference = confirmed ? saved.reference || '' : ''
   const number = (window.ECOLYN_CONFIG?.whatsappNumber || '212699072913').replace(/\D/g, '')
   const whatsappUrl = saved.whatsappUrl || `https://wa.me/${number}`
-  const groupUrl = window.ECOLYN_CONFIG?.whatsappGroupUrl
+  const groupUrl = window.ECOLYN_CONFIG?.whatsappGroupUrl || 'https://chat.whatsapp.com/IbrwixzaySqLYawg3D7WiP?s=cl&p=a&ilr=1'
 
   useEffect(() => {
     document.documentElement.lang = lang
@@ -45,11 +45,11 @@ export default function ThankYou() {
       <section className="thank-you-card">
         <div className="thank-you-check">{confirmed ? <Check /> : <MessageCircle />}</div>
         <p className="thank-you-kicker">{confirmed ? (lang === 'fr' ? 'Demande enregistrée' : 'تسجل الطلب ديالك') : (lang === 'fr' ? 'Espace de confirmation' : 'فضاء التأكيد')}</p>
-        <h1>{confirmed ? (lang === 'fr' ? 'Merci pour votre confiance.' : 'شكراً على الثقة ديالك.') : (lang === 'fr' ? 'Vous n’avez pas encore envoyé de demande.' : 'مازال ما صيفطتي حتى طلب.')}</h1>
+        <h1>{confirmed ? (lang === 'fr' ? 'Votre demande a bien été reçue.' : 'توصلنا بالطلب ديالك بنجاح.') : (lang === 'fr' ? 'Vous n’avez pas encore envoyé de demande.' : 'مازال ما صيفطتي حتى طلب.')}</h1>
         <p className="thank-you-copy">
           {confirmed ? (lang === 'fr'
-            ? 'Votre demande est maintenant enregistrée de façon sécurisée. Notre équipe l’examinera avant de vous contacter.'
-            : 'الطلب ديالك تسجل بطريقة آمنة. الفريق ديالنا غادي يراجعو قبل ما يتواصل معاك.') : (lang === 'fr'
+            ? 'Merci. Notre équipe examinera votre situation et vous enverra les prochains conseils directement sur WhatsApp.'
+            : 'شكراً. الفريق غادي يشوف الحالة ديالك ويصيفط ليك النصائح الجاية مباشرة فالواتساب.') : (lang === 'fr'
               ? 'Cette page confirme uniquement les demandes réellement envoyées. Commencez le formulaire pour nous expliquer votre situation.'
               : 'هاد الصفحة كتأكد غير الطلبات اللي تصيفطو بصح. بداي الاستمارة وشرحي لينا الحالة ديالك.')}
         </p>
@@ -59,12 +59,22 @@ export default function ThankYou() {
           <div><span><HeartHandshake /></span><p><strong>{lang === 'fr' ? 'Analyse personnalisée' : 'مراجعة شخصية'}</strong><small>{lang === 'fr' ? 'Une conseillère étudie votre situation.' : 'مستشارة غادي تشوف الحالة ديالك.'}</small></p></div>
           <div><span><MessageCircle /></span><p><strong>{lang === 'fr' ? 'Réponse sur WhatsApp' : 'الجواب فالواتساب'}</strong><small>{lang === 'fr' ? 'Vous recevrez les prochaines étapes.' : 'غادي توصلك الخطوات الجاية.'}</small></p></div>
         </div>}
+        {confirmed && <section className="thank-you-group">
+          <p>{lang === 'fr' ? 'En attendant, rejoignez notre groupe gratuit de conseils skincare.' : 'وفي انتظار الجواب، انضمي للمجموعة المجانية ديال نصائح العناية بالبشرة.'}</p>
+          <ul>
+            {(lang === 'fr'
+              ? ['Conseils réguliers', 'Réponses aux questions fréquentes', 'Lives', 'Expériences de la communauté', 'Nouveaux contenus']
+              : ['نصائح منتظمة', 'أجوبة على الأسئلة المتكررة', 'لايفات', 'تجارب المجتمع', 'محتوى جديد']).map(item => <li key={item}><Check /> {item}</li>)}
+          </ul>
+          <a href={groupUrl} target="_blank" rel="noreferrer" onClick={() => track('join_whatsapp_group', { source: 'thank_you_group' })}>
+            <MessageCircle /> {lang === 'fr' ? 'Rejoindre le groupe WhatsApp' : 'انضمي لمجموعة WhatsApp'} <ArrowUpRight />
+          </a>
+        </section>}
         <div className="thank-you-actions">
           {confirmed ? <>
-            <a className="thank-you-primary" href={whatsappUrl} target="_blank" rel="noreferrer" onClick={() => track('whatsapp_click', { source: 'thank_you' })}>
+            <a className="thank-you-secondary" href={whatsappUrl} target="_blank" rel="noreferrer" onClick={() => track('whatsapp_click', { source: 'thank_you' })}>
               {lang === 'fr' ? 'Ouvrir WhatsApp' : 'فتح واتساب'} <MessageCircle />
             </a>
-            {groupUrl && <a className="thank-you-secondary" href={groupUrl} target="_blank" rel="noreferrer" onClick={() => track('join_whatsapp_group', { source: 'thank_you_group' })}>{lang === 'fr' ? 'Rejoindre la communauté' : 'الانضمام للمجموعة'} <ArrowUpRight /></a>}
           </> : <a className="thank-you-primary" href={`${routeUrl('home')}#formulaire`}>{lang === 'fr' ? 'Remplir le formulaire' : 'نعمر الاستمارة'} <ArrowUpRight /></a>}
         </div>
         <a className="thank-you-return" href={routeUrl('home')}><ArrowLeft /> {lang === 'fr' ? 'Retourner aux conseils' : 'الرجوع للنصائح'}</a>

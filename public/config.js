@@ -3,7 +3,7 @@ window.ECOLYN_CONFIG = {
   supabaseAnonKey: "__VITE_SUPABASE_ANON_KEY__",
   leadEndpoint: "__VITE_LEAD_ENDPOINT__",
   whatsappNumber: "212699072913",
-  whatsappGroupUrl: "",
+  whatsappGroupUrl: "https://chat.whatsapp.com/IbrwixzaySqLYawg3D7WiP?s=cl&p=a&ilr=1",
   responseDelay: "Réponse dès que possible",
   responseDelayAr: "الجواب في أقرب وقت ممكن",
   metaPixelId: "",
