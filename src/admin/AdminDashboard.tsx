@@ -295,9 +295,12 @@ function ProspectsPanel() {
             <div className="admin-contact-row"><a href={`https://wa.me/${selected.whatsapp.replace(/\D/g, '')}`} target="_blank" rel="noreferrer">{selected.whatsapp}</a>{selected.email && <a href={`mailto:${selected.email}`}>{selected.email}</a>}</div>
             <label className="admin-detail-status">Statut<select value={selected.status} disabled={savingId === selected.id} onChange={event => void updateStatus(selected, event.target.value as ProspectStatus)}>{Object.entries(statusLabels).map(([value, label]) => <option value={value} key={value}>{label}</option>)}</select></label>
             <div className="admin-detail-grid">
-              {Object.entries(selected.answers || {}).map(([key, value]) => (
+              {Object.entries(selected.answers || {}).filter(([key]) => !['contactConsent', 'marketingConsent', 'photoConsent'].includes(key)).map(([key, value]) => (
                 <div key={key}><span>{answerLabels[key] || key}</span><strong>{typeof value === 'boolean' ? (value ? 'Oui' : 'Non') : String(value || '—')}</strong></div>
               ))}
+              <div><span>Contact au sujet de la demande</span><strong>{selected.contact_consent ? 'Oui' : 'Non'}</strong></div>
+              <div><span>Mesure publicitaire Meta</span><strong>{selected.marketing_consent ? 'Autorisée' : 'Non autorisée'}</strong></div>
+              <div><span>Utilisation de la photo</span><strong>{selected.photo_consent ? 'Autorisée' : 'Non autorisée'}</strong></div>
             </div>
             {(selected.utm_source || selected.utm_campaign) && <div className="admin-utm-box"><strong>Acquisition</strong><span>Source : {selected.utm_source || '—'}</span><span>Support : {selected.utm_medium || '—'}</span><span>Campagne : {selected.utm_campaign || '—'}</span></div>}
             {selected.photo_name && <div className="admin-photo-box"><strong>Photo privée : {selected.photo_name}</strong>{photo ? <img src={photo} alt="Photo privée transmise avec la demande" /> : <button className="admin-secondary-button" onClick={() => void loadPhoto(selected)} disabled={photoLoading}>{photoLoading ? 'Chargement…' : 'Afficher la photo'}</button>}</div>}

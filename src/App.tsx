@@ -1020,8 +1020,9 @@ function LeadForm({ lang, concern, setConcern }: { lang: Language; concern: stri
                 <Field label={lang === 'fr' ? 'Prénom' : 'الاسم'}><input name="firstName" required autoComplete="given-name" /></Field>
                 <Field label={lang === 'fr' ? 'Numéro WhatsApp' : 'رقم واتساب'}><input name="whatsapp" required type="tel" inputMode="tel" autoComplete="tel" placeholder="06 12 34 56 78" /></Field>
                 <Field label={lang === 'fr' ? 'Email facultatif' : 'الإيميل اختياري'} wide><input name="email" type="email" autoComplete="email" /></Field>
-                <label className="check-field field--wide"><input type="checkbox" name="contactConsent" value="yes" required /><span>{lang === 'fr' ? 'J’accepte d’être contactée au sujet de cette demande de conseils.' : 'كنوافق يتواصلو معايا بخصوص هاد الطلب.'}</span></label>
-                <label className="check-field field--wide"><input type="checkbox" name="marketingConsent" value="yes" /><span>{lang === 'fr' ? 'J’accepte séparément de recevoir de futurs contenus et offres. Si cette case est cochée, mes coordonnées hachées peuvent aussi aider Meta à mesurer cette demande. Optionnel.' : 'كنوافق بشكل منفصل نتوصل بمحتوى وعروض مستقبلاً. إلا علمت على هاد الخانة، معلومات التواصل المشفرة تقدر تعاون Meta تقيس هاد الطلب. اختياري.'}</span></label>
+                <input type="hidden" name="contactConsent" value="yes" />
+                <p className="contact-consent-note field--wide">{lang === 'fr' ? 'En envoyant ce formulaire, vous acceptez d’être contactée par notre experte au sujet de votre demande.' : 'بإرسال هاد الاستمارة، كتوافقي تتواصل معاك الخبيرة ديالنا بخصوص الطلب ديالك.'}</p>
+                <label className="check-field check-field--meta field--wide"><input type="checkbox" name="marketingConsent" value="yes" /><span>{lang === 'fr' ? 'J’autorise ECOLYN à transmettre à Meta, de façon sécurisée, les informations nécessaires pour mesurer si cette demande provient d’une publicité. Facultatif.' : 'كنسمح لإيكولين ترسل لميتا بشكل آمن المعلومات الضرورية باش تقيس واش هاد الطلب جا من إشهار. اختياري.'}</span></label>
               </div>}
             </motion.div>
           ))}
@@ -1072,10 +1073,11 @@ function SimpleLeadForm({ lang, concern, setConcern }: { lang: Language; concern
     setError('')
     try {
       const nextResult = await submitLead(formRef.current)
+      const marketingConsent = new FormData(formRef.current).get('marketingConsent') === 'yes'
       if (nextResult.mode === 'supabase' || nextResult.mode === 'endpoint') {
         track('form_submit', { submission_mode: nextResult.mode })
         track('generate_lead', { submission_mode: nextResult.mode }, {
-          metaCapi: nextResult.mode === 'supabase',
+          metaCapi: marketingConsent && nextResult.mode === 'supabase',
           metaCapiReference: nextResult.reference,
         })
         sessionStorage.setItem('ecolyn-last-lead', JSON.stringify({
@@ -1138,8 +1140,9 @@ function SimpleLeadForm({ lang, concern, setConcern }: { lang: Language; concern
               <span className="file-input"><Upload /><input name="photo" type="file" accept="image/jpeg,image/png,image/webp" /><b>{lang === 'fr' ? 'JPG, PNG ou WebP • 8 Mo max' : 'JPG, PNG أو WebP • حتى 8MB'}</b></span>
               <label className="check-field"><input type="checkbox" name="photoConsent" value="yes" /><span>{lang === 'fr' ? 'J’autorise l’utilisation de cette photo uniquement pour examiner ma demande.' : 'كنوافق تستعمل الصورة غير باش يتراجع الطلب ديالي.'}</span></label>
             </details>
-            <label className="check-field field--wide"><input type="checkbox" name="contactConsent" value="yes" required /><span>{lang === 'fr' ? 'J’accepte d’être contactée sur WhatsApp au sujet de cette demande.' : 'كنوافق يتواصلو معايا فالواتساب بخصوص هاد الطلب.'}</span></label>
-            <label className="check-field field--wide"><input type="checkbox" name="marketingConsent" value="yes" /><span>{lang === 'fr' ? 'J’accepte de recevoir de futurs conseils et d’aider ECOLYN à mesurer cette demande avec Meta. Facultatif.' : 'كنوافق نتوصل بنصائح من بعد ونعاون ECOLYN تقيس هاد الطلب مع Meta. اختياري.'}</span></label>
+            <input type="hidden" name="contactConsent" value="yes" />
+            <p className="contact-consent-note field--wide">{lang === 'fr' ? 'En envoyant ce formulaire, vous acceptez d’être contactée par notre experte au sujet de votre demande.' : 'بإرسال هاد الاستمارة، كتوافقي تتواصل معاك الخبيرة ديالنا بخصوص الطلب ديالك.'}</p>
+            <label className="check-field check-field--meta field--wide"><input type="checkbox" name="marketingConsent" value="yes" /><span>{lang === 'fr' ? 'J’autorise ECOLYN à transmettre à Meta, de façon sécurisée, les informations nécessaires pour mesurer si cette demande provient d’une publicité. Facultatif.' : 'كنسمح لإيكولين ترسل لميتا بشكل آمن المعلومات الضرورية باش تقيس واش هاد الطلب جا من إشهار. اختياري.'}</span></label>
           </div>
           {error && <p className="form-error" role="alert">{error}</p>}
           <div className="form-navigation short-form-submit">
