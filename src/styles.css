@@ -280,8 +280,7 @@ html[dir=rtl] .mobile-menu nav a{font-family:Naskh}
 .check-field input{margin-top:3px;accent-color:var(--rose)}
 .contact-consent-note{margin:0;border-left:3px solid var(--ink);border-radius:0 12px 12px 0;padding:11px 13px;background:rgba(9,55,74,.055);color:rgba(9,55,74,.72);font-size:.68rem;line-height:1.55}
 html[dir=rtl] .contact-consent-note{border-right:3px solid var(--ink);border-left:0;border-radius:12px 0 0 12px}
-.check-field--meta{border:1px solid rgba(212,20,90,.18);border-radius:14px;padding:13px;background:#fff6f9;color:rgba(9,55,74,.76)}
-.check-field--meta input{width:17px;height:17px;flex:0 0 auto}
+.check-field input{width:17px;height:17px;flex:0 0 auto}
 .form-navigation{display:flex;justify-content:space-between;gap:14px;margin-top:42px;padding-top:26px;border-top:1px solid var(--line)}
 .form-error{color:#a70f46;background:#fff0f4;border-radius:12px;padding:10px 13px;font-size:.74rem}
 .form-section--success{text-align:center;min-height:700px;display:flex;flex-direction:column;align-items:center;justify-content:center;background:radial-gradient(circle at center,rgba(212,20,90,.1),transparent 36%),var(--paper)}

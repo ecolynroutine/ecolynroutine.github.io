@@ -1022,7 +1022,7 @@ function LeadForm({ lang, concern, setConcern }: { lang: Language; concern: stri
                 <Field label={lang === 'fr' ? 'Email facultatif' : 'الإيميل اختياري'} wide><input name="email" type="email" autoComplete="email" /></Field>
                 <input type="hidden" name="contactConsent" value="yes" />
                 <p className="contact-consent-note field--wide">{lang === 'fr' ? 'En envoyant ce formulaire, vous acceptez d’être contactée par notre experte au sujet de votre demande.' : 'بإرسال هاد الاستمارة، كتوافقي تتواصل معاك الخبيرة ديالنا بخصوص الطلب ديالك.'}</p>
-                <label className="check-field check-field--meta field--wide"><input type="checkbox" name="marketingConsent" value="yes" /><span>{lang === 'fr' ? 'J’autorise ECOLYN à transmettre à Meta, de façon sécurisée, les informations nécessaires pour mesurer si cette demande provient d’une publicité. Facultatif.' : 'كنسمح لإيكولين ترسل لميتا بشكل آمن المعلومات الضرورية باش تقيس واش هاد الطلب جا من إشهار. اختياري.'}</span></label>
+                <label className="check-field field--wide"><input type="checkbox" name="marketingConsent" value="yes" defaultChecked /><span>{lang === 'fr' ? 'J’autorise ECOLYN à transmettre à Meta, de façon sécurisée, les informations nécessaires pour mesurer si cette demande provient d’une publicité. Vous pouvez décocher cette autorisation.' : 'كنسمح لإيكولين ترسل لميتا بشكل آمن المعلومات الضرورية باش تقيس واش هاد الطلب جا من إشهار. تقدري تحيدي هاد الموافقة.'}</span></label>
               </div>}
             </motion.div>
           ))}
@@ -1142,7 +1142,7 @@ function SimpleLeadForm({ lang, concern, setConcern }: { lang: Language; concern
             </details>
             <input type="hidden" name="contactConsent" value="yes" />
             <p className="contact-consent-note field--wide">{lang === 'fr' ? 'En envoyant ce formulaire, vous acceptez d’être contactée par notre experte au sujet de votre demande.' : 'بإرسال هاد الاستمارة، كتوافقي تتواصل معاك الخبيرة ديالنا بخصوص الطلب ديالك.'}</p>
-            <label className="check-field check-field--meta field--wide"><input type="checkbox" name="marketingConsent" value="yes" /><span>{lang === 'fr' ? 'J’autorise ECOLYN à transmettre à Meta, de façon sécurisée, les informations nécessaires pour mesurer si cette demande provient d’une publicité. Facultatif.' : 'كنسمح لإيكولين ترسل لميتا بشكل آمن المعلومات الضرورية باش تقيس واش هاد الطلب جا من إشهار. اختياري.'}</span></label>
+            <label className="check-field field--wide"><input type="checkbox" name="marketingConsent" value="yes" defaultChecked /><span>{lang === 'fr' ? 'J’autorise ECOLYN à transmettre à Meta, de façon sécurisée, les informations nécessaires pour mesurer si cette demande provient d’une publicité. Vous pouvez décocher cette autorisation.' : 'كنسمح لإيكولين ترسل لميتا بشكل آمن المعلومات الضرورية باش تقيس واش هاد الطلب جا من إشهار. تقدري تحيدي هاد الموافقة.'}</span></label>
           </div>
           {error && <p className="form-error" role="alert">{error}</p>}
           <div className="form-navigation short-form-submit">
