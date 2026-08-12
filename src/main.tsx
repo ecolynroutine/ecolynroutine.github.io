@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client'
 import './i18n'
 import { getAppRoute } from './lib/navigation'
 import './styles.css'
+import './discovery.css'
 
 const App = lazy(() => import('./App'))
 const AdminLogin = lazy(() => import('./admin/AdminLogin'))

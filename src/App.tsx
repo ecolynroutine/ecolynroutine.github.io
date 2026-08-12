@@ -17,6 +17,8 @@ import { faqs } from './data/faqs'
 import { initializeTracking, track } from './lib/tracking'
 import { submitLead, type LeadResult } from './lib/submitLead'
 import { navigate, packUrl } from './lib/navigation'
+import DiscoveryExperience from './components/DiscoveryExperience'
+import type { LifestyleId, SkinProfileId } from './data/discovery'
 import {
   downloadLiveCalendar,
   getPublishedLive,
@@ -120,10 +122,10 @@ function useLanguage() {
     document.documentElement.lang = lang
     document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr'
     localStorage.setItem('ecolyn-language', lang)
-    const title = lang === 'fr' ? 'ECOLYN — Conseils gratuits pour mieux comprendre sa peau' : 'ECOLYN — نصائح مجانية باش تفهمي بشرتك'
+    const title = lang === 'fr' ? 'ECOLYN — Conseils gratuits pour mieux comprendre votre peau' : 'ECOLYN — نصائح مجانية لفهم بشرتك والعناية بها'
     const description = lang === 'fr'
-      ? 'Conseils prudents et sourcés pour comprendre sa peau, simplifier sa routine et poser ses questions gratuitement.'
-      : 'نصائح حذرة وبالمصادر باش تفهمي بشرتك، تبسطي الروتين وتسولي أسئلتك مجاناً.'
+      ? 'Découvrez des conseils gratuits, prudents et sourcés selon votre peau, vos préoccupations et votre mode de vie.'
+      : 'اكتشفي نصائح مجانية وحذرة وبالمصادر حسب بشرتك، المشاكل ديالك وطريقة حياتك.'
     document.title = title
     document.querySelector<HTMLMetaElement>('meta[name="description"]')?.setAttribute('content', description)
     document.querySelector<HTMLMetaElement>('meta[property="og:title"]')?.setAttribute('content', title)
@@ -252,9 +254,9 @@ function Header({ lang, menuOpen, setMenuOpen }: { lang: Language; menuOpen: boo
     return () => { document.body.style.overflow = '' }
   }, [menuOpen])
   const links = [
-    ['#accueil', t('nav.home')], ['#conseils', t('nav.advice')], ['#cas', t('nav.cases')],
-    ['#experiences', t('nav.stories')], ['#nutrition', lang === 'fr' ? 'Nutrition' : 'التغذية'],
-    ['#experte', lang === 'fr' ? 'L’experte' : 'المستشارة']
+    ['#accueil', t('nav.home')], ['#personnalisation', lang === 'fr' ? 'Ma peau' : 'بشرتي'],
+    ['#conseils', t('nav.advice')], ['#histoires', t('nav.stories')],
+    ['#hanane', lang === 'fr' ? 'Hanane' : 'حنان']
   ]
   const changeLanguage = () => {
     i18n.changeLanguage(lang === 'fr' ? 'ar' : 'fr')
@@ -1039,7 +1041,13 @@ function LeadForm({ lang, concern, setConcern }: { lang: Language; concern: stri
   )
 }
 
-function SimpleLeadForm({ lang, concern, setConcern }: { lang: Language; concern: string; setConcern: (value: string) => void }) {
+function SimpleLeadForm({ lang, concern, setConcern, skinProfile, setSkinProfile }: {
+  lang: Language
+  concern: string
+  setConcern: (value: string) => void
+  skinProfile: SkinProfileId
+  setSkinProfile: (value: SkinProfileId) => void
+}) {
   const { t } = useTranslation()
   const [started, setStarted] = useState(false)
   const [sending, setSending] = useState(false)
@@ -1132,7 +1140,7 @@ function SimpleLeadForm({ lang, concern, setConcern }: { lang: Language; concern
             <Field label={lang === 'fr' ? 'Prénom' : 'الاسم'}><input name="firstName" required autoComplete="given-name" /></Field>
             <Field label={lang === 'fr' ? 'Numéro WhatsApp' : 'رقم واتساب'}><input name="whatsapp" required type="tel" inputMode="tel" autoComplete="tel" placeholder="06 12 34 56 78" pattern="[+0-9 ()-]{9,20}" /></Field>
             <Field label={lang === 'fr' ? 'Problème principal' : 'المشكل الرئيسي'}><select name="primaryConcern" value={concern} onChange={event => { setConcern(event.target.value); track('select_skin_concern', { selection_source: 'short_form', concern_id: event.target.value }) }} required>{concerns.map(item => <option value={item.id} key={item.id}>{local(item.label, lang)}</option>)}</select></Field>
-            <Field label={lang === 'fr' ? 'Type de peau' : 'نوع البشرة'}><select name="skinType" required defaultValue=""><option value="" disabled>{lang === 'fr' ? 'Sélectionner' : 'اختاري'}</option><option value="oily">{lang === 'fr' ? 'Grasse' : 'دهنية'}</option><option value="dry">{lang === 'fr' ? 'Sèche' : 'جافة'}</option><option value="combination">{lang === 'fr' ? 'Mixte' : 'مختلطة'}</option><option value="sensitive">{lang === 'fr' ? 'Sensible' : 'حساسة'}</option><option value="unknown">{lang === 'fr' ? 'Je ne sais pas' : 'ما عارفاش'}</option></select></Field>
+            <Field label={lang === 'fr' ? 'Type de peau' : 'نوع البشرة'}><select name="skinType" required value={skinProfile} onChange={event => { const value = event.target.value as SkinProfileId; setSkinProfile(value); track('select_skin_profile', { selection_source: 'short_form', profile_id: value }) }}><option value="oily">{lang === 'fr' ? 'Grasse' : 'دهنية'}</option><option value="dry">{lang === 'fr' ? 'Sèche / déshydratée' : 'جافة / ناقصة الماء'}</option><option value="combination">{lang === 'fr' ? 'Mixte' : 'مختلطة'}</option><option value="sensitive">{lang === 'fr' ? 'Sensible' : 'حساسة'}</option><option value="medium-dark">{lang === 'fr' ? 'Mate à foncée' : 'قمحية للسمراء'}</option><option value="unknown">{lang === 'fr' ? 'Je ne sais pas' : 'ما عارفاش'}</option></select></Field>
             <Field label={lang === 'fr' ? 'Expliquez-nous brièvement ce qui vous dérange avec votre peau.' : 'شرحي لينا باختصار شنو كيقلقك فبشرتك.'} wide><textarea name="description" rows={4} required minLength={10} maxLength={1200} placeholder={lang === 'fr' ? 'Exemple : mes traces restent visibles et ma peau réagit facilement…' : 'مثال: آثار الحبوب كتبقى وبشرتي كتتفاعل بسرعة…'} /></Field>
             <Field label={lang === 'fr' ? 'Email facultatif' : 'الإيميل اختياري'} wide><input name="email" type="email" autoComplete="email" /></Field>
             <details className="optional-photo field--wide">
@@ -1330,6 +1338,12 @@ export default function App() {
   const initialConcern = concerns.some(item => item.id === savedConcern) ? savedConcern : 'taches'
   const [selectedConcern, setSelectedConcern] = useState(initialConcern)
   const [formConcern, setFormConcern] = useState(initialConcern)
+  const savedProfile = localStorage.getItem('ecolyn-skin-profile') as SkinProfileId | null
+  const initialProfile: SkinProfileId = ['oily', 'dry', 'sensitive', 'combination', 'medium-dark', 'unknown'].includes(savedProfile || '') ? savedProfile as SkinProfileId : 'unknown'
+  const [skinProfile, setSkinProfile] = useState<SkinProfileId>(initialProfile)
+  const savedLifestyle = localStorage.getItem('ecolyn-lifestyle-topic') as LifestyleId | null
+  const initialLifestyle: LifestyleId | '' = ['pregnancy', 'sleep', 'stress', 'motherhood', 'emotional', 'diet', 'sun', 'facial-hair'].includes(savedLifestyle || '') ? savedLifestyle as LifestyleId : ''
+  const [lifestyle, setLifestyle] = useState<LifestyleId | ''>(initialLifestyle)
   const [article, setArticle] = useState<Article | null>(null)
   const [legal, setLegal] = useState<'privacy' | 'terms' | null>(null)
   const { scrollYProgress } = useScroll()
@@ -1365,6 +1379,14 @@ export default function App() {
     setFormConcern(id)
     localStorage.setItem('ecolyn-skin-concern', id)
   }
+  const chooseProfile = (id: SkinProfileId) => {
+    setSkinProfile(id)
+    localStorage.setItem('ecolyn-skin-profile', id)
+  }
+  const chooseLifestyle = (id: LifestyleId) => {
+    setLifestyle(id)
+    localStorage.setItem('ecolyn-lifestyle-topic', id)
+  }
   const selectHeroConcern = (id: string) => {
     chooseConcern(id)
     setTimeout(() => document.getElementById('besoins')?.scrollIntoView({ behavior: reduced ? 'auto' : 'smooth' }), 40)
@@ -1378,17 +1400,17 @@ export default function App() {
       <motion.div className="page-progress" style={{ scaleX: progress }} />
       <Header lang={lang} menuOpen={menuOpen} setMenuOpen={setMenuOpen} />
       <main>
-        <Hero lang={lang} onConcern={selectHeroConcern} />
-        <ConcernExplorer lang={lang} selected={selectedConcern} setSelected={chooseConcern} describe={describe} />
-        <AdviceRail lang={lang} openArticle={openArticle} />
-        <Cases lang={lang} describe={describe} />
+        <DiscoveryExperience
+          lang={lang}
+          profile={skinProfile}
+          concern={selectedConcern}
+          lifestyle={lifestyle}
+          setProfile={chooseProfile}
+          setConcern={chooseConcern}
+          setLifestyle={chooseLifestyle}
+        />
         <Proofs lang={lang} />
-        <Experiences lang={lang} />
-        <Expert lang={lang} />
-        <Library lang={lang} openArticle={openArticle} />
-        <Nutrition lang={lang} />
-        <HowItWorks lang={lang} />
-        <SimpleLeadForm lang={lang} concern={formConcern} setConcern={chooseConcern} />
+        <SimpleLeadForm lang={lang} concern={formConcern} setConcern={chooseConcern} skinProfile={skinProfile} setSkinProfile={chooseProfile} />
         <Events lang={lang} />
         <FAQ lang={lang} />
       </main>

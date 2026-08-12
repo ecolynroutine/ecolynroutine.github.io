@@ -287,7 +287,12 @@ function sendToPlatforms(event: string, payload: EventPayload, settings: Trackin
   const metaCustomEvent = metaCustomMap[event]
   if (settings.metaEnabled && window.fbq) {
     if (metaEvent) window.fbq('track', metaEvent, payload, { eventID: eventId })
-    else window.fbq('trackCustom', metaCustomEvent || event, payload, { eventID: eventId })
+    else {
+      window.fbq('trackCustom', metaCustomEvent || event, payload, { eventID: eventId })
+      if (metaCustomEvent && metaCustomEvent !== event) {
+        window.fbq('trackCustom', event, payload, { eventID: `${eventId}-canonical` })
+      }
+    }
   }
   if (settings.metaEnabled && metaEvent && options.metaCapi) {
     void sendMetaCapi(metaEvent, eventId, options.metaCapiReference)

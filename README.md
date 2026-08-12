@@ -1,9 +1,15 @@
 # ECOLYN — plateforme de conseils skincare
 
-Refonte complète de l’ancien site commercial ECOLYN en deux univers :
+Le projet ECOLYN est organisé en deux univers :
 
 - `/` : plateforme éditoriale de conseils gratuits, bilingue FR/AR ;
 - `/pack/` : ancienne landing page commerciale conservée et adaptée.
+
+La homepage est un parcours de découverte mobile-first : la visiteuse choisit
+son profil de peau, sa préoccupation et, si elle le souhaite, un sujet de mode
+de vie. Un mini-feed réordonne ensuite les contenus sans envoyer ces choix au
+backend. Chaque contenu conserve une source médicale ou scientifique visible
+derrière « Pourquoi ? / علاش؟ ».
 
 ## Démarrage
 
@@ -83,7 +89,7 @@ Les mêmes valeurs peuvent être fournies au build via `.env` en copiant `.env.e
 
 Le mode normal utilise Supabase avec la clé publique du navigateur. Le visiteur
 peut uniquement insérer une demande ; les règles RLS interdisent la lecture, la
-modification et la suppression anonymes. Les réponses des cinq étapes, les
+modification et la suppression anonymes. Les réponses du formulaire court, les
 consentements, la langue, la source, les UTM et la photo facultative compressée
 sont enregistrés dans la table privée `prospects`.
 
@@ -93,7 +99,18 @@ Après un enregistrement réussi, le site ouvre `/merci` avec une référence li
 `leadEndpoint` et le mode WhatsApp restent des solutions de secours uniquement.
 Ne jamais placer de clé `service_role` ou d’autre secret dans le navigateur.
 
-## Ajouter un article
+## Ajouter un contenu de découverte
+
+Les cartes du mini-feed se trouvent dans `src/data/discovery.ts`. Chaque carte
+contient ses profils, préoccupations et contextes associés, son explication
+FR/AR, un geste, une erreur, le moment où demander un avis et les champs
+`sourceTitle`, `sourceUrl` et `sourceType`.
+
+Les contenus grossesse/allaitement, pilosité faciale, alimentation, sommeil et
+stress doivent rester prudents : ne jamais transformer une association en
+diagnostic ou en promesse.
+
+## Articles historiques
 
 Dupliquer une entrée dans `src/data/articles/index.ts`. Chaque article contient :
 
@@ -111,17 +128,21 @@ Le drawer éditorial et la bibliothèque se mettent à jour automatiquement.
 Les médias officiels sont déclarés dans `site-config.json` et chargés directement
 depuis le CDN ECOLYN. Ils ne sont pas dupliqués dans `public/`.
 
-Les six témoignages utilisent un lecteur audio sans autoplay, avec progression,
-volume, états de chargement/erreur et lecture exclusive. Le comparateur tactile
-et clavier présente un avertissement clair : une expérience individuelle n’est
-ni une preuve clinique, ni une garantie.
+Les six témoignages conservent leurs photos et audios originaux. Les histoires
+s’ouvrent dans un drawer sans autoplay. Aucun problème, résultat ou détail
+biographique ne doit être inventé : les futurs champs écrits ne seront affichés
+qu’après validation de leur transcription.
+
+Le comparateur avant/après tactile et clavier est conservé avec son avertissement
+clair : une expérience individuelle n’est ni une preuve clinique, ni une garantie.
 
 ## Modifier WhatsApp
 
 - Numéro de contact : `whatsappNumber` dans `public/config.js` ;
 - groupe communautaire : `whatsappGroupUrl`.
 
-Le lien du groupe reste caché avant la soumission.
+Le groupe est proposé discrètement sur la homepage et plus visiblement après une
+demande confirmée sur `/merci`.
 
 ## Trackings
 
@@ -134,7 +155,10 @@ La couche `dataLayer` reçoit notamment : `page_view`, `view_content`,
 `article_open`, `article_complete`, `audio_start`, `audio_25`, `audio_50`,
 `audio_75`, `audio_complete`, `before_after_interaction`, `form_start`,
 `form_step_complete`, `form_submit`, `generate_lead`, `whatsapp_click`,
-`pack_view`, `pack_cta_click`, `initiate_checkout` et `order_submit`.
+`pack_view`, `pack_cta_click`, `initiate_checkout`, `order_submit`,
+`select_skin_profile`, `select_skin_concern`, `select_lifestyle_topic`,
+`content_open`, `content_complete`, `story_open`, `story_audio_play` et
+`join_whatsapp_group`.
 
 Les noms, téléphones, e-mails, photos, références et textes libres sont filtrés
 avant tout envoi vers `dataLayer`, Meta, TikTok ou GA4.
