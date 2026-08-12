@@ -17,8 +17,9 @@ import { faqs } from './data/faqs'
 import { initializeTracking, track } from './lib/tracking'
 import { submitLead, type LeadResult } from './lib/submitLead'
 import { navigate, packUrl } from './lib/navigation'
-import DiscoveryExperience from './components/DiscoveryExperience'
-import type { LifestyleId, SkinProfileId } from './data/discovery'
+import DiscoveryExperience, { DiscoveryAfterForm } from './components/DiscoveryExperience'
+import { concernOptions, type LifestyleId, type SkinProfileId } from './data/discovery'
+import type { ComplexionId } from './data/advice'
 import {
   downloadLiveCalendar,
   getPublishedLive,
@@ -125,14 +126,16 @@ function useLanguage() {
     const title = lang === 'fr' ? 'ECOLYN — Conseils gratuits pour mieux comprendre votre peau' : 'ECOLYN — نصائح مجانية لفهم بشرتك والعناية بها'
     const description = lang === 'fr'
       ? 'Découvrez des conseils gratuits, prudents et sourcés selon votre peau, vos préoccupations et votre mode de vie.'
-      : 'اكتشفي نصائح مجانية وحذرة وبالمصادر حسب بشرتك، المشاكل ديالك وطريقة حياتك.'
+      : 'اكتشفي نصائح مجانية وحذرة ومدعومة بالمصادر حسب بشرتك واهتماماتك وسياقك اليومي.'
     document.title = title
     document.querySelector<HTMLMetaElement>('meta[name="description"]')?.setAttribute('content', description)
     document.querySelector<HTMLMetaElement>('meta[property="og:title"]')?.setAttribute('content', title)
     document.querySelector<HTMLMetaElement>('meta[property="og:description"]')?.setAttribute('content', description)
     document.querySelector<HTMLMetaElement>('meta[property="og:locale"]')?.setAttribute('content', lang === 'fr' ? 'fr_MA' : 'ar_MA')
+    document.querySelector<HTMLMetaElement>('meta[property="og:image"]')?.setAttribute('content', 'https://ecolyn.ma/og-ecolyn-3-choices.png')
     document.querySelector<HTMLMetaElement>('meta[name="twitter:title"]')?.setAttribute('content', title)
     document.querySelector<HTMLMetaElement>('meta[name="twitter:description"]')?.setAttribute('content', description)
+    document.querySelector<HTMLMetaElement>('meta[name="twitter:image"]')?.setAttribute('content', 'https://ecolyn.ma/og-ecolyn-3-choices.png')
   }, [lang])
   return lang
 }
@@ -1041,12 +1044,13 @@ function LeadForm({ lang, concern, setConcern }: { lang: Language; concern: stri
   )
 }
 
-function SimpleLeadForm({ lang, concern, setConcern, skinProfile, setSkinProfile }: {
+function SimpleLeadForm({ lang, concern, setConcern, skinProfile, setSkinProfile, lifestyle }: {
   lang: Language
   concern: string
   setConcern: (value: string) => void
   skinProfile: SkinProfileId
   setSkinProfile: (value: SkinProfileId) => void
+  lifestyle: LifestyleId | ''
 }) {
   const { t } = useTranslation()
   const [started, setStarted] = useState(false)
@@ -1125,23 +1129,25 @@ function SimpleLeadForm({ lang, concern, setConcern, skinProfile, setSkinProfile
       <div className="form-shell">
         <div className="form-aside">
           <p className="eyebrow">{t('form.eyebrow')}</p>
-          <h2>{lang === 'fr' ? 'Obtenez un premier conseil adapté' : 'خذي أول نصيحة مناسبة ليك'}</h2>
-          <p>{lang === 'fr' ? 'Une seule page, quelques informations utiles. Nous approfondirons ensuite avec vous sur WhatsApp.' : 'صفحة وحدة ومعلومات قليلة ومفيدة. من بعد نكملو معاك التفاصيل فالواتساب.'}</p>
+          <h2>{lang === 'fr' ? 'Vous voulez des conseils plus personnalisés ?' : 'هل تريدين نصائح أكثر تخصيصاً؟'}</h2>
+          <p>{lang === 'fr' ? 'Expliquez brièvement votre situation à Hanane. Vos trois choix sont déjà repris pour ne pas vous demander deux fois la même chose.' : 'اشرحي حالتك لحنان باختصار. اختياراتك الثلاثة موجودة مسبقاً حتى لا نطلب منك المعلومات نفسها مرتين.'}</p>
           <div className="short-form-benefits">
-            <span><Check /> {lang === 'fr' ? 'Moins de 2 minutes' : 'أقل من جوج دقايق'}</span>
-            <span><LockKeyhole /> {lang === 'fr' ? 'Informations confidentielles' : 'المعلومات ديالك خاصة'}</span>
-            <span><MessageCircle /> {lang === 'fr' ? 'Réponse sur WhatsApp' : 'الجواب فالواتساب'}</span>
+            <span><Check /> {lang === 'fr' ? 'Moins de 2 minutes' : 'أقل من دقيقتين'}</span>
+            <span><Sparkles /> {lang === 'fr' ? 'Vos choix déjà préremplis' : 'اختياراتك معبأة مسبقاً'}</span>
+            <span><LockKeyhole /> {lang === 'fr' ? 'Informations confidentielles' : 'معلوماتك خاصة'}</span>
+            <span><MessageCircle /> {lang === 'fr' ? 'Contact sur WhatsApp' : 'تواصل عبر WhatsApp'}</span>
           </div>
-          <p className="medical-note">{lang === 'fr' ? 'Ces conseils sont informatifs. Une situation sévère, inhabituelle ou persistante doit être présentée à un dermatologue.' : 'هاد النصائح توعوية. أي حالة قوية، غريبة أو مستمرة خاصها طبيب الجلد.'}</p>
+          <p className="medical-note">{lang === 'fr' ? 'Ces conseils sont informatifs. Une situation sévère, inhabituelle ou persistante doit être présentée à un dermatologue.' : 'هذه النصائح تثقيفية. يجب عرض أي حالة شديدة أو غير معتادة أو مستمرة على طبيب جلد.'}</p>
         </div>
         <form ref={formRef} onSubmit={onSubmit} onFocus={begin} className="lead-form lead-form--short">
-          <div className="form-step-heading"><span>01</span><div><p>{lang === 'fr' ? 'Votre demande' : 'الطلب ديالك'}</p><h3>{lang === 'fr' ? 'Parlez-nous brièvement de votre peau' : 'حكي لينا باختصار على بشرتك'}</h3></div></div>
+          <div className="form-step-heading"><span>01</span><div><p>{lang === 'fr' ? 'Votre demande' : 'طلبك'}</p><h3>{lang === 'fr' ? 'Parlez-nous brièvement de votre peau' : 'حدّثينا باختصار عن بشرتك'}</h3></div></div>
           <div className="form-grid short-form-grid">
             <Field label={lang === 'fr' ? 'Prénom' : 'الاسم'}><input name="firstName" required autoComplete="given-name" /></Field>
             <Field label={lang === 'fr' ? 'Numéro WhatsApp' : 'رقم واتساب'}><input name="whatsapp" required type="tel" inputMode="tel" autoComplete="tel" placeholder="06 12 34 56 78" pattern="[+0-9 ()-]{9,20}" /></Field>
-            <Field label={lang === 'fr' ? 'Problème principal' : 'المشكل الرئيسي'}><select name="primaryConcern" value={concern} onChange={event => { setConcern(event.target.value); track('select_skin_concern', { selection_source: 'short_form', concern_id: event.target.value }) }} required>{concerns.map(item => <option value={item.id} key={item.id}>{local(item.label, lang)}</option>)}</select></Field>
-            <Field label={lang === 'fr' ? 'Type de peau' : 'نوع البشرة'}><select name="skinType" required value={skinProfile} onChange={event => { const value = event.target.value as SkinProfileId; setSkinProfile(value); track('select_skin_profile', { selection_source: 'short_form', profile_id: value }) }}><option value="oily">{lang === 'fr' ? 'Grasse' : 'دهنية'}</option><option value="dry">{lang === 'fr' ? 'Sèche / déshydratée' : 'جافة / ناقصة الماء'}</option><option value="combination">{lang === 'fr' ? 'Mixte' : 'مختلطة'}</option><option value="sensitive">{lang === 'fr' ? 'Sensible' : 'حساسة'}</option><option value="medium-dark">{lang === 'fr' ? 'Mate à foncée' : 'قمحية للسمراء'}</option><option value="unknown">{lang === 'fr' ? 'Je ne sais pas' : 'ما عارفاش'}</option></select></Field>
-            <Field label={lang === 'fr' ? 'Expliquez-nous brièvement ce qui vous dérange avec votre peau.' : 'شرحي لينا باختصار شنو كيقلقك فبشرتك.'} wide><textarea name="description" rows={4} required minLength={10} maxLength={1200} placeholder={lang === 'fr' ? 'Exemple : mes traces restent visibles et ma peau réagit facilement…' : 'مثال: آثار الحبوب كتبقى وبشرتي كتتفاعل بسرعة…'} /></Field>
+            <Field label={lang === 'fr' ? 'Problème principal' : 'المشكلة الأساسية'}><select name="primaryConcern" value={concern} onChange={event => { setConcern(event.target.value); track('select_skin_concern', { selection_source: 'short_form', concern_id: event.target.value }) }} required>{concernOptions.map(item => <option value={item.id} key={item.id}>{local(item.label, lang)}</option>)}</select></Field>
+            <Field label={lang === 'fr' ? 'Type de peau' : 'نوع البشرة'}><select name="skinType" required value={skinProfile === 'medium-dark' ? 'unknown' : skinProfile} onChange={event => { const value = event.target.value as SkinProfileId; setSkinProfile(value); track('select_skin_type', { selection_source: 'short_form', skin_type_id: value }) }}><option value="oily">{lang === 'fr' ? 'Grasse' : 'دهنية'}</option><option value="dry">{lang === 'fr' ? 'Sèche / déshydratée' : 'جافة / تفتقر إلى الماء'}</option><option value="combination">{lang === 'fr' ? 'Mixte' : 'مختلطة'}</option><option value="sensitive">{lang === 'fr' ? 'Sensible' : 'حساسة'}</option><option value="unknown">{lang === 'fr' ? 'Je ne sais pas' : 'لا أعرف'}</option></select></Field>
+            <input type="hidden" name="lifestyleContext" value={lifestyle || 'none'} />
+            <Field label={lang === 'fr' ? 'Expliquez-nous brièvement ce qui vous dérange avec votre peau.' : 'اشرحي لنا باختصار ما الذي يزعجك في بشرتك.'} wide><textarea name="description" rows={4} required minLength={10} maxLength={1200} placeholder={lang === 'fr' ? 'Exemple : mes traces restent visibles et ma peau réagit facilement…' : 'مثال: تبقى آثار الحبوب ظاهرة وتتفاعل بشرتي بسهولة…'} /></Field>
             <Field label={lang === 'fr' ? 'Email facultatif' : 'الإيميل اختياري'} wide><input name="email" type="email" autoComplete="email" /></Field>
             <details className="optional-photo field--wide">
               <summary><Upload /> {lang === 'fr' ? 'Ajouter une photo (facultatif)' : 'زيدي صورة (اختياري)'}</summary>
@@ -1149,8 +1155,8 @@ function SimpleLeadForm({ lang, concern, setConcern, skinProfile, setSkinProfile
               <label className="check-field"><input type="checkbox" name="photoConsent" value="yes" /><span>{lang === 'fr' ? 'J’autorise l’utilisation de cette photo uniquement pour examiner ma demande.' : 'كنوافق تستعمل الصورة غير باش يتراجع الطلب ديالي.'}</span></label>
             </details>
             <input type="hidden" name="contactConsent" value="yes" />
-            <p className="contact-consent-note field--wide">{lang === 'fr' ? 'En envoyant ce formulaire, vous acceptez d’être contactée par notre experte au sujet de votre demande.' : 'بإرسال هاد الاستمارة، كتوافقي تتواصل معاك الخبيرة ديالنا بخصوص الطلب ديالك.'}</p>
-            <label className="check-field field--wide"><input type="checkbox" name="marketingConsent" value="yes" defaultChecked /><span>{lang === 'fr' ? 'J’autorise ECOLYN à transmettre à Meta, de façon sécurisée, les informations nécessaires pour mesurer si cette demande provient d’une publicité. Vous pouvez décocher cette autorisation.' : 'كنسمح لإيكولين ترسل لميتا بشكل آمن المعلومات الضرورية باش تقيس واش هاد الطلب جا من إشهار. تقدري تحيدي هاد الموافقة.'}</span></label>
+            <p className="contact-consent-note field--wide">{lang === 'fr' ? 'En envoyant ce formulaire, vous acceptez d’être contactée par notre experte au sujet de votre demande.' : 'بإرسال هذا النموذج، توافقين على أن تتواصل معك خبيرتنا بخصوص طلبك.'}</p>
+            <label className="check-field field--wide"><input type="checkbox" name="marketingConsent" value="yes" defaultChecked /><span>{lang === 'fr' ? 'J’autorise ECOLYN à transmettre à Meta, de façon sécurisée, les informations nécessaires pour mesurer si cette demande provient d’une publicité. Vous pouvez décocher cette autorisation.' : 'أسمح لـ ECOLYN بإرسال المعلومات اللازمة إلى Meta بشكل آمن لقياس ما إذا كان هذا الطلب ناتجاً عن إعلان. يمكنك إلغاء هذا الخيار.'}</span></label>
           </div>
           {error && <p className="form-error" role="alert">{error}</p>}
           <div className="form-navigation short-form-submit">
@@ -1339,11 +1345,14 @@ export default function App() {
   const [selectedConcern, setSelectedConcern] = useState(initialConcern)
   const [formConcern, setFormConcern] = useState(initialConcern)
   const savedProfile = localStorage.getItem('ecolyn-skin-profile') as SkinProfileId | null
-  const initialProfile: SkinProfileId = ['oily', 'dry', 'sensitive', 'combination', 'medium-dark', 'unknown'].includes(savedProfile || '') ? savedProfile as SkinProfileId : 'unknown'
+  const initialProfile: SkinProfileId = ['oily', 'dry', 'sensitive', 'combination', 'unknown'].includes(savedProfile || '') ? savedProfile as SkinProfileId : 'unknown'
   const [skinProfile, setSkinProfile] = useState<SkinProfileId>(initialProfile)
   const savedLifestyle = localStorage.getItem('ecolyn-lifestyle-topic') as LifestyleId | null
-  const initialLifestyle: LifestyleId | '' = ['pregnancy', 'sleep', 'stress', 'motherhood', 'emotional', 'diet', 'sun', 'facial-hair'].includes(savedLifestyle || '') ? savedLifestyle as LifestyleId : ''
+  const initialLifestyle: LifestyleId | '' = ['pregnancy', 'sleep', 'stress', 'motherhood', 'emotional', 'diet', 'sun', 'hair-products', 'none'].includes(savedLifestyle || '') ? savedLifestyle as LifestyleId : ''
   const [lifestyle, setLifestyle] = useState<LifestyleId | ''>(initialLifestyle)
+  const [journeyComplete, setJourneyComplete] = useState(false)
+  const savedComplexion = localStorage.getItem('ecolyn-complexion') as ComplexionId | null
+  const [complexion, setComplexionState] = useState<ComplexionId>(['medium-dark', 'not-medium-dark', 'unspecified'].includes(savedComplexion || '') ? savedComplexion as ComplexionId : 'unspecified')
   const [article, setArticle] = useState<Article | null>(null)
   const [legal, setLegal] = useState<'privacy' | 'terms' | null>(null)
   const { scrollYProgress } = useScroll()
@@ -1387,6 +1396,10 @@ export default function App() {
     setLifestyle(id)
     localStorage.setItem('ecolyn-lifestyle-topic', id)
   }
+  const chooseComplexion = (id: ComplexionId) => {
+    setComplexionState(id)
+    localStorage.setItem('ecolyn-complexion', id)
+  }
   const selectHeroConcern = (id: string) => {
     chooseConcern(id)
     setTimeout(() => document.getElementById('besoins')?.scrollIntoView({ behavior: reduced ? 'auto' : 'smooth' }), 40)
@@ -1405,18 +1418,24 @@ export default function App() {
           profile={skinProfile}
           concern={selectedConcern}
           lifestyle={lifestyle}
+          complexion={complexion}
           setProfile={chooseProfile}
           setConcern={chooseConcern}
           setLifestyle={chooseLifestyle}
+          setComplexion={chooseComplexion}
+          onComplete={() => setJourneyComplete(true)}
         />
+        {journeyComplete && <>
+          <SimpleLeadForm lang={lang} concern={formConcern} setConcern={chooseConcern} skinProfile={skinProfile} setSkinProfile={chooseProfile} lifestyle={lifestyle} />
+          <DiscoveryAfterForm lang={lang} openArticle={openArticle} />
+        </>}
         <Proofs lang={lang} />
-        <SimpleLeadForm lang={lang} concern={formConcern} setConcern={chooseConcern} skinProfile={skinProfile} setSkinProfile={chooseProfile} />
         <Events lang={lang} />
         <FAQ lang={lang} />
       </main>
       <Footer lang={lang} openLegal={setLegal} />
-      <a className="sticky-advice" href="#formulaire" onClick={() => track('form_start', { source: 'sticky' })}>
-        <span><MessageCircle /></span><b>{currentConcernLabel}</b><em>{lang === 'fr' ? 'Recevoir mes conseils' : 'نستافد من النصائح'}</em><ArrowUpRight />
+      <a className="sticky-advice" href={journeyComplete ? '#formulaire' : '#personnalisation'} onClick={() => track(journeyComplete ? 'form_start' : 'journey_start', { source: 'sticky' })}>
+        <span>{journeyComplete ? <MessageCircle /> : <Sparkles />}</span><b>{journeyComplete ? currentConcernLabel : 'ECOLYN'}</b><em>{journeyComplete ? (lang === 'fr' ? 'Contacter Hanane' : 'التواصل مع حنان') : (lang === 'fr' ? 'Faire mes 3 choix' : 'ابدئي 3 اختيارات')}</em><ArrowUpRight />
       </a>
       <a
         className="whatsapp-group-float"

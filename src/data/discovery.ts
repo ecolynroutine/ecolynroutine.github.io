@@ -1,7 +1,7 @@
 import type { Localized } from '../types'
 
 export type SkinProfileId = 'oily' | 'dry' | 'sensitive' | 'combination' | 'medium-dark' | 'unknown'
-export type LifestyleId = 'pregnancy' | 'sleep' | 'stress' | 'motherhood' | 'emotional' | 'diet' | 'sun' | 'facial-hair'
+export type LifestyleId = 'pregnancy' | 'sleep' | 'stress' | 'motherhood' | 'emotional' | 'diet' | 'sun' | 'hair-products' | 'none'
 export type DiscoveryFormat = 'fact' | 'myth' | 'gesture' | 'quiz' | 'warning'
 
 export interface DiscoveryOption<T extends string> {
@@ -31,34 +31,36 @@ export interface DiscoveryCard {
 }
 
 export const skinProfiles: DiscoveryOption<SkinProfileId>[] = [
-  { id: 'oily', label: { fr: 'Grasse', ar: 'دهنية' }, hint: { fr: 'Brillance, pores visibles', ar: 'لمعان ومسام باينة' } },
-  { id: 'dry', label: { fr: 'Sèche / déshydratée', ar: 'جافة / ناقصة الماء' }, hint: { fr: 'Tiraillement, inconfort', ar: 'شد وعدم الراحة' } },
-  { id: 'sensitive', label: { fr: 'Sensible', ar: 'حساسة' }, hint: { fr: 'Réagit ou pique facilement', ar: 'كتتفاعل أو كتحرق بسرعة' } },
-  { id: 'combination', label: { fr: 'Mixte', ar: 'مختلطة' }, hint: { fr: 'Zone T et joues différentes', ar: 'منطقة T والخدود مختلفين' } },
-  { id: 'medium-dark', label: { fr: 'Mate à foncée', ar: 'قمحية للسمراء' }, hint: { fr: 'Marques qui persistent', ar: 'آثار كتبقى مدة' } },
-  { id: 'unknown', label: { fr: 'Je ne sais pas', ar: 'ما عارفاش' }, hint: { fr: 'On l’observe ensemble', ar: 'نلاحظوها بجوج' } },
+  { id: 'oily', label: { fr: 'Grasse', ar: 'دهنية' }, hint: { fr: 'Brillance, pores visibles', ar: 'لمعان ومسام ظاهرة' } },
+  { id: 'dry', label: { fr: 'Sèche / déshydratée', ar: 'جافة / تفتقر إلى الماء' }, hint: { fr: 'Tiraillement, inconfort', ar: 'شد وعدم ارتياح' } },
+  { id: 'combination', label: { fr: 'Mixte', ar: 'مختلطة' }, hint: { fr: 'Zone T et joues différentes', ar: 'اختلاف بين منطقة T والخدين' } },
+  { id: 'sensitive', label: { fr: 'Sensible', ar: 'حساسة' }, hint: { fr: 'Réagit ou pique facilement', ar: 'تتهيج أو تشعرين بوخز بسهولة' } },
+  { id: 'unknown', label: { fr: 'Je ne sais pas', ar: 'لا أعرف' }, hint: { fr: 'On commence par observer', ar: 'نبدأ بالملاحظة' } },
 ]
 
 export const lifestyleTopics: DiscoveryOption<LifestyleId>[] = [
-  { id: 'pregnancy', label: { fr: 'Grossesse / allaitement', ar: 'الحمل / الرضاعة' }, hint: { fr: 'Une routine plus prudente', ar: 'روتين أكثر حذر' } },
-  { id: 'sleep', label: { fr: 'Sommeil irrégulier', ar: 'النوم غير منتظم' }, hint: { fr: 'Sans culpabiliser', ar: 'بلا لوم' } },
-  { id: 'stress', label: { fr: 'Stress', ar: 'الضغط' }, hint: { fr: 'Peau et rythme de vie', ar: 'البشرة وإيقاع الحياة' } },
-  { id: 'motherhood', label: { fr: 'Fatigue de maman', ar: 'عياء الأمومة' }, hint: { fr: 'Faire simple quand le temps manque', ar: 'نبسطو ملي الوقت قليل' } },
-  { id: 'emotional', label: { fr: 'Charge émotionnelle', ar: 'الضغط النفسي' }, hint: { fr: 'Observer sans tout lui attribuer', ar: 'نلاحظو بلا ما نفسرو كلشي به' } },
-  { id: 'diet', label: { fr: 'Alimentation', ar: 'التغذية' }, hint: { fr: 'Nuance, pas d’interdits', ar: 'بتوازن، بلا منع قاسي' } },
-  { id: 'sun', label: { fr: 'Soleil et habitudes', ar: 'الشمس والعادات' }, hint: { fr: 'Une protection réaliste', ar: 'حماية واقعية' } },
-  { id: 'facial-hair', label: { fr: 'Pilosité du visage', ar: 'شعر الوجه' }, hint: { fr: 'Des repères sans jugement', ar: 'معلومات بلا أحكام' } },
+  { id: 'pregnancy', label: { fr: 'Grossesse / allaitement', ar: 'الحمل / الرضاعة' }, hint: { fr: 'Une routine plus prudente', ar: 'عناية تحتاج إلى مزيد من الحذر' } },
+  { id: 'stress', label: { fr: 'Stress / anxiété', ar: 'التوتر / القلق' }, hint: { fr: 'Un facteur possible, jamais une faute', ar: 'عامل محتمل، وليس خطأ منك' } },
+  { id: 'motherhood', label: { fr: 'Fatigue de maman', ar: 'إرهاق الأمومة' }, hint: { fr: 'Faire simple quand le temps manque', ar: 'روتين بسيط عندما يضيق الوقت' } },
+  { id: 'emotional', label: { fr: 'Charge émotionnelle', ar: 'ضغط عاطفي' }, hint: { fr: 'Observer sans tout lui attribuer', ar: 'ملاحظة من دون تفسير كل شيء به' } },
+  { id: 'sleep', label: { fr: 'Sommeil insuffisant', ar: 'نوم غير كافٍ' }, hint: { fr: 'Un minimum réaliste', ar: 'الحد الأدنى الواقعي' } },
+  { id: 'diet', label: { fr: 'Alimentation', ar: 'التغذية' }, hint: { fr: 'Nuance, pas d’interdits', ar: 'توازن من دون منع قاسٍ' } },
+  { id: 'hair-products', label: { fr: 'Beaucoup de produits cheveux', ar: 'استعمال منتجات شعر كثيرة' }, hint: { fr: 'Ce qui touche le front compte aussi', ar: 'ما يلامس الجبهة مهم أيضاً' } },
+  { id: 'sun', label: { fr: 'Exposition au soleil', ar: 'تعرض متكرر للشمس' }, hint: { fr: 'Une protection réaliste', ar: 'وقاية عملية ومنتظمة' } },
+  { id: 'none', label: { fr: 'Aucun de ceux-ci', ar: 'لا شيء مما سبق' }, hint: { fr: 'Continuer sans contexte particulier', ar: 'المتابعة من دون سياق خاص' } },
 ]
 
 export const concernOptions: DiscoveryOption<string>[] = [
-  { id: 'taches', label: { fr: 'Taches', ar: 'التصبغات' }, hint: { fr: 'Couleur irrégulière', ar: 'لون غير موحد' } },
-  { id: 'traces', label: { fr: 'Traces de boutons', ar: 'آثار الحبوب' }, hint: { fr: 'Marques après inflammation', ar: 'آثار من بعد الالتهاب' } },
-  { id: 'grasse', label: { fr: 'Brillance', ar: 'اللمعان' }, hint: { fr: 'Sébum et pores', ar: 'الدهون والمسام' } },
-  { id: 'seche', label: { fr: 'Tiraillement', ar: 'الشد' }, hint: { fr: 'Confort et barrière', ar: 'الراحة وحاجز البشرة' } },
-  { id: 'sensible', label: { fr: 'Réactions', ar: 'التفاعلات' }, hint: { fr: 'Picotements, rougeurs', ar: 'حريق واحمرار' } },
-  { id: 'terne', label: { fr: 'Teint terne', ar: 'البهتان' }, hint: { fr: 'Éclat irrégulier', ar: 'إشراقة ناقصة' } },
-  { id: 'spf', label: { fr: 'Soleil', ar: 'الشمس' }, hint: { fr: 'Protection quotidienne', ar: 'الحماية اليومية' } },
-  { id: 'inconnue', label: { fr: 'Je ne sais pas', ar: 'ما عارفاش' }, hint: { fr: 'Commencer par observer', ar: 'نبداو بالملاحظة' } },
+  { id: 'taches', label: { fr: 'Taches / hyperpigmentation', ar: 'التصبغات / البقع الداكنة' }, hint: { fr: 'Couleur irrégulière', ar: 'اختلاف لون البشرة' } },
+  { id: 'traces', label: { fr: 'Traces de boutons', ar: 'آثار الحبوب' }, hint: { fr: 'Marques après inflammation', ar: 'علامات بعد الالتهاب' } },
+  { id: 'acne', label: { fr: 'Acné / boutons', ar: 'حب الشباب / الحبوب' }, hint: { fr: 'Boutons ou bosses récurrents', ar: 'حبوب أو نتوءات متكررة' } },
+  { id: 'seche', label: { fr: 'Sécheresse / tiraillement', ar: 'الجفاف / الشد' }, hint: { fr: 'Confort et barrière', ar: 'راحة البشرة وحاجزها' } },
+  { id: 'grasse', label: { fr: 'Brillance / excès de sébum', ar: 'اللمعان / زيادة الدهون' }, hint: { fr: 'Zone T ou visage entier', ar: 'منطقة T أو كامل الوجه' } },
+  { id: 'sensible', label: { fr: 'Sensibilité / rougeurs', ar: 'الحساسية / الاحمرار' }, hint: { fr: 'Picotements, réactions', ar: 'وخز أو تفاعلات متكررة' } },
+  { id: 'terne', label: { fr: 'Teint terne', ar: 'بهتان البشرة' }, hint: { fr: 'Éclat irrégulier', ar: 'نقص الإشراقة' } },
+  { id: 'pilosite', label: { fr: 'Pilosité du visage', ar: 'شعر الوجه' }, hint: { fr: 'Évolution ou densité', ar: 'الكثافة أو سرعة التغير' } },
+  { id: 'spf', label: { fr: 'Protection solaire', ar: 'الوقاية من الشمس' }, hint: { fr: 'Créer une vraie habitude', ar: 'بناء عادة يومية' } },
+  { id: 'inconnue', label: { fr: 'Je ne sais pas', ar: 'لا أعرف' }, hint: { fr: 'Commencer par observer', ar: 'نبدأ بالملاحظة' } },
 ]
 
 export const discoveryCards: DiscoveryCard[] = [
@@ -160,7 +162,7 @@ export const discoveryCards: DiscoveryCard[] = [
     sourceTitle: 'Stress-induced changes in skin barrier function in healthy women', sourceUrl: 'https://pubmed.ncbi.nlm.nih.gov/11511309/', sourceType: { fr: 'Étude clinique exploratoire', ar: 'دراسة سريرية استكشافية' },
   },
   {
-    id: 'facial-hair-context', format: 'warning', profiles: ['oily', 'combination', 'medium-dark', 'unknown'], concerns: ['grasse', 'traces', 'inconnue'], lifestyles: ['facial-hair'],
+    id: 'facial-hair-context', format: 'warning', profiles: ['oily', 'combination', 'medium-dark', 'unknown'], concerns: ['grasse', 'traces', 'inconnue'], lifestyles: [],
     eyebrow: { fr: 'Pilosité du visage', ar: 'شعر الوجه' },
     title: { fr: 'Quelques poils ne racontent pas, à eux seuls, une maladie.', ar: 'شي شعرات بوحدهم ما كيعنيوش مرض.' },
     teaser: { fr: 'Le rythme d’apparition et les signes associés comptent davantage.', ar: 'سرعة الظهور والعلامات المرافقة هما الأهم.' },
@@ -220,4 +222,3 @@ export const discoveryCards: DiscoveryCard[] = [
     sourceTitle: 'How to test skin care products — American Academy of Dermatology', sourceUrl: 'https://www.aad.org/public/everyday-care/skin-care-secrets/prevent-skin-problems/test-skin-care-products', sourceType: { fr: 'Recommandations dermatologiques', ar: 'توصيات أطباء الجلد' },
   },
 ]
-

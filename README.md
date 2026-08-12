@@ -5,11 +5,20 @@ Le projet ECOLYN est organisé en deux univers :
 - `/` : plateforme éditoriale de conseils gratuits, bilingue FR/AR ;
 - `/pack/` : ancienne landing page commerciale conservée et adaptée.
 
-La homepage est un parcours de découverte mobile-first : la visiteuse choisit
-son profil de peau, sa préoccupation et, si elle le souhaite, un sujet de mode
-de vie. Un mini-feed réordonne ensuite les contenus sans envoyer ces choix au
-backend. Chaque contenu conserve une source médicale ou scientifique visible
-derrière « Pourquoi ? / علاش؟ ».
+La homepage est un parcours séquentiel mobile-first : la visiteuse choisit son
+type de peau, sa préoccupation principale puis un contexte quotidien. Un moteur
+local affiche immédiatement 4 à 6 conseils équilibrés entre type, préoccupation
+et contexte, avec gestes à essayer, erreurs à éviter, nuances et sources. Le
+formulaire court vient juste après le résultat et reprend les choix sans les
+demander une seconde fois. Les articles et les six histoires deviennent des
+contenus complémentaires placés après le formulaire.
+
+Les données sont séparées de l’interface :
+
+- `src/data/advice/` : 31 conseils et moteur de recommandations ;
+- `src/data/sources/` : sources et notes de niveau de preuve ;
+- `src/data/stories/` : six récits autorisés reliés aux témoignages existants ;
+- `src/data/articles/` : articles complémentaires FR/AR.
 
 ## Démarrage
 
@@ -128,10 +137,10 @@ Le drawer éditorial et la bibliothèque se mettent à jour automatiquement.
 Les médias officiels sont déclarés dans `site-config.json` et chargés directement
 depuis le CDN ECOLYN. Ils ne sont pas dupliqués dans `public/`.
 
-Les six témoignages conservent leurs photos et audios originaux. Les histoires
-s’ouvrent dans un drawer sans autoplay. Aucun problème, résultat ou détail
-biographique ne doit être inventé : les futurs champs écrits ne seront affichés
-qu’après validation de leur transcription.
+Les six témoignages conservent leurs photos, identités et audios originaux. Les
+histoires validées s’ouvrent sans autoplay et structurent problème, découverte,
+changement et enseignement. Les récits eux-mêmes restent en darija marocaine ;
+le reste de l’interface arabe utilise un arabe standard moderne.
 
 Le comparateur avant/après tactile et clavier est conservé avec son avertissement
 clair : une expérience individuelle n’est ni une preuve clinique, ni une garantie.
@@ -156,9 +165,9 @@ La couche `dataLayer` reçoit notamment : `page_view`, `view_content`,
 `audio_75`, `audio_complete`, `before_after_interaction`, `form_start`,
 `form_step_complete`, `form_submit`, `generate_lead`, `whatsapp_click`,
 `pack_view`, `pack_cta_click`, `initiate_checkout`, `order_submit`,
-`select_skin_profile`, `select_skin_concern`, `select_lifestyle_topic`,
-`content_open`, `content_complete`, `story_open`, `story_audio_play` et
-`join_whatsapp_group`.
+`select_skin_type`, `select_complexion`, `select_skin_concern`,
+`select_lifestyle_context`, `personalized_advice_view`, `advice_expand`,
+`source_open`, `story_open`, `story_audio_play` et `join_whatsapp_group`.
 
 Les noms, téléphones, e-mails, photos, références et textes libres sont filtrés
 avant tout envoi vers `dataLayer`, Meta, TikTok ou GA4.

@@ -1,22 +1,20 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
 import {
-  ArrowDown, ArrowLeft, ArrowRight, ArrowUpRight, AudioLines, BookOpen,
-  Check, ChevronRight, CircleHelp, Clock3, HeartHandshake, MessageCircle,
-  MoonStar, Pause, Play, ShieldCheck, Sparkles, Sun, Utensils, X,
+  ArrowDown, ArrowUpRight, AudioLines, BookOpen, Check, ChevronDown,
+  HeartHandshake, MessageCircle, Pause, Play, ShieldCheck, Sparkles, X,
 } from 'lucide-react'
-import type { Language, Localized, Testimonial } from '../types'
+import type { Article, Language, Localized, Testimonial } from '../types'
+import { articles } from '../data/articles'
 import { testimonials } from '../data/testimonials'
+import { customerStories } from '../data/stories'
 import { siteConfig } from '../data/site'
 import {
-  concernOptions,
-  discoveryCards,
-  lifestyleTopics,
-  skinProfiles,
-  type DiscoveryCard,
-  type LifestyleId,
-  type SkinProfileId,
+  concernOptions, lifestyleTopics, skinProfiles,
+  type LifestyleId, type SkinProfileId,
 } from '../data/discovery'
+import { recommendAdvice } from '../data/advice/engine'
+import type { AdviceItem, ComplexionId } from '../data/advice'
 import { track } from '../lib/tracking'
 
 const whatsappGroupHref = 'https://chat.whatsapp.com/IbrwixzaySqLYawg3D7WiP?s=cl&p=a&ilr=1'
@@ -25,448 +23,165 @@ function local(value: Localized, lang: Language) {
   return value[lang]
 }
 
-const formatLabels: Record<DiscoveryCard['format'], Localized> = {
-  fact: { fr: 'À savoir', ar: 'معلومة مهمة' },
-  myth: { fr: 'Mythe ou nuance', ar: 'فكرة أو توضيح' },
-  gesture: { fr: 'À essayer', ar: 'جربي هادي' },
-  quiz: { fr: 'Mini test', ar: 'تجربة صغيرة' },
-  warning: { fr: 'Repère prudent', ar: 'معلومة بحذر' },
+function optionLabel<T extends string>(items: { id: T; label: Localized }[], id: T, lang: Language) {
+  return items.find(item => item.id === id)?.label[lang] || id
 }
 
-function DoorIcon({ type }: { type: 'profile' | 'lifestyle' }) {
-  return type === 'profile' ? <Sparkles /> : <MoonStar />
-}
-
-function useRailNavigation(count: number) {
-  const rail = useRef<HTMLDivElement>(null)
-  const [index, setIndex] = useState(0)
-
-  useEffect(() => {
-    const node = rail.current
-    if (!node) return
-    const update = () => {
-      const railBox = node.getBoundingClientRect()
-      const center = railBox.left + railBox.width / 2
-      const children = Array.from(node.children) as HTMLElement[]
-      if (!children.length) return
-      const closest = children.reduce((best, child, childIndex) => {
-        const box = child.getBoundingClientRect()
-        const distance = Math.abs((box.left + box.width / 2) - center)
-        return distance < best.distance ? { index: childIndex, distance } : best
-      }, { index: 0, distance: Number.POSITIVE_INFINITY })
-      setIndex(closest.index)
-    }
-    update()
-    node.addEventListener('scroll', update, { passive: true })
-    window.addEventListener('resize', update)
-    return () => {
-      node.removeEventListener('scroll', update)
-      window.removeEventListener('resize', update)
-    }
-  }, [count])
-
-  const goTo = (nextIndex: number) => {
-    const safeIndex = Math.max(0, Math.min(nextIndex, count - 1))
-    const child = rail.current?.children.item(safeIndex) as HTMLElement | null
-    child?.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' })
-  }
-
-  return { rail, index, goTo }
-}
-
-function MobileCarouselNavigation({ lang, index, count, goTo, label }: {
-  lang: Language
-  index: number
-  count: number
-  goTo: (index: number) => void
-  label: string
-}) {
+function DiscoveryHero({ lang, start }: { lang: Language; start: () => void }) {
+  const steps = lang === 'fr'
+    ? [['01', 'Votre type de peau'], ['02', 'Votre préoccupation'], ['03', 'Votre contexte quotidien']]
+    : [['01', 'نوع بشرتك'], ['02', 'المشكلة الأساسية'], ['03', 'سياقك اليومي']]
   return (
-    <div className="mobile-carousel-nav" aria-label={label}>
-      <button className="mobile-carousel-arrow mobile-carousel-arrow--prev" type="button" onClick={() => goTo(index - 1)} disabled={index === 0} aria-label={lang === 'fr' ? 'Élément précédent' : 'العنصر السابق'}>
-        {lang === 'fr' ? <ArrowLeft /> : <ArrowRight />}
-      </button>
-      <button className="mobile-carousel-arrow mobile-carousel-arrow--next" type="button" onClick={() => goTo(index + 1)} disabled={index === count - 1} aria-label={lang === 'fr' ? 'Élément suivant' : 'العنصر التالي'}>
-        {lang === 'fr' ? <ArrowRight /> : <ArrowLeft />}
-      </button>
-      <div className="mobile-carousel-dots">
-        {Array.from({ length: count }, (_, dotIndex) => (
-          <button key={dotIndex} type="button" className={dotIndex === index ? 'is-active' : ''} onClick={() => goTo(dotIndex)} aria-label={`${lang === 'fr' ? 'Afficher l’élément' : 'عرض العنصر'} ${dotIndex + 1}`} aria-current={dotIndex === index ? 'true' : undefined} />
-        ))}
-      </div>
-    </div>
-  )
-}
-
-function DiscoveryHero({ lang, openDoor }: { lang: Language; openDoor: (door: 'profile' | 'lifestyle') => void }) {
-  return (
-    <section className="discovery-hero" id="accueil">
-      <div className="discovery-hero__grain" />
-      <div className="discovery-hero__orb discovery-hero__orb--one" />
-      <div className="discovery-hero__orb discovery-hero__orb--two" />
-      <div className="discovery-hero__content">
-        <p className="discovery-kicker"><span>ECOLYN</span>{lang === 'fr' ? 'Comprendre avant de conseiller' : 'نفهمو قبل ما ننصحو'}</p>
-        <h1>{lang === 'fr' ? <>Votre peau n’est pas celle <em>de tout le monde.</em></> : <>بشرتك ماشي بحال <em>أي بشرة.</em></>}</h1>
-        <p className="discovery-hero__lead">{lang === 'fr' ? 'Commencez par ce qui vous ressemble.' : 'خلي المحتوى اللي كتشوفيه يكون عليك أنتِ.'}</p>
-        <p className="discovery-hero__prompt">{lang === 'fr' ? 'Choisissez votre première porte d’entrée' : 'بداي باختيار شنو كيشبه ليك أكثر'}</p>
-        <div className="discovery-doors">
-          <button type="button" onClick={() => openDoor('profile')}>
-            <span><DoorIcon type="profile" /></span>
-            <b>{lang === 'fr' ? 'Ma peau aujourd’hui' : 'بشرتي اليوم'}</b>
-            <small>{lang === 'fr' ? 'Grasse, sèche, sensible…' : 'دهنية، جافة، حساسة…'}</small>
-            <ArrowUpRight />
-          </button>
-          <button type="button" onClick={() => openDoor('lifestyle')}>
-            <span><DoorIcon type="lifestyle" /></span>
-            <b>{lang === 'fr' ? 'Ce que je vis' : 'شنو كنعيش دابا'}</b>
-            <small>{lang === 'fr' ? 'Sommeil, stress, grossesse…' : 'النوم، الضغط، الحمل…'}</small>
-            <ArrowUpRight />
-          </button>
+    <section className="journey-hero" id="accueil">
+      <div className="journey-hero__glow" />
+      <div className="journey-wrap journey-hero__grid">
+        <div className="journey-hero__copy">
+          <p className="journey-kicker"><Sparkles /> ECOLYN <span>{lang === 'fr' ? 'Conseils personnalisés' : 'نصائح مخصصة'}</span></p>
+          <h1>{lang === 'fr' ? <>Comprenez mieux votre peau, <em>en 3 choix.</em></> : <>افهمي بشرتك بشكل أفضل <em>من خلال 3 اختيارات.</em></>}</h1>
+          <p className="journey-hero__lead">{lang === 'fr'
+            ? 'Faites 3 choix simples sur votre peau et recevez immédiatement des conseils adaptés à votre situation.'
+            : 'اختاري 3 أشياء بسيطة عن بشرتك، وسنعرض لك فوراً نصائح وخطوات تناسب حالتك.'}</p>
+          <p className="journey-hero__sub">{lang === 'fr'
+            ? 'Si vous souhaitez aller plus loin, vous pourrez ensuite expliquer votre situation à Hanane dans un formulaire très court afin qu’elle puisse vous contacter sur WhatsApp.'
+            : 'وإذا أردتِ مساعدة أكثر تخصيصاً، يمكنك بعد ذلك شرح حالتك لحنان عبر نموذج قصير، وستتواصل معك على WhatsApp.'}</p>
+          <button className="journey-primary" type="button" onClick={start}>{lang === 'fr' ? 'Commencer mes 3 choix' : 'ابدئي الاختيارات الثلاثة'} <ArrowDown /></button>
+          <span className="journey-free"><ShieldCheck /> {lang === 'fr' ? '100% gratuit • Sans obligation d’achat' : 'نصائح مجانية 100% • دون إلزام بالشراء'}</span>
         </div>
-        <div className="discovery-hero__trust">
-          <span><BookOpen /> {lang === 'fr' ? 'Contenus sourcés' : 'محتوى بالمصادر'}</span>
-          <span><ShieldCheck /> {lang === 'fr' ? 'Sans diagnostic' : 'بلا تشخيص'}</span>
-          <span><HeartHandshake /> {lang === 'fr' ? 'Conseils gratuits' : 'نصائح مجانية'}</span>
+        <div className="journey-hero__steps" aria-label={lang === 'fr' ? 'Les trois étapes' : 'الخطوات الثلاث'}>
+          <div className="journey-hero__cardtop"><span>{lang === 'fr' ? 'Votre lecture personnalisée' : 'قراءتك المخصصة'}</span><Sparkles /></div>
+          {steps.map(([number, label], index) => <div className="journey-hero__step" key={number}><b>{number}</b><span>{label}</span>{index < 2 && <i />}</div>)}
+          <div className="journey-hero__promise"><HeartHandshake /><span><b>{lang === 'fr' ? 'Immédiat et prudent' : 'فوري وحذر'}</b><small>{lang === 'fr' ? 'Des gestes concrets, avec leur source.' : 'خطوات عملية مع مصادرها.'}</small></span></div>
         </div>
       </div>
-      <div className="discovery-hero__preview" aria-hidden="true">
-        <article className="insight-panel">
-          <div className="insight-panel__top">
-            <span>{lang === 'fr' ? 'Lecture personnalisée' : 'قراءة مخصصة'}</span>
-            <b>01</b>
-          </div>
-          <div className="insight-panel__statement">
-            <i><Sparkles /></i>
-            <p>{lang === 'fr' ? 'Une lecture plus claire de ce que vous observez.' : 'قراءة أوضح للي كتلاحظيه فبشرتك.'}</p>
-          </div>
-          <div className="insight-panel__steps">
-            <span><b>01</b><small>{lang === 'fr' ? 'Observer' : 'لاحظي'}</small></span>
-            <span><b>02</b><small>{lang === 'fr' ? 'Comprendre' : 'فهمي'}</small></span>
-            <span><b>03</b><small>{lang === 'fr' ? 'Ajuster' : 'عدّلي'}</small></span>
-          </div>
-          <div className="insight-panel__foot">
-            <span><CircleHelp /><b>{lang === 'fr' ? 'Le pourquoi et la source restent accessibles.' : 'السبب والمصدر ديما واضحين.'}</b></span>
-            <span><Check /><b>{lang === 'fr' ? 'Un geste concret à la fois.' : 'خطوة عملية وحدة كل مرة.'}</b></span>
-          </div>
-        </article>
-      </div>
-      <a className="discovery-scroll" href="#personnalisation"><ArrowDown /> {lang === 'fr' ? 'Personnaliser' : 'خصصي المحتوى'}</a>
     </section>
   )
 }
 
-function ChoiceCard<T extends string>({ id, label, hint, active, onClick }: {
-  id: T
-  label: string
-  hint: string
-  active: boolean
-  onClick: (id: T) => void
+function ChoiceButton<T extends string>({ id, label, hint, active, choose }: {
+  id: T; label: string; hint: string; active: boolean; choose: (id: T) => void
 }) {
-  return (
-    <button type="button" className={`choice-card${active ? ' is-active' : ''}`} onClick={() => onClick(id)} aria-pressed={active}>
-      <i>{active ? <Check /> : <span />}</i>
-      <b>{label}</b>
-      <small>{hint}</small>
-    </button>
-  )
+  return <button type="button" className={`journey-choice${active ? ' is-active' : ''}`} onClick={() => choose(id)} aria-pressed={active}>
+    <i>{active ? <Check /> : <span />}</i><b>{label}</b><small>{hint}</small>
+  </button>
 }
 
-function PersonalizationHub({ lang, activeDoor, profile, concern, lifestyle, chooseProfile, chooseConcern, chooseLifestyle }: {
+interface QuestionnaireProps {
   lang: Language
-  activeDoor: 'profile' | 'lifestyle'
   profile: SkinProfileId
   concern: string
   lifestyle: LifestyleId | ''
-  chooseProfile: (id: SkinProfileId) => void
-  chooseConcern: (id: string) => void
-  chooseLifestyle: (id: LifestyleId) => void
+  complexion: ComplexionId
+  setProfile: (id: SkinProfileId) => void
+  setConcern: (id: string) => void
+  setLifestyle: (id: LifestyleId) => void
+  setComplexion: (id: ComplexionId) => void
+  onFinished: () => void
+}
+
+function Questionnaire({ lang, profile, concern, lifestyle, complexion, setProfile, setConcern, setLifestyle, setComplexion, onFinished }: QuestionnaireProps) {
+  const [step, setStep] = useState(1)
+  const [chosenProfile, setChosenProfile] = useState(false)
+  const [chosenConcern, setChosenConcern] = useState(false)
+  const reduced = useReducedMotion()
+  const advance = (next: number) => window.setTimeout(() => setStep(next), reduced ? 0 : 260)
+  const progress = `${step * 33.333}%`
+  const steps = [
+    { eyebrow: { fr: 'Type de peau', ar: 'نوع البشرة' }, title: { fr: 'Qu’est-ce qui vous ressemble le plus ?', ar: 'ما الوصف الأقرب إلى بشرتك؟' } },
+    { eyebrow: { fr: 'Préoccupation principale', ar: 'المشكلة الأساسية' }, title: { fr: 'Qu’aimeriez-vous comprendre d’abord ?', ar: 'ما الذي تريدين فهمه أولاً؟' } },
+    { eyebrow: { fr: 'Contexte quotidien', ar: 'السياق اليومي' }, title: { fr: 'Quel élément ressemble le plus à votre quotidien ?', ar: 'ما العنصر الأقرب إلى حياتك اليومية؟' } },
+  ]
+  const chooseProfile = (id: SkinProfileId) => {
+    setProfile(id); setChosenProfile(true)
+    track('select_skin_type', { skin_type_id: id, step: 1 })
+    advance(2)
+  }
+  const chooseConcern = (id: string) => {
+    setConcern(id); setChosenConcern(true)
+    track('select_skin_concern', { concern_id: id, step: 2 })
+    advance(3)
+  }
+  const chooseLifestyle = (id: LifestyleId) => {
+    setLifestyle(id)
+    track('select_lifestyle_context', { context_id: id, step: 3 })
+    window.setTimeout(onFinished, reduced ? 0 : 320)
+  }
+  const chooseComplexion = (id: ComplexionId) => {
+    setComplexion(id)
+    track('select_complexion', { complexion_id: id })
+  }
+
+  return <section className="journey-questionnaire" id="personnalisation">
+    <div className="journey-wrap journey-questionnaire__shell">
+      <div className="journey-progress"><div><span style={{ width: progress }} /></div><p><b>{step}/3</b>{lang === 'fr' ? 'Votre parcours' : 'مسارك'}</p></div>
+      <AnimatePresence mode="wait">
+        <motion.div className="journey-step" key={step} initial={{ opacity: 0, x: lang === 'ar' ? -18 : 18 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: lang === 'ar' ? 12 : -12 }} transition={{ duration: reduced ? 0 : .28 }}>
+          <div className="journey-step__head"><span>0{step}</span><div><p>{local(steps[step - 1].eyebrow, lang)}</p><h2>{local(steps[step - 1].title, lang)}</h2></div></div>
+          <div className={`journey-choices journey-choices--${step}`}>
+            {step === 1 && skinProfiles.map(item => <ChoiceButton key={item.id} id={item.id} label={local(item.label, lang)} hint={local(item.hint, lang)} active={chosenProfile && profile === item.id} choose={chooseProfile} />)}
+            {step === 2 && concernOptions.map(item => <ChoiceButton key={item.id} id={item.id} label={local(item.label, lang)} hint={local(item.hint, lang)} active={chosenConcern && concern === item.id} choose={chooseConcern} />)}
+            {step === 3 && lifestyleTopics.map(item => <ChoiceButton key={item.id} id={item.id} label={local(item.label, lang)} hint={local(item.hint, lang)} active={lifestyle === item.id} choose={chooseLifestyle} />)}
+          </div>
+        </motion.div>
+      </AnimatePresence>
+      {chosenProfile && <div className="complexion-optional">
+        <div><b>{lang === 'fr' ? 'Votre peau est-elle mate à foncée ?' : 'هل بشرتك متوسطة إلى داكنة؟'}</b><small>{lang === 'fr' ? 'Facultatif — ce n’est pas un type de peau.' : 'اختياري — هذا ليس نوع البشرة.'}</small></div>
+        <div>{([
+          ['medium-dark', lang === 'fr' ? 'Oui' : 'نعم'],
+          ['not-medium-dark', lang === 'fr' ? 'Non' : 'لا'],
+          ['unspecified', lang === 'fr' ? 'Ne pas préciser' : 'أفضل عدم التحديد'],
+        ] as [ComplexionId, string][]).map(([id, label]) => <button type="button" className={complexion === id ? 'is-active' : ''} onClick={() => chooseComplexion(id)} key={id}>{label}</button>)}</div>
+      </div>}
+      {step > 1 && <button className="journey-back" type="button" onClick={() => setStep(step - 1)}>{lang === 'fr' ? '← Modifier le choix précédent' : 'تعديل الاختيار السابق →'}</button>}
+    </div>
+  </section>
+}
+
+function EvidenceBadge({ item, lang }: { item: AdviceItem; lang: Language }) {
+  const label = item.evidenceLevel === 'established'
+    ? (lang === 'fr' ? 'Repère bien établi' : 'معلومة موثوقة')
+    : item.evidenceLevel === 'encouraging'
+      ? (lang === 'fr' ? 'Données encourageantes' : 'معطيات مشجعة')
+      : (lang === 'fr' ? 'Association possible' : 'ارتباط محتمل')
+  return <span className={`evidence-badge evidence-badge--${item.evidenceLevel}`}>{label}</span>
+}
+
+function AdviceResult({ lang, profile, concern, lifestyle, complexion }: {
+  lang: Language; profile: SkinProfileId; concern: string; lifestyle: LifestyleId | ''; complexion: ComplexionId
 }) {
-  const profileRail = useRef<HTMLDivElement>(null)
-  const lifestyleRail = useRef<HTMLDivElement>(null)
-  const scrollRail = (ref: React.RefObject<HTMLDivElement | null>, direction: number) => ref.current?.scrollBy({ left: direction * Math.min(340, window.innerWidth * .78), behavior: 'smooth' })
-
-  return (
-    <section className="personalization" id="personnalisation">
-      <div className="discovery-wrap">
-        <div className="discovery-heading">
-          <p>{lang === 'fr' ? 'Votre point de départ' : 'نقطة البداية ديالك'}</p>
-          <h2>{lang === 'fr' ? 'Le bon contenu commence par une bonne question.' : 'المحتوى المناسب كيبدا بسؤال مناسب.'}</h2>
-          <span>{lang === 'fr' ? 'Vous pouvez changer vos choix à tout moment. Ils restent uniquement sur votre appareil.' : 'تقدري تبدلي الاختيارات فأي وقت. كيبقاو غير فالجهاز ديالك.'}</span>
-        </div>
-
-        <div className={`choice-block${activeDoor === 'profile' ? ' is-highlighted' : ''}`}>
-          <div className="choice-block__head">
-            <div><span>01</span><div><p>{lang === 'fr' ? 'Profil de peau' : 'نوع البشرة'}</p><h3>{lang === 'fr' ? 'Qu’est-ce qui vous ressemble le plus ?' : 'شنو كيشبه لبشرتك أكثر؟'}</h3></div></div>
-            <div className="rail-buttons"><button onClick={() => scrollRail(profileRail, -1)} aria-label="Précédent"><ArrowLeft /></button><button onClick={() => scrollRail(profileRail, 1)} aria-label="Suivant"><ArrowRight /></button></div>
-          </div>
-          <div className="choice-rail" ref={profileRail}>
-            {skinProfiles.map(item => <ChoiceCard key={item.id} {...item} label={local(item.label, lang)} hint={local(item.hint, lang)} active={profile === item.id} onClick={chooseProfile} />)}
-          </div>
-        </div>
-
-        <div className="choice-block choice-block--compact">
-          <div className="choice-block__head">
-            <div><span>02</span><div><p>{lang === 'fr' ? 'Préoccupation' : 'المشكل'}</p><h3>{lang === 'fr' ? 'Qu’aimeriez-vous comprendre d’abord ?' : 'شنو بغيتي تفهمي أولاً؟'}</h3></div></div>
-          </div>
-          <div className="concern-chips">
-            {concernOptions.map(item => <button key={item.id} type="button" className={concern === item.id ? 'is-active' : ''} onClick={() => chooseConcern(item.id)} aria-pressed={concern === item.id}>{local(item.label, lang)}</button>)}
-          </div>
-        </div>
-
-        <div className={`choice-block choice-block--life${activeDoor === 'lifestyle' ? ' is-highlighted' : ''}`} id="mode-de-vie">
-          <div className="choice-block__head">
-            <div><span>03</span><div><p>{lang === 'fr' ? 'Votre contexte' : 'الظروف ديالك'}</p><h3>{lang === 'fr' ? 'Un sujet de vie influence votre routine ?' : 'كاين شي موضوع فحياتك كيأثر على الروتين؟'}</h3></div></div>
-            <div className="rail-buttons"><button onClick={() => scrollRail(lifestyleRail, -1)} aria-label="Précédent"><ArrowLeft /></button><button onClick={() => scrollRail(lifestyleRail, 1)} aria-label="Suivant"><ArrowRight /></button></div>
-          </div>
-          <div className="choice-rail choice-rail--life" ref={lifestyleRail}>
-            {lifestyleTopics.map(item => <ChoiceCard key={item.id} {...item} label={local(item.label, lang)} hint={local(item.hint, lang)} active={lifestyle === item.id} onClick={chooseLifestyle} />)}
-          </div>
-        </div>
+  const items = useMemo(() => recommendAdvice({ profile, concern, context: lifestyle, complexion }), [profile, concern, lifestyle, complexion])
+  const viewed = useRef('')
+  useEffect(() => {
+    const key = `${profile}|${concern}|${lifestyle}|${complexion}`
+    if (viewed.current === key) return
+    viewed.current = key
+    track('personalized_advice_view', { skin_type_id: profile, concern_id: concern, context_id: lifestyle || 'none', advice_count: items.length })
+  }, [profile, concern, lifestyle, complexion, items.length])
+  const selection = [
+    optionLabel(skinProfiles, profile, lang),
+    optionLabel(concernOptions, concern, lang),
+    lifestyle ? optionLabel(lifestyleTopics, lifestyle, lang) : '',
+  ].filter(Boolean).join(' + ')
+  return <motion.section className="advice-result" id="conseils" initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: .48 }}>
+    <div className="journey-wrap">
+      <div className="advice-result__hero">
+        <span className="advice-result__star"><Sparkles /></span>
+        <div><p>{lang === 'fr' ? 'Votre résultat personnalisé' : 'نتيجتك المخصصة'}</p><h2>{lang === 'fr' ? 'Voici les conseils les plus adaptés à vos choix' : 'هذه النصائح هي الأقرب إلى اختياراتك'}</h2><span>{lang === 'fr' ? 'Vous avez sélectionné :' : 'لقد اخترتِ:'} <b>{selection}</b></span></div>
       </div>
-    </section>
-  )
-}
-
-function ContentDrawer({ card, lang, close, complete, next }: { card: DiscoveryCard; lang: Language; close: () => void; complete: () => void; next: () => void }) {
-  return (
-    <motion.div className="content-overlay" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onMouseDown={event => event.currentTarget === event.target && close()}>
-      <motion.article className={`content-drawer content-drawer--${card.format}`} initial={{ x: lang === 'ar' ? '-100%' : '100%' }} animate={{ x: 0 }} exit={{ x: lang === 'ar' ? '-100%' : '100%' }} transition={{ duration: .48, ease: [.22, 1, .36, 1] }}>
-        <div className="content-drawer__top">
-          <span>{local(formatLabels[card.format], lang)}</span>
-          <button onClick={close} aria-label={lang === 'fr' ? 'Fermer' : 'سد'}><X /></button>
-        </div>
-        <div className="content-drawer__hero">
-          <p>{local(card.eyebrow, lang)}</p>
-          <h2>{local(card.title, lang)}</h2>
-          <span>{local(card.teaser, lang)}</span>
-        </div>
-        <div className="content-drawer__body">
-          <section><b>01</b><div><h3>{lang === 'fr' ? 'Ce que cela veut dire' : 'شنو كيعني هادشي'}</h3><p>{local(card.explanation, lang)}</p></div></section>
-          <details open>
-            <summary><CircleHelp /> {lang === 'fr' ? 'Pourquoi ?' : 'علاش؟'} <ChevronRight /></summary>
-            <p>{local(card.why, lang)}</p>
-            <a href={card.sourceUrl} target="_blank" rel="noreferrer"><BookOpen /> <span><b>{local(card.sourceType, lang)}</b><small>{card.sourceTitle}</small></span><ArrowUpRight /></a>
-          </details>
-          <section className="drawer-gesture"><b>02</b><div><h3>{lang === 'fr' ? 'Le geste concret' : 'الخطوة العملية'}</h3><p>{local(card.gesture, lang)}</p></div></section>
-          <section className="drawer-mistake"><b>03</b><div><h3>{lang === 'fr' ? 'L’erreur à éviter' : 'الغلطة اللي خاص نتفاداو'}</h3><p>{local(card.mistake, lang)}</p></div></section>
-          <section><b>04</b><div><h3>{lang === 'fr' ? 'Quand demander un avis' : 'إمتى نطلبو رأي مختص'}</h3><p>{local(card.professional, lang)}</p></div></section>
-          {card.caution && <p className="drawer-caution"><ShieldCheck /> {local(card.caution, lang)}</p>}
-        </div>
-        <div className="content-drawer__actions">
-          <button className="button button--primary" onClick={complete}><Check /> {lang === 'fr' ? 'J’ai compris' : 'فهمت'}</button>
-          <button className="button button--ghost" onClick={next}>{lang === 'fr' ? 'Contenu suivant' : 'المحتوى الموالي'} <ArrowRight /></button>
-        </div>
-      </motion.article>
-    </motion.div>
-  )
-}
-
-function PersonalizedFeed({ lang, profile, concern, lifestyle }: { lang: Language; profile: SkinProfileId; concern: string; lifestyle: LifestyleId | '' }) {
-  const [openCard, setOpenCard] = useState<DiscoveryCard | null>(null)
-  const [visibleCount, setVisibleCount] = useState(7)
-  const feedNavigation = useRailNavigation(visibleCount)
-  const completed = useRef(new Set<string>())
-  const ordered = useMemo(() => discoveryCards.map((card, index) => ({
-    card,
-    index,
-    score: (card.profiles.includes(profile) ? 5 : 0) + (card.concerns.includes(concern) ? 4 : 0) + (lifestyle && card.lifestyles.includes(lifestyle) ? 7 : 0),
-  })).sort((a, b) => b.score - a.score || a.index - b.index).map(item => item.card), [profile, concern, lifestyle])
-
-  const open = (card: DiscoveryCard, source: string) => {
-    setOpenCard(card)
-    document.body.classList.add('modal-open')
-    track('content_open', { content_id: card.id, content_format: card.format, selection_source: source })
-  }
-  const close = () => {
-    setOpenCard(null)
-    document.body.classList.remove('modal-open')
-  }
-  const complete = () => {
-    if (openCard && !completed.current.has(openCard.id)) {
-      completed.current.add(openCard.id)
-      track('content_complete', { content_id: openCard.id, content_format: openCard.format })
-    }
-    close()
-  }
-  const next = () => {
-    if (!openCard) return
-    const index = ordered.findIndex(card => card.id === openCard.id)
-    const nextCard = ordered[(index + 1) % ordered.length]
-    setOpenCard(nextCard)
-    track('content_open', { content_id: nextCard.id, content_format: nextCard.format, selection_source: 'drawer_next' })
-  }
-
-  const profileName = local(skinProfiles.find(item => item.id === profile)?.label || skinProfiles[5].label, lang)
-  const concernName = local(concernOptions.find(item => item.id === concern)?.label || concernOptions[7].label, lang)
-  const lifestyleName = lifestyle ? local(lifestyleTopics.find(item => item.id === lifestyle)?.label || lifestyleTopics[0].label, lang) : ''
-
-  return (
-    <section className="personal-feed" id="conseils">
-      <div className="discovery-wrap">
-        <div className="feed-intro">
-          <div>
-            <p>{lang === 'fr' ? 'Votre mini-feed' : 'المحتوى ديالك'}</p>
-            <h2>{lang === 'fr' ? 'À explorer maintenant' : 'اكتشفي دابا'}</h2>
-          </div>
-          <div className="feed-profile"><Sparkles /><span>{profileName}</span><i>+</i><span>{concernName}</span>{lifestyleName && <><i>+</i><span>{lifestyleName}</span></>}</div>
-        </div>
-        <div className="mobile-carousel-shell">
-          <div className="content-grid" ref={feedNavigation.rail}>
-            {ordered.slice(0, visibleCount).map((card, index) => (
-              <motion.button
-                type="button"
-                className={`content-card content-card--${card.format} content-card--${(index % 4) + 1}`}
-                key={card.id}
-                onClick={() => open(card, 'personalized_feed')}
-                initial={{ opacity: 0, y: 24 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: '-8%' }}
-                transition={{ duration: .5, delay: Math.min(index * .04, .2) }}
-              >
-                <span className="content-card__top"><b>{String(index + 1).padStart(2, '0')}</b><i>{local(formatLabels[card.format], lang)}</i></span>
-                <span className="content-card__eyebrow">{local(card.eyebrow, lang)}</span>
-                <strong>{local(card.title, lang)}</strong>
-                <span className="content-card__teaser">{local(card.teaser, lang)}</span>
-                <span className="content-card__why"><CircleHelp /> {lang === 'fr' ? 'Pourquoi ?' : 'علاش؟'}</span>
-                <span className="content-card__open">{lang === 'fr' ? 'Ouvrir' : 'فتحي'} <ArrowUpRight /></span>
-              </motion.button>
-            ))}
-          </div>
-          <MobileCarouselNavigation lang={lang} index={feedNavigation.index} count={visibleCount} goTo={feedNavigation.goTo} label={lang === 'fr' ? 'Navigation des contenus' : 'تصفح المحتويات'} />
-        </div>
-        {visibleCount < ordered.length && <button className="feed-more" type="button" onClick={() => setVisibleCount(ordered.length)}>{lang === 'fr' ? 'Voir tous les contenus' : 'شوفي المحتوى كامل'} <ArrowDown /></button>}
+      <div className="advice-result__split">
+        <section className="advice-do"><h3><Check /> {lang === 'fr' ? 'CE QUE VOUS POUVEZ ESSAYER' : 'ما يمكنك تجربته'}</h3>{items.map(item => <article key={`do-${item.id}`}><b>{local(item.title, lang)}</b><p>{local(item.doItem, lang)}</p></article>)}</section>
+        <section className="advice-avoid"><h3><X /> {lang === 'fr' ? 'CE QU’IL VAUT MIEUX ÉVITER' : 'ما يُفضّل تجنبه'}</h3>{items.map(item => <article key={`avoid-${item.id}`}><b>{local(item.title, lang)}</b><p>{local(item.avoidItem, lang)}</p></article>)}</section>
       </div>
-      <AnimatePresence>{openCard && <ContentDrawer card={openCard} lang={lang} close={close} complete={complete} next={next} />}</AnimatePresence>
-    </section>
-  )
-}
-
-function StoryDrawer({ story, lang, close }: { story: Testimonial; lang: Language; close: () => void }) {
-  const [playing, setPlaying] = useState(false)
-  const played = useRef(false)
-  const audioRef = useRef<HTMLAudioElement>(null)
-  const toggle = () => {
-    const audio = audioRef.current
-    if (!audio) return
-    if (audio.paused) void audio.play()
-    else audio.pause()
-  }
-  const onPlay = () => {
-    setPlaying(true)
-    if (!played.current) {
-      played.current = true
-      track('story_audio_play', { story_id: String(story.id) })
-      track('audio_play', { testimonial_id: String(story.id) })
-    }
-  }
-  return (
-    <motion.div className="story-overlay" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onMouseDown={event => event.target === event.currentTarget && close()}>
-      <motion.article initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }} transition={{ duration: .5, ease: [.22, 1, .36, 1] }}>
-        <button className="story-close" onClick={close} aria-label={lang === 'fr' ? 'Fermer' : 'سد'}><X /></button>
-        <div className="story-image"><img src={story.image} alt={story.name} width="720" height="900" /></div>
-        <div className="story-copy">
-          <p>{lang === 'fr' ? 'Une vraie voix, une vraie expérience' : 'صوت حقيقي وتجربة حقيقية'}</p>
-          <h2>{story.name}</h2>
-          <span>{lang === 'fr' ? 'Son témoignage original est conservé en audio. Aucun détail biographique ou résultat n’a été ajouté sans validation.' : 'الشهادة الأصلية محفوظة فالصوت. ما زدنا حتى تفاصيل أو نتائج بلا تأكيد.'}</span>
-          <div className="story-player">
-            <button type="button" onClick={toggle} aria-label={playing ? (lang === 'fr' ? 'Mettre en pause' : 'وقفي الصوت') : (lang === 'fr' ? `Écouter le témoignage de ${story.name}` : `سمعي شهادة ${story.name}`)}>{playing ? <Pause /> : <Play />}</button>
-            <div><b>{lang === 'fr' ? 'Écouter son histoire' : 'سمعي قصتها'}</b><small>{lang === 'fr' ? 'Audio original ECOLYN' : 'الصوت الأصلي ديال ECOLYN'}</small></div>
-            <AudioLines />
-            <audio ref={audioRef} src={story.audio} preload="metadata" onPlay={onPlay} onPause={() => setPlaying(false)} onEnded={() => setPlaying(false)} />
-          </div>
-          <div className="story-fields-note"><BookOpen /><p>{lang === 'fr' ? 'Les champs “problème”, “déclic”, “évolution” et “conseil” sont prêts pour une future transcription validée ; ils restent volontairement absents aujourd’hui.' : 'خانات “المشكل” و“اللحظة المهمة” و“التطور” و“النصيحة” واجدين للنسخة المكتوبة من بعد الموافقة؛ دابا خليناهم خاويين بقصد.'}</p></div>
-        </div>
-      </motion.article>
-    </motion.div>
-  )
-}
-
-function Stories({ lang }: { lang: Language }) {
-  const [story, setStory] = useState<Testimonial | null>(null)
-  const storyNavigation = useRailNavigation(testimonials.length)
-  const open = (item: Testimonial) => {
-    setStory(item)
-    document.body.classList.add('modal-open')
-    track('story_open', { story_id: String(item.id) })
-  }
-  const close = () => {
-    setStory(null)
-    document.body.classList.remove('modal-open')
-  }
-  return (
-    <section className="story-section" id="histoires">
-      <div className="discovery-wrap">
-        <div className="story-heading">
-          <p>{lang === 'fr' ? 'Elles ne sont pas des statistiques' : 'ماشي غير أرقام'}</p>
-          <h2>{lang === 'fr' ? 'Elles ont une histoire à raconter.' : 'عندهم قصة يحكيوها.'}</h2>
-          <span>{lang === 'fr' ? 'Six témoignages, six voix originales. Touchez un portrait pour écouter.' : 'ست شهادات وست أصوات أصلية. كليكي على الصورة باش تسمعي.'}</span>
-        </div>
-        <div className="mobile-carousel-shell">
-          <div className="story-rail" ref={storyNavigation.rail}>
-            {testimonials.map((item, index) => (
-              <button type="button" key={item.id} onClick={() => open(item)}>
-                <img src={item.image} alt={item.name} width="520" height="650" loading="lazy" />
-                <span><small>0{index + 1}</small><b>{item.name}</b><i><Play /></i></span>
-              </button>
-            ))}
-          </div>
-          <MobileCarouselNavigation lang={lang} index={storyNavigation.index} count={testimonials.length} goTo={storyNavigation.goTo} label={lang === 'fr' ? 'Navigation des témoignages' : 'تصفح الشهادات'} />
-        </div>
+      <div className="advice-explanations">
+        <div className="advice-explanations__head"><p>{lang === 'fr' ? 'Comprendre le pourquoi' : 'افهمي السبب'}</p><h3>{lang === 'fr' ? 'Chaque conseil garde sa nuance et sa source.' : 'لكل نصيحة تفسيرها ومصدرها.'}</h3></div>
+        {items.map(item => <details key={item.id} onToggle={event => event.currentTarget.open && track('advice_expand', { advice_id: item.id })}>
+          <summary><span><EvidenceBadge item={item} lang={lang} /><b>{local(item.title, lang)}</b></span><ChevronDown /></summary>
+          <div><p>{local(item.explanation, lang)}</p>{item.safety && <p className="advice-safety"><ShieldCheck /> {local(item.safety, lang)}</p>}<a href={item.source.url} target="_blank" rel="noreferrer" onClick={() => track('source_open', { advice_id: item.id, source_id: item.source.id })}><BookOpen /><span><b>{item.source.organisation}</b><small>{item.source.title} — {local(item.source.evidenceNote, lang)}</small></span><ArrowUpRight /></a></div>
+        </details>)}
       </div>
-      <AnimatePresence>{story && <StoryDrawer story={story} lang={lang} close={close} />}</AnimatePresence>
-    </section>
-  )
-}
-
-function Hanane({ lang, goToForm }: { lang: Language; goToForm: () => void }) {
-  return (
-    <section className="hanane-section" id="hanane">
-      <div className="hanane-shell">
-        <div className="hanane-photo">
-          <img src={siteConfig.assets.expertProfile} alt="Hanane — ECOLYN" width="900" height="1120" loading="lazy" />
-          <span><i>ECOLYN</i>{lang === 'fr' ? 'Une approche humaine et structurée' : 'طريقة إنسانية ومنظمة'}</span>
-        </div>
-        <div className="hanane-copy">
-          <p>{lang === 'fr' ? 'La personne derrière les conseils' : 'الشخص اللي ورا النصائح'}</p>
-          <h2>{lang === 'fr' ? <>Hanane commence par <em>vous écouter.</em></> : <>حنان كتبدا <em>بالاستماع ليك.</em></>}</h2>
-          <span className="hanane-role">{local(siteConfig.expert.role, lang)}</span>
-          <blockquote>{lang === 'fr' ? 'Comprendre ce que vous observez, ce que vous utilisez et ce que vous vivez avant de proposer une routine plus claire.' : 'نفهمو شنو كتلاحظي، شنو كتستعملي وشنو كتعيشي قبل ما نقترحو روتين أوضح.'}</blockquote>
-          <div className="hanane-method">
-            <span><b>01</b>{lang === 'fr' ? 'Écouter la situation réelle' : 'نسمعو للوضع الحقيقي'}</span>
-            <span><b>02</b>{lang === 'fr' ? 'Simplifier les priorités' : 'نبسطو الأولويات'}</span>
-            <span><b>03</b>{lang === 'fr' ? 'Orienter avec prudence' : 'نوجهو بحذر'}</span>
-          </div>
-          <button className="button button--primary" type="button" onClick={goToForm}>{lang === 'fr' ? 'Poser ma question à Hanane' : 'نسول حنان'} <MessageCircle /></button>
-        </div>
-      </div>
-    </section>
-  )
-}
-
-function PreFormBridge({ lang, goToForm }: { lang: Language; goToForm: () => void }) {
-  return (
-    <section className="preform-bridge">
-      <div className="preform-bridge__copy">
-        <p>{lang === 'fr' ? 'Votre peau mérite mieux qu’une réponse copiée-collée.' : 'بشرتك كتستاهل أكثر من جواب منسوخ.'}</p>
-        <h2>{lang === 'fr' ? 'Transformez ce que vous avez observé en une question claire.' : 'حولي الملاحظات ديالك لسؤال واضح.'}</h2>
-        <button className="button button--light" type="button" onClick={goToForm}>{lang === 'fr' ? 'Recevoir un premier conseil gratuit' : 'خذي أول نصيحة مجانية'} <ArrowUpRight /></button>
-      </div>
-      <div className="preform-bridge__trust">
-        <span><Clock3 /><b>{lang === 'fr' ? 'Moins de 2 minutes' : 'أقل من جوج دقايق'}</b></span>
-        <span><ShieldCheck /><b>{lang === 'fr' ? 'Demande confidentielle' : 'طلب سري'}</b></span>
-        <span><MessageCircle /><b>{lang === 'fr' ? 'Réponse sur WhatsApp' : 'الجواب فالواتساب'}</b></span>
-      </div>
-    </section>
-  )
-}
-
-function WhatsAppInvitation({ lang }: { lang: Language }) {
-  return (
-    <section className="whatsapp-invite">
-      <div><MessageCircle /><span><small>{lang === 'fr' ? 'Conseils courts, rappels utiles' : 'نصائح قصيرة وتذكيرات مفيدة'}</small><b>{lang === 'fr' ? 'Rejoignez le groupe ECOLYN sur WhatsApp' : 'انضمي لمجموعة ECOLYN فالواتساب'}</b></span></div>
-      <a href={whatsappGroupHref} target="_blank" rel="noreferrer" onClick={() => track('join_whatsapp_group', { source: 'homepage_invitation' })}>{lang === 'fr' ? 'Rejoindre le groupe' : 'انضمي للمجموعة'} <ArrowUpRight /></a>
-    </section>
-  )
+      <div className="advice-disclaimer"><ShieldCheck /><p><b>{lang === 'fr' ? 'Information générale, pas un diagnostic.' : 'معلومات عامة وليست تشخيصاً.'}</b><span>{lang === 'fr' ? 'Une douleur importante, des lésions profondes, une réaction étendue ou une situation persistante doivent être présentées à un professionnel de santé.' : 'الألم الشديد أو الحبوب العميقة أو التفاعل الواسع أو الحالة المستمرة تستدعي استشارة مختص صحي.'}</span></p></div>
+      <a className="advice-to-form" href="#formulaire" onClick={() => track('form_start', { source: 'personalized_result', concern_id: concern, skin_type_id: profile })}><MessageCircle /><span><b>{lang === 'fr' ? 'Vous voulez des conseils plus personnalisés ?' : 'هل تريدين نصائح أكثر تخصيصاً؟'}</b><small>{lang === 'fr' ? 'Expliquez votre situation à Hanane dans le formulaire très court juste en dessous.' : 'اشرحي حالتك لحنان في النموذج القصير أدناه.'}</small></span><ArrowDown /></a>
+    </div>
+  </motion.section>
 }
 
 export interface DiscoveryExperienceProps {
@@ -474,45 +189,92 @@ export interface DiscoveryExperienceProps {
   profile: SkinProfileId
   concern: string
   lifestyle: LifestyleId | ''
+  complexion: ComplexionId
   setProfile: (id: SkinProfileId) => void
   setConcern: (id: string) => void
   setLifestyle: (id: LifestyleId) => void
+  setComplexion: (id: ComplexionId) => void
+  onComplete: () => void
 }
 
-export default function DiscoveryExperience({ lang, profile, concern, lifestyle, setProfile, setConcern, setLifestyle }: DiscoveryExperienceProps) {
-  const [activeDoor, setActiveDoor] = useState<'profile' | 'lifestyle'>('profile')
+export default function DiscoveryExperience(props: DiscoveryExperienceProps) {
+  const [finished, setFinished] = useState(false)
   const reduced = useReducedMotion()
-  const openDoor = (door: 'profile' | 'lifestyle') => {
-    setActiveDoor(door)
-    track(door === 'profile' ? 'select_skin_profile' : 'select_lifestyle_topic', { selection_source: 'hero_door', option_id: door })
-    window.setTimeout(() => document.getElementById(door === 'profile' ? 'personnalisation' : 'mode-de-vie')?.scrollIntoView({ behavior: reduced ? 'auto' : 'smooth' }), 40)
+  const start = () => document.getElementById('personnalisation')?.scrollIntoView({ behavior: reduced ? 'auto' : 'smooth' })
+  const finish = () => {
+    setFinished(true)
+    props.onComplete()
+    window.setTimeout(() => document.getElementById('conseils')?.scrollIntoView({ behavior: reduced ? 'auto' : 'smooth', block: 'start' }), reduced ? 0 : 80)
   }
-  const chooseProfile = (id: SkinProfileId) => {
-    setProfile(id)
-    track('select_skin_profile', { profile_id: id, selection_source: 'personalization_hub' })
-  }
-  const chooseConcern = (id: string) => {
-    setConcern(id)
-    track('select_skin_concern', { concern_id: id, selection_source: 'personalization_hub' })
-  }
-  const chooseLifestyle = (id: LifestyleId) => {
-    setLifestyle(id)
-    track('select_lifestyle_topic', { lifestyle_topic: id, selection_source: 'personalization_hub' })
-  }
-  const goToForm = () => {
-    track('form_start', { source: 'discovery_cta', concern_id: concern, profile_id: profile })
-    document.getElementById('formulaire')?.scrollIntoView({ behavior: reduced ? 'auto' : 'smooth' })
-  }
+  return <>
+    <DiscoveryHero lang={props.lang} start={start} />
+    <Questionnaire lang={props.lang} profile={props.profile} concern={props.concern} lifestyle={props.lifestyle} complexion={props.complexion} setProfile={props.setProfile} setConcern={props.setConcern} setLifestyle={props.setLifestyle} setComplexion={props.setComplexion} onFinished={finish} />
+    {finished && <AdviceResult lang={props.lang} profile={props.profile} concern={props.concern} lifestyle={props.lifestyle} complexion={props.complexion} />}
+  </>
+}
 
-  return (
-    <>
-      <DiscoveryHero lang={lang} openDoor={openDoor} />
-      <PersonalizationHub lang={lang} activeDoor={activeDoor} profile={profile} concern={concern} lifestyle={lifestyle} chooseProfile={chooseProfile} chooseConcern={chooseConcern} chooseLifestyle={chooseLifestyle} />
-      <PersonalizedFeed lang={lang} profile={profile} concern={concern} lifestyle={lifestyle} />
-      <Stories lang={lang} />
-      <Hanane lang={lang} goToForm={goToForm} />
-      <WhatsAppInvitation lang={lang} />
-      <PreFormBridge lang={lang} goToForm={goToForm} />
-    </>
-  )
+function StoryModal({ item, lang, close, goToForm }: { item: Testimonial; lang: Language; close: () => void; goToForm: () => void }) {
+  const content = customerStories.find(story => story.id === item.id)!
+  const audio = useRef<HTMLAudioElement>(null)
+  const [playing, setPlaying] = useState(false)
+  const tracked = useRef(false)
+  const toggle = () => audio.current?.paused ? void audio.current.play() : audio.current?.pause()
+  return <motion.div className="narrative-overlay" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onMouseDown={event => event.currentTarget === event.target && close()}>
+    <motion.article initial={{ y: 40, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 30, opacity: 0 }}>
+      <button className="narrative-close" type="button" onClick={close} aria-label={lang === 'fr' ? 'Fermer' : 'إغلاق'}><X /></button>
+      <div className="narrative-photo"><img src={item.image} alt={item.name} width="720" height="900" /><span>{item.name}</span></div>
+      <div className="narrative-copy">
+        <p className="narrative-kicker">{lang === 'fr' ? 'Une histoire ECOLYN • 1 min de lecture' : 'قصة من ECOLYN • دقيقة واحدة للقراءة'}</p>
+        <h2 dir="rtl">{content.title}</h2>
+        <p className="narrative-hook">{local(content.hook, lang)}</p>
+        <div className="narrative-player"><button type="button" onClick={toggle}>{playing ? <Pause /> : <Play />}</button><span><b>{lang === 'fr' ? 'Écouter son audio original' : 'استمعي إلى تسجيلها الأصلي'}</b><small>ECOLYN • {item.name}</small></span><AudioLines /><audio ref={audio} src={item.audio} preload="metadata" onPlay={() => { setPlaying(true); if (!tracked.current) { tracked.current = true; track('story_audio_play', { story_id: String(item.id) }) } }} onPause={() => setPlaying(false)} onEnded={() => setPlaying(false)} /></div>
+        <div className="narrative-story" dir="rtl">{content.narrative.split('\n\n').map((paragraph, index) => <p key={index}>{paragraph}</p>)}</div>
+        <div className="narrative-summary">
+          {[
+            [lang === 'fr' ? 'Le problème' : 'المشكلة', content.problem],
+            [lang === 'fr' ? 'Ce qu’elle a découvert' : 'ما الذي اكتشفته', content.discovery],
+            [lang === 'fr' ? 'Ce qu’elle a changé' : 'ما الذي غيّرته', content.change],
+            [lang === 'fr' ? 'Ce qu’elle a appris' : 'ما الذي تعلمته', content.learned],
+          ].map(([label, value]) => <div key={String(label)}><b>{String(label)}</b><p>{local(value as Localized, lang)}</p></div>)}
+        </div>
+        <button className="journey-primary" type="button" onClick={goToForm}>{lang === 'fr' ? 'Votre situation ressemble à la sienne ? Expliquez-la à Hanane.' : 'هل تشبه حالتك هذه التجربة؟ اشرحي حالتك لحنان'} <MessageCircle /></button>
+      </div>
+    </motion.article>
+  </motion.div>
+}
+
+function ComplementaryArticles({ lang, openArticle }: { lang: Language; openArticle: (article: Article) => void }) {
+  const [expanded, setExpanded] = useState(false)
+  const shown = expanded ? articles : articles.slice(0, 4)
+  return <section className="after-articles" id="articles">
+    <div className="journey-wrap">
+      <div className="after-heading"><p>{lang === 'fr' ? 'Pour approfondir' : 'للتعمق أكثر'}</p><h2>{lang === 'fr' ? 'Vous voulez aller plus loin ?' : 'هل تريدين معرفة المزيد؟'}</h2><span>{lang === 'fr' ? 'Ces articles expliquent certains points avec plus de détail.' : 'تشرح هذه المقالات بعض النقاط بتفصيل أكبر.'}</span></div>
+      <div className="after-articles__grid">{shown.map((article, index) => <button type="button" key={article.slug} onClick={() => openArticle(article)}><span><b>{String(index + 1).padStart(2, '0')}</b><small>{article.time} min</small></span><em>{local(article.category, lang)}</em><strong>{local(article.title, lang)}</strong><p>{local(article.summary, lang)}</p><i>{lang === 'fr' ? 'Lire l’article' : 'قراءة المقال'} <ArrowUpRight /></i></button>)}</div>
+      {articles.length > 4 && <button className="after-more" type="button" onClick={() => setExpanded(value => !value)}>{expanded ? (lang === 'fr' ? 'Afficher moins' : 'عرض أقل') : (lang === 'fr' ? 'Afficher plus' : 'عرض المزيد')} <ChevronDown /></button>}
+    </div>
+  </section>
+}
+
+function StorySection({ lang, goToForm }: { lang: Language; goToForm: () => void }) {
+  const [openStory, setOpenStory] = useState<Testimonial | null>(null)
+  const open = (item: Testimonial) => { setOpenStory(item); document.body.classList.add('modal-open'); track('story_open', { story_id: String(item.id) }) }
+  const close = () => { setOpenStory(null); document.body.classList.remove('modal-open') }
+  return <section className="after-stories" id="histoires">
+    <div className="journey-wrap">
+      <div className="after-heading"><p>{lang === 'fr' ? 'Six voix, six situations' : 'ست تجارب حقيقية'}</p><h2>{lang === 'fr' ? 'Leur histoire va plus loin qu’une photo.' : 'لكل واحدة قصة كاملة.'}</h2><span>{lang === 'fr' ? 'Les photos, identités et audios d’origine sont conservés.' : 'تم الاحتفاظ بالصور والأسماء والتسجيلات الصوتية الأصلية.'}</span></div>
+      <div className="story-grid">{testimonials.map(item => <article key={item.id}><div><img src={item.image} alt={item.name} width="520" height="650" loading="lazy" /><button type="button" onClick={() => open(item)} aria-label={`${lang === 'fr' ? 'Lire l’histoire de' : 'قراءة قصة'} ${item.name}`}><Play /></button></div><span><b>{item.name}</b><small>{lang === 'fr' ? '1 min de lecture + audio' : 'دقيقة للقراءة + تسجيل صوتي'}</small></span><button className="story-read" type="button" onClick={() => open(item)}>{lang === 'fr' ? 'Lire son histoire' : 'اقرئي قصتها كاملة'} <ArrowUpRight /></button></article>)}</div>
+    </div>
+    <AnimatePresence>{openStory && <StoryModal item={openStory} lang={lang} close={close} goToForm={() => { close(); goToForm() }} />}</AnimatePresence>
+  </section>
+}
+
+export function DiscoveryAfterForm({ lang, openArticle }: { lang: Language; openArticle: (article: Article) => void }) {
+  const reduced = useReducedMotion()
+  const goToForm = () => { track('form_start', { source: 'story_or_expert' }); document.getElementById('formulaire')?.scrollIntoView({ behavior: reduced ? 'auto' : 'smooth' }) }
+  return <>
+    <ComplementaryArticles lang={lang} openArticle={openArticle} />
+    <StorySection lang={lang} goToForm={goToForm} />
+    <section className="after-hanane" id="hanane"><div className="journey-wrap after-hanane__shell"><div className="after-hanane__photo"><img src={siteConfig.assets.expertProfile} alt="Hanane — ECOLYN" width="900" height="1120" loading="lazy" /><span>ECOLYN</span></div><div className="after-hanane__copy"><p>{lang === 'fr' ? 'La personne derrière les conseils' : 'الشخص الذي يقف خلف النصائح'}</p><h2>{lang === 'fr' ? <>Hanane commence par <em>vous écouter.</em></> : <>حنان تبدأ <em>بالاستماع إليك.</em></>}</h2><span>{lang === 'fr' ? 'Elle vous aide à clarifier vos priorités et à éviter les changements inutiles, sans poser de diagnostic en ligne.' : 'تساعدك على توضيح أولوياتك وتجنب التغييرات غير الضرورية، من دون تشخيص عبر الإنترنت.'}</span><div><b><Check /> {lang === 'fr' ? 'Écouter la situation réelle' : 'فهم الوضع الحقيقي'}</b><b><Check /> {lang === 'fr' ? 'Simplifier les priorités' : 'تبسيط الأولويات'}</b><b><Check /> {lang === 'fr' ? 'Orienter avec prudence' : 'التوجيه بحذر'}</b></div><button className="journey-primary" type="button" onClick={goToForm}>{lang === 'fr' ? 'Expliquer ma situation à Hanane' : 'اشرحي حالتك لحنان'} <MessageCircle /></button></div></div></section>
+    <section className="after-whatsapp"><div className="journey-wrap"><div><MessageCircle /><span><small>{lang === 'fr' ? 'Conseils courts et rappels utiles' : 'نصائح قصيرة وتذكيرات مفيدة'}</small><b>{lang === 'fr' ? 'Rejoignez le groupe ECOLYN sur WhatsApp' : 'انضمي إلى مجموعة ECOLYN على WhatsApp'}</b></span></div><a href={whatsappGroupHref} target="_blank" rel="noreferrer" onClick={() => track('join_whatsapp_group', { source: 'homepage_invitation' })}>{lang === 'fr' ? 'Rejoindre le groupe' : 'الانضمام إلى المجموعة'} <ArrowUpRight /></a></div></section>
+  </>
 }

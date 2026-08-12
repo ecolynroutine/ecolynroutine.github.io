@@ -42,6 +42,15 @@ const metaMap: Record<string, string> = {
 
 const metaCustomMap: Record<string, string> = {
   select_skin_concern: 'SkinConcernSelected',
+  select_skin_type: 'SkinTypeSelected',
+  select_complexion: 'ComplexionSelected',
+  select_lifestyle_context: 'LifestyleContextSelected',
+  personalized_advice_view: 'PersonalizedAdviceView',
+  advice_expand: 'AdviceExpand',
+  source_open: 'SourceOpen',
+  story_open: 'StoryOpen',
+  story_audio_play: 'StoryAudioPlay',
+  article_complete: 'ArticleComplete',
   join_whatsapp_group: 'JoinWhatsappGroup',
 }
 
