@@ -1,4 +1,4 @@
-import { readFile, writeFile } from 'node:fs/promises'
+import { copyFile, mkdir, readFile, writeFile } from 'node:fs/promises'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { loadEnv } from 'vite'
@@ -29,3 +29,7 @@ await writeFile(
   `window.ECOLYN_SITE_CONFIG=${JSON.stringify(siteConfig)};\n`,
   'utf8',
 )
+
+const hostingDir = resolve(projectDir, 'dist', '.openai')
+await mkdir(hostingDir, { recursive: true })
+await copyFile(resolve(projectDir, '.openai', 'hosting.json'), resolve(hostingDir, 'hosting.json'))
