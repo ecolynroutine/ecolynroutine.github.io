@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
 import {
   ArrowDown, ArrowLeft, ArrowRight, ArrowUpRight, AudioLines, BookOpen,
@@ -37,6 +37,67 @@ function DoorIcon({ type }: { type: 'profile' | 'lifestyle' }) {
   return type === 'profile' ? <Sparkles /> : <MoonStar />
 }
 
+function useRailNavigation(count: number) {
+  const rail = useRef<HTMLDivElement>(null)
+  const [index, setIndex] = useState(0)
+
+  useEffect(() => {
+    const node = rail.current
+    if (!node) return
+    const update = () => {
+      const railBox = node.getBoundingClientRect()
+      const center = railBox.left + railBox.width / 2
+      const children = Array.from(node.children) as HTMLElement[]
+      if (!children.length) return
+      const closest = children.reduce((best, child, childIndex) => {
+        const box = child.getBoundingClientRect()
+        const distance = Math.abs((box.left + box.width / 2) - center)
+        return distance < best.distance ? { index: childIndex, distance } : best
+      }, { index: 0, distance: Number.POSITIVE_INFINITY })
+      setIndex(closest.index)
+    }
+    update()
+    node.addEventListener('scroll', update, { passive: true })
+    window.addEventListener('resize', update)
+    return () => {
+      node.removeEventListener('scroll', update)
+      window.removeEventListener('resize', update)
+    }
+  }, [count])
+
+  const goTo = (nextIndex: number) => {
+    const safeIndex = Math.max(0, Math.min(nextIndex, count - 1))
+    const child = rail.current?.children.item(safeIndex) as HTMLElement | null
+    child?.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' })
+  }
+
+  return { rail, index, goTo }
+}
+
+function MobileCarouselNavigation({ lang, index, count, goTo, label }: {
+  lang: Language
+  index: number
+  count: number
+  goTo: (index: number) => void
+  label: string
+}) {
+  return (
+    <div className="mobile-carousel-nav" aria-label={label}>
+      <button className="mobile-carousel-arrow mobile-carousel-arrow--prev" type="button" onClick={() => goTo(index - 1)} disabled={index === 0} aria-label={lang === 'fr' ? 'Élément précédent' : 'العنصر السابق'}>
+        {lang === 'fr' ? <ArrowLeft /> : <ArrowRight />}
+      </button>
+      <button className="mobile-carousel-arrow mobile-carousel-arrow--next" type="button" onClick={() => goTo(index + 1)} disabled={index === count - 1} aria-label={lang === 'fr' ? 'Élément suivant' : 'العنصر التالي'}>
+        {lang === 'fr' ? <ArrowRight /> : <ArrowLeft />}
+      </button>
+      <div className="mobile-carousel-dots">
+        {Array.from({ length: count }, (_, dotIndex) => (
+          <button key={dotIndex} type="button" className={dotIndex === index ? 'is-active' : ''} onClick={() => goTo(dotIndex)} aria-label={`${lang === 'fr' ? 'Afficher l’élément' : 'عرض العنصر'} ${dotIndex + 1}`} aria-current={dotIndex === index ? 'true' : undefined} />
+        ))}
+      </div>
+    </div>
+  )
+}
+
 function DiscoveryHero({ lang, openDoor }: { lang: Language; openDoor: (door: 'profile' | 'lifestyle') => void }) {
   return (
     <section className="discovery-hero" id="accueil">
@@ -69,19 +130,24 @@ function DiscoveryHero({ lang, openDoor }: { lang: Language; openDoor: (door: 'p
         </div>
       </div>
       <div className="discovery-hero__preview" aria-hidden="true">
-        <article className="preview-card preview-card--main">
-          <span>01</span>
-          <p>{lang === 'fr' ? 'Ce que votre peau essaie peut-être de vous dire' : 'شنو ممكن بشرتك تحاول تقول ليك'}</p>
-          <i><Sparkles /></i>
-        </article>
-        <article className="preview-card preview-card--note">
-          <CircleHelp />
-          <b>{lang === 'fr' ? 'Pourquoi ?' : 'علاش؟'}</b>
-          <small>{lang === 'fr' ? 'La réponse et sa source sont toujours à portée de main.' : 'الجواب والمصدر ديالو ديما قريبين.'}</small>
-        </article>
-        <article className="preview-card preview-card--gesture">
-          <Check />
-          <p>{lang === 'fr' ? 'Un geste concret. Pas une liste de dix produits.' : 'خطوة عملية. ماشي لائحة ديال عشرة منتجات.'}</p>
+        <article className="insight-panel">
+          <div className="insight-panel__top">
+            <span>{lang === 'fr' ? 'Lecture personnalisée' : 'قراءة مخصصة'}</span>
+            <b>01</b>
+          </div>
+          <div className="insight-panel__statement">
+            <i><Sparkles /></i>
+            <p>{lang === 'fr' ? 'Une lecture plus claire de ce que vous observez.' : 'قراءة أوضح للي كتلاحظيه فبشرتك.'}</p>
+          </div>
+          <div className="insight-panel__steps">
+            <span><b>01</b><small>{lang === 'fr' ? 'Observer' : 'لاحظي'}</small></span>
+            <span><b>02</b><small>{lang === 'fr' ? 'Comprendre' : 'فهمي'}</small></span>
+            <span><b>03</b><small>{lang === 'fr' ? 'Ajuster' : 'عدّلي'}</small></span>
+          </div>
+          <div className="insight-panel__foot">
+            <span><CircleHelp /><b>{lang === 'fr' ? 'Le pourquoi et la source restent accessibles.' : 'السبب والمصدر ديما واضحين.'}</b></span>
+            <span><Check /><b>{lang === 'fr' ? 'Un geste concret à la fois.' : 'خطوة عملية وحدة كل مرة.'}</b></span>
+          </div>
         </article>
       </div>
       <a className="discovery-scroll" href="#personnalisation"><ArrowDown /> {lang === 'fr' ? 'Personnaliser' : 'خصصي المحتوى'}</a>
@@ -198,6 +264,7 @@ function ContentDrawer({ card, lang, close, complete, next }: { card: DiscoveryC
 function PersonalizedFeed({ lang, profile, concern, lifestyle }: { lang: Language; profile: SkinProfileId; concern: string; lifestyle: LifestyleId | '' }) {
   const [openCard, setOpenCard] = useState<DiscoveryCard | null>(null)
   const [visibleCount, setVisibleCount] = useState(7)
+  const feedNavigation = useRailNavigation(visibleCount)
   const completed = useRef(new Set<string>())
   const ordered = useMemo(() => discoveryCards.map((card, index) => ({
     card,
@@ -243,26 +310,29 @@ function PersonalizedFeed({ lang, profile, concern, lifestyle }: { lang: Languag
           </div>
           <div className="feed-profile"><Sparkles /><span>{profileName}</span><i>+</i><span>{concernName}</span>{lifestyleName && <><i>+</i><span>{lifestyleName}</span></>}</div>
         </div>
-        <div className="content-grid">
-          {ordered.slice(0, visibleCount).map((card, index) => (
-            <motion.button
-              type="button"
-              className={`content-card content-card--${card.format} content-card--${(index % 4) + 1}`}
-              key={card.id}
-              onClick={() => open(card, 'personalized_feed')}
-              initial={{ opacity: 0, y: 24 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: '-8%' }}
-              transition={{ duration: .5, delay: Math.min(index * .04, .2) }}
-            >
-              <span className="content-card__top"><b>{String(index + 1).padStart(2, '0')}</b><i>{local(formatLabels[card.format], lang)}</i></span>
-              <span className="content-card__eyebrow">{local(card.eyebrow, lang)}</span>
-              <strong>{local(card.title, lang)}</strong>
-              <span className="content-card__teaser">{local(card.teaser, lang)}</span>
-              <span className="content-card__why"><CircleHelp /> {lang === 'fr' ? 'Pourquoi ?' : 'علاش؟'}</span>
-              <span className="content-card__open">{lang === 'fr' ? 'Ouvrir' : 'فتحي'} <ArrowUpRight /></span>
-            </motion.button>
-          ))}
+        <div className="mobile-carousel-shell">
+          <div className="content-grid" ref={feedNavigation.rail}>
+            {ordered.slice(0, visibleCount).map((card, index) => (
+              <motion.button
+                type="button"
+                className={`content-card content-card--${card.format} content-card--${(index % 4) + 1}`}
+                key={card.id}
+                onClick={() => open(card, 'personalized_feed')}
+                initial={{ opacity: 0, y: 24 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: '-8%' }}
+                transition={{ duration: .5, delay: Math.min(index * .04, .2) }}
+              >
+                <span className="content-card__top"><b>{String(index + 1).padStart(2, '0')}</b><i>{local(formatLabels[card.format], lang)}</i></span>
+                <span className="content-card__eyebrow">{local(card.eyebrow, lang)}</span>
+                <strong>{local(card.title, lang)}</strong>
+                <span className="content-card__teaser">{local(card.teaser, lang)}</span>
+                <span className="content-card__why"><CircleHelp /> {lang === 'fr' ? 'Pourquoi ?' : 'علاش؟'}</span>
+                <span className="content-card__open">{lang === 'fr' ? 'Ouvrir' : 'فتحي'} <ArrowUpRight /></span>
+              </motion.button>
+            ))}
+          </div>
+          <MobileCarouselNavigation lang={lang} index={feedNavigation.index} count={visibleCount} goTo={feedNavigation.goTo} label={lang === 'fr' ? 'Navigation des contenus' : 'تصفح المحتويات'} />
         </div>
         {visibleCount < ordered.length && <button className="feed-more" type="button" onClick={() => setVisibleCount(ordered.length)}>{lang === 'fr' ? 'Voir tous les contenus' : 'شوفي المحتوى كامل'} <ArrowDown /></button>}
       </div>
@@ -313,6 +383,7 @@ function StoryDrawer({ story, lang, close }: { story: Testimonial; lang: Languag
 
 function Stories({ lang }: { lang: Language }) {
   const [story, setStory] = useState<Testimonial | null>(null)
+  const storyNavigation = useRailNavigation(testimonials.length)
   const open = (item: Testimonial) => {
     setStory(item)
     document.body.classList.add('modal-open')
@@ -330,13 +401,16 @@ function Stories({ lang }: { lang: Language }) {
           <h2>{lang === 'fr' ? 'Elles ont une histoire à raconter.' : 'عندهم قصة يحكيوها.'}</h2>
           <span>{lang === 'fr' ? 'Six témoignages, six voix originales. Touchez un portrait pour écouter.' : 'ست شهادات وست أصوات أصلية. كليكي على الصورة باش تسمعي.'}</span>
         </div>
-        <div className="story-rail">
-          {testimonials.map((item, index) => (
-            <button type="button" key={item.id} onClick={() => open(item)}>
-              <img src={item.image} alt={item.name} width="520" height="650" loading="lazy" />
-              <span><small>0{index + 1}</small><b>{item.name}</b><i><Play /></i></span>
-            </button>
-          ))}
+        <div className="mobile-carousel-shell">
+          <div className="story-rail" ref={storyNavigation.rail}>
+            {testimonials.map((item, index) => (
+              <button type="button" key={item.id} onClick={() => open(item)}>
+                <img src={item.image} alt={item.name} width="520" height="650" loading="lazy" />
+                <span><small>0{index + 1}</small><b>{item.name}</b><i><Play /></i></span>
+              </button>
+            ))}
+          </div>
+          <MobileCarouselNavigation lang={lang} index={storyNavigation.index} count={testimonials.length} goTo={storyNavigation.goTo} label={lang === 'fr' ? 'Navigation des témoignages' : 'تصفح الشهادات'} />
         </div>
       </div>
       <AnimatePresence>{story && <StoryDrawer story={story} lang={lang} close={close} />}</AnimatePresence>
