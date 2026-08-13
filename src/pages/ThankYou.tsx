@@ -75,7 +75,7 @@ export default function ThankYou() {
             <a className="thank-you-secondary" href={whatsappUrl} target="_blank" rel="noreferrer" onClick={() => track('whatsapp_click', { source: 'thank_you' })}>
               {lang === 'fr' ? 'Ouvrir WhatsApp' : 'فتح واتساب'} <MessageCircle />
             </a>
-          </> : <a className="thank-you-primary" href={`${routeUrl('home')}#formulaire`}>{lang === 'fr' ? 'Remplir le formulaire' : 'ملء النموذج'} <ArrowUpRight /></a>}
+          </> : <a className="thank-you-primary" href={`${routeUrl('home')}#personnalisation`}>{lang === 'fr' ? 'Remplir le formulaire' : 'ملء النموذج'} <ArrowUpRight /></a>}
         </div>
         <a className="thank-you-return" href={routeUrl('home')}><ArrowLeft /> {lang === 'fr' ? 'Retourner aux conseils' : 'العودة إلى النصائح'}</a>
         <p className="thank-you-privacy"><ShieldCheck /> {lang === 'fr' ? 'Vos données ne sont accessibles qu’aux administrateurs autorisés.' : 'لا يمكن الاطلاع على بياناتك إلا من طرف المسؤولين المصرح لهم.'}</p>

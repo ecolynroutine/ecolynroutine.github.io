@@ -105,4 +105,29 @@ export const adviceSources: Record<string, AdviceSource> = {
     url: 'https://www.endocrine.org/clinical-practice-guidelines/hirsutism',
     evidenceNote: { fr: 'Recommandations cliniques sur l’évaluation d’une pilosité excessive.', ar: 'توصيات سريرية لتقييم زيادة شعر الوجه أو الجسم.' },
   },
+  aadDryRelief: {
+    id: 'aad-dry-relief', title: "Dermatologists' top tips for relieving dry skin", organisation: 'American Academy of Dermatology',
+    url: 'https://www.aad.org/public/everyday-care/skin-care-basics/dry/dermatologists-tips-relieve-dry-skin',
+    evidenceNote: { fr: 'Repères dermatologiques sur la douche, le séchage et les textures hydratantes.', ar: 'إرشادات جلدية حول الاستحمام والتجفيف وقوام المرطبات.' },
+  },
+  aadWorkout: {
+    id: 'aad-workout-acne', title: 'Is your workout causing your acne?', organisation: 'American Academy of Dermatology',
+    url: 'https://www.aad.org/public/diseases/acne/causes/workouts',
+    evidenceNote: { fr: 'Conseils dermatologiques pour limiter sueur, frottement et obstruction.', ar: 'إرشادات جلدية لتقليل أثر العرق والاحتكاك وانسداد المسام.' },
+  },
+  aadAcneColor: {
+    id: 'aad-acne-skin-color', title: '10 tips for clearing acne in darker skin tones', organisation: 'American Academy of Dermatology',
+    url: 'https://www.aad.org/public/diseases/acne/DIY/skin-color',
+    evidenceNote: { fr: 'Conseils dermatologiques sur l’acné et les marques des peaux mates à foncées.', ar: 'إرشادات جلدية حول الحبوب وآثارها في البشرة المتوسطة إلى الداكنة.' },
+  },
+  visibleLightStudy: {
+    id: 'visible-light-iron-oxides', title: 'Impact of Iron-Oxide Containing Formulations Against Visible Light-Induced Skin Pigmentation', organisation: 'Journal of Drugs in Dermatology — PubMed',
+    url: 'https://pubmed.ncbi.nlm.nih.gov/32726103/',
+    evidenceNote: { fr: 'Essai comparatif sur la protection contre la pigmentation induite par la lumière visible.', ar: 'دراسة مقارنة حول الحماية من التصبغ الناتج عن الضوء المرئي.' },
+  },
+  aadRetinoid: {
+    id: 'aad-retinoid-retinol', title: 'Retinoid or retinol?', organisation: 'American Academy of Dermatology',
+    url: 'https://www.aad.org/public/everyday-care/skin-care-secrets/anti-aging/retinoid-retinol',
+    evidenceNote: { fr: 'Conseils dermatologiques de prudence, notamment en cas d’irritation ou de grossesse.', ar: 'إرشادات جلدية للحذر، خصوصاً عند التهيج أو الحمل.' },
+  },
 }

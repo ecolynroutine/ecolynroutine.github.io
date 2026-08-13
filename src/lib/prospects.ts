@@ -15,7 +15,7 @@ export interface ProspectInsert {
   skin_type: string | null
   goal: string | null
   description: string | null
-  answers: Record<string, string | boolean>
+  answers: Record<string, string | boolean | string[]>
   photo_data_url: string | null
   photo_name: string | null
   photo_consent: boolean
@@ -110,10 +110,17 @@ async function preparePhoto(file: File | null) {
 }
 
 function collectAnswers(form: FormData) {
-  const answers: Record<string, string | boolean> = {}
+  const answers: Record<string, string | boolean | string[]> = {}
   for (const [key, value] of form.entries()) {
     if (value instanceof File) continue
-    answers[key] = value === 'yes' ? true : value
+    if (key.endsWith('Json')) {
+      try {
+        const parsed = JSON.parse(value)
+        answers[key.replace(/Json$/, '')] = Array.isArray(parsed) ? parsed.filter(item => typeof item === 'string') : value
+      } catch { answers[key] = value }
+    } else {
+      answers[key] = value === 'yes' ? true : value
+    }
   }
   return answers
 }

@@ -52,6 +52,9 @@ const metaCustomMap: Record<string, string> = {
   story_audio_play: 'StoryAudioPlay',
   article_complete: 'ArticleComplete',
   join_whatsapp_group: 'JoinWhatsappGroup',
+  journey_option_select: 'JourneyOptionSelect',
+  journey_option_remove: 'JourneyOptionRemove',
+  journey_step_complete: 'JourneyStepComplete',
 }
 
 const tiktokMap: Record<string, string> = {

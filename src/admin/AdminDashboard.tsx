@@ -95,6 +95,10 @@ const answerLabels: Record<string, string> = {
   photoConsent: 'Consentement photo',
   contactConsent: 'Consentement contact',
   marketingConsent: 'Consentement marketing',
+  lifestyleContext: 'Contexte quotidien',
+  selectedConcerns: 'Préoccupations sélectionnées',
+  selectedSkinProfiles: 'Profils de peau sélectionnés',
+  selectedContexts: 'Contextes sélectionnés',
 }
 
 function csvCell(value: unknown) {
@@ -397,7 +401,7 @@ function TrackingPanel() {
       )}
       <div className="tracking-events">
         <p className="admin-kicker">Événements couverts</p>
-        <div>{['PageView', 'ViewContent', 'Lead / generate_lead', 'select_skin_type', 'select_complexion', 'select_skin_concern', 'select_lifestyle_context', 'personalized_advice_view', 'advice_expand', 'source_open', 'story_open', 'story_audio_play', 'article_open', 'article_complete', 'JoinWhatsappGroup', 'Contact', 'InitiateCheckout', 'form_start', 'form_submit', 'whatsapp_click', 'pack_view', 'pack_cta_click', 'live_calendar_click'].map(event => <span key={event}>{event}</span>)}</div>
+        <div>{['PageView', 'ViewContent', 'Lead / generate_lead', 'journey_option_select', 'journey_option_remove', 'journey_step_complete', 'select_skin_type', 'select_complexion', 'select_skin_concern', 'select_lifestyle_context', 'personalized_advice_view', 'advice_expand', 'source_open', 'story_open', 'story_audio_play', 'article_open', 'article_complete', 'JoinWhatsappGroup', 'Contact', 'InitiateCheckout', 'form_start', 'form_submit', 'whatsapp_click', 'pack_view', 'pack_cta_click', 'live_calendar_click'].map(event => <span key={event}>{event}</span>)}</div>
       </div>
       <div className="tracking-diagnostics">
         <div className="tracking-diagnostics__head">

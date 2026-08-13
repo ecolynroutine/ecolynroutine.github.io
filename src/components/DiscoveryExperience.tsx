@@ -67,21 +67,19 @@ function ChoiceButton<T extends string>({ id, label, hint, active, choose }: {
 
 interface QuestionnaireProps {
   lang: Language
-  profile: SkinProfileId
-  concern: string
-  lifestyle: LifestyleId | ''
+  profiles: SkinProfileId[]
+  concerns: string[]
+  contexts: LifestyleId[]
   complexion: ComplexionId
-  setProfile: (id: SkinProfileId) => void
-  setConcern: (id: string) => void
-  setLifestyle: (id: LifestyleId) => void
+  setProfiles: (ids: SkinProfileId[]) => void
+  setConcerns: (ids: string[]) => void
+  setContexts: (ids: LifestyleId[]) => void
   setComplexion: (id: ComplexionId) => void
   onFinished: () => void
 }
 
-function Questionnaire({ lang, profile, concern, lifestyle, complexion, setProfile, setConcern, setLifestyle, setComplexion, onFinished }: QuestionnaireProps) {
+function Questionnaire({ lang, profiles, concerns, contexts, complexion, setProfiles, setConcerns, setContexts, setComplexion, onFinished }: QuestionnaireProps) {
   const [step, setStep] = useState(1)
-  const [chosenProfile, setChosenProfile] = useState(false)
-  const [chosenConcern, setChosenConcern] = useState(false)
   const reduced = useReducedMotion()
   const advance = (next: number) => window.setTimeout(() => setStep(next), reduced ? 0 : 260)
   const progress = `${step * 33.333}%`
@@ -91,22 +89,40 @@ function Questionnaire({ lang, profile, concern, lifestyle, complexion, setProfi
     { eyebrow: { fr: 'Contexte quotidien', ar: 'السياق اليومي' }, title: { fr: 'Quel élément ressemble le plus à votre quotidien ?', ar: 'ما العنصر الأقرب إلى حياتك اليومية؟' } },
   ]
   const chooseProfile = (id: SkinProfileId) => {
-    setProfile(id); setChosenProfile(true)
-    track('select_skin_type', { skin_type_id: id, step: 1 })
+    const removing = profiles.includes(id)
+    const next = id === 'unknown'
+      ? (removing ? [] : ['unknown'] as SkinProfileId[])
+      : (removing ? profiles.filter(value => value !== id) : [...profiles.filter(value => value !== 'unknown'), id])
+    setProfiles(next)
+    track(removing ? 'journey_option_remove' : 'journey_option_select', { option_group: 'skin_profile', option_id: id, step: 1 })
+    track('select_skin_type', { skin_type_id: id, selection_action: removing ? 'remove' : 'select', step: 1 })
   }
   const chooseConcern = (id: string) => {
-    setConcern(id); setChosenConcern(true)
-    track('select_skin_concern', { concern_id: id, step: 2 })
-    advance(3)
+    const removing = concerns.includes(id)
+    const next = removing ? concerns.filter(value => value !== id) : [...concerns, id]
+    setConcerns(next)
+    track(removing ? 'journey_option_remove' : 'journey_option_select', { option_group: 'skin_concern', option_id: id, step: 2 })
+    track('select_skin_concern', { concern_id: id, selection_action: removing ? 'remove' : 'select', step: 2 })
   }
   const chooseLifestyle = (id: LifestyleId) => {
-    setLifestyle(id)
-    track('select_lifestyle_context', { context_id: id, step: 3 })
-    window.setTimeout(onFinished, reduced ? 0 : 320)
+    const removing = contexts.includes(id)
+    const next = id === 'none'
+      ? (removing ? [] : ['none'] as LifestyleId[])
+      : (removing ? contexts.filter(value => value !== id) : [...contexts.filter(value => value !== 'none'), id])
+    setContexts(next)
+    track(removing ? 'journey_option_remove' : 'journey_option_select', { option_group: 'lifestyle_context', option_id: id, step: 3 })
+    track('select_lifestyle_context', { context_id: id, selection_action: removing ? 'remove' : 'select', step: 3 })
   }
   const chooseComplexion = (id: ComplexionId) => {
     setComplexion(id)
     track('select_complexion', { complexion_id: id })
+  }
+  const selectedCount = step === 1 ? profiles.length : step === 2 ? concerns.length : contexts.length
+  const continueJourney = () => {
+    if (!selectedCount) return
+    track('journey_step_complete', { step, selection_count: selectedCount })
+    if (step < 3) advance(step + 1)
+    else window.setTimeout(onFinished, reduced ? 0 : 220)
   }
 
   return <section className="journey-questionnaire" id="personnalisation">
@@ -115,23 +131,26 @@ function Questionnaire({ lang, profile, concern, lifestyle, complexion, setProfi
       <AnimatePresence mode="wait">
         <motion.div className="journey-step" key={step} initial={{ opacity: 0, x: lang === 'ar' ? -18 : 18 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: lang === 'ar' ? 12 : -12 }} transition={{ duration: reduced ? 0 : .28 }}>
           <div className="journey-step__head"><span>0{step}</span><div><p>{local(steps[step - 1].eyebrow, lang)}</p><h2>{local(steps[step - 1].title, lang)}</h2></div></div>
+          <p className="journey-multiselect-help"><Check /> {lang === 'fr' ? 'Vous pouvez sélectionner plusieurs réponses.' : 'يمكنك اختيار أكثر من إجابة.'}</p>
           <div className={`journey-choices journey-choices--${step}`}>
-            {step === 1 && skinProfiles.map(item => <ChoiceButton key={item.id} id={item.id} label={local(item.label, lang)} hint={local(item.hint, lang)} active={chosenProfile && profile === item.id} choose={chooseProfile} />)}
-            {step === 2 && concernOptions.map(item => <ChoiceButton key={item.id} id={item.id} label={local(item.label, lang)} hint={local(item.hint, lang)} active={chosenConcern && concern === item.id} choose={chooseConcern} />)}
-            {step === 3 && lifestyleTopics.map(item => <ChoiceButton key={item.id} id={item.id} label={local(item.label, lang)} hint={local(item.hint, lang)} active={lifestyle === item.id} choose={chooseLifestyle} />)}
+            {step === 1 && skinProfiles.map(item => <ChoiceButton key={item.id} id={item.id} label={local(item.label, lang)} hint={local(item.hint, lang)} active={profiles.includes(item.id)} choose={chooseProfile} />)}
+            {step === 2 && concernOptions.map(item => <ChoiceButton key={item.id} id={item.id} label={local(item.label, lang)} hint={local(item.hint, lang)} active={concerns.includes(item.id)} choose={chooseConcern} />)}
+            {step === 3 && lifestyleTopics.map(item => <ChoiceButton key={item.id} id={item.id} label={local(item.label, lang)} hint={local(item.hint, lang)} active={contexts.includes(item.id)} choose={chooseLifestyle} />)}
           </div>
         </motion.div>
       </AnimatePresence>
-      {chosenProfile && step === 1 && <div className="complexion-optional">
+      {profiles.length > 0 && step === 1 && <div className="complexion-optional">
         <div><b>{lang === 'fr' ? 'Votre peau est-elle mate à foncée ?' : 'هل بشرتك متوسطة إلى داكنة؟'}</b><small>{lang === 'fr' ? 'Facultatif — ce n’est pas un type de peau.' : 'اختياري — هذا ليس نوع البشرة.'}</small></div>
         <div className="complexion-choices">{([
           ['medium-dark', lang === 'fr' ? 'Oui' : 'نعم'],
           ['not-medium-dark', lang === 'fr' ? 'Non' : 'لا'],
           ['unspecified', lang === 'fr' ? 'Ne pas préciser' : 'أفضل عدم التحديد'],
         ] as [ComplexionId, string][]).map(([id, label]) => <button type="button" className={complexion === id ? 'is-active' : ''} onClick={() => chooseComplexion(id)} key={id}>{label}</button>)}</div>
-        <button type="button" className="complexion-next" onClick={() => advance(2)}>{lang === 'fr' ? 'Continuer' : 'متابعة'} <ChevronDown /></button>
       </div>}
-      {step > 1 && <button className="journey-back" type="button" onClick={() => setStep(step - 1)}>{lang === 'fr' ? '← Modifier le choix précédent' : 'تعديل الاختيار السابق →'}</button>}
+      <div className="journey-step-actions">
+        {step > 1 && <button className="journey-back" type="button" onClick={() => setStep(step - 1)}>{lang === 'fr' ? '← Modifier l’étape précédente' : 'تعديل الخطوة السابقة →'}</button>}
+        <button type="button" className="complexion-next" disabled={!selectedCount} onClick={continueJourney}>{step === 3 ? (lang === 'fr' ? 'Voir mes conseils' : 'عرض نصائحي') : (lang === 'fr' ? 'Continuer' : 'متابعة')} <ChevronDown /></button>
+      </div>
     </div>
   </section>
 }
@@ -145,54 +164,68 @@ function EvidenceBadge({ item, lang }: { item: AdviceItem; lang: Language }) {
   return <span className={`evidence-badge evidence-badge--${item.evidenceLevel}`}>{label}</span>
 }
 
-function AdviceResult({ lang, profile, concern, lifestyle, complexion }: {
-  lang: Language; profile: SkinProfileId; concern: string; lifestyle: LifestyleId | ''; complexion: ComplexionId
+function AdviceResult({ lang, profiles, concerns, contexts, complexion }: {
+  lang: Language; profiles: SkinProfileId[]; concerns: string[]; contexts: LifestyleId[]; complexion: ComplexionId
 }) {
-  const items = useMemo(() => recommendAdvice({ profile, concern, context: lifestyle, complexion }), [profile, concern, lifestyle, complexion])
+  const [extraShown, setExtraShown] = useState(3)
+  const recommendations = useMemo(() => recommendAdvice({ profiles, concerns, contexts, complexion }), [profiles, concerns, contexts, complexion])
   const viewed = useRef('')
   useEffect(() => {
-    const key = `${profile}|${concern}|${lifestyle}|${complexion}`
+    const key = `${profiles.join(',')}|${concerns.join(',')}|${contexts.join(',')}|${complexion}`
     if (viewed.current === key) return
     viewed.current = key
-    track('personalized_advice_view', { skin_type_id: profile, concern_id: concern, context_id: lifestyle || 'none', advice_count: items.length })
-  }, [profile, concern, lifestyle, complexion, items.length])
-  const selection = [
-    optionLabel(skinProfiles, profile, lang),
-    optionLabel(concernOptions, concern, lang),
-    lifestyle ? optionLabel(lifestyleTopics, lifestyle, lang) : '',
-  ].filter(Boolean).join(' + ')
+    track('personalized_advice_view', { profile_count: profiles.length, concern_count: concerns.length, context_count: contexts.length, advice_count: recommendations.length })
+  }, [profiles, concerns, contexts, complexion, recommendations.length])
+  const chips = [
+    ...profiles.map(id => optionLabel(skinProfiles, id, lang)),
+    ...concerns.map(id => optionLabel(concernOptions, id, lang)),
+    ...contexts.map(id => optionLabel(lifestyleTopics, id, lang)),
+  ]
+  const priorities = recommendations.slice(0, 3)
+  const extras = recommendations.slice(3, 3 + extraShown)
+  const matchLabels = (result: typeof recommendations[number]) => [
+    ...result.matches.profiles.map(id => optionLabel(skinProfiles, id, lang)),
+    ...result.matches.concerns.map(id => optionLabel(concernOptions, id, lang)),
+    ...result.matches.contexts.map(id => optionLabel(lifestyleTopics, id, lang)),
+  ].slice(0, 4)
+  const AdviceCard = ({ result, rank }: { result: typeof recommendations[number]; rank?: number }) => {
+    const item = result.item
+    return <article className="personal-advice-card">
+      <div className="personal-advice-card__top">{rank && <span>0{rank}</span>}<EvidenceBadge item={item} lang={lang} /></div>
+      <h4>{local(item.title, lang)}</h4>
+      <p className="personal-advice-why">{local(item.explanation, lang)}</p>
+      <div className="personal-advice-matches"><small>{lang === 'fr' ? 'Adapté à :' : 'مناسب لـ:'}</small>{matchLabels(result).map(label => <b key={label}>{label}</b>)}</div>
+      <div className="personal-advice-actions"><p><Check /><span><b>{lang === 'fr' ? 'À essayer' : 'ما يمكنك تجربته'}</b>{local(item.doItem, lang)}</span></p><p><X /><span><b>{lang === 'fr' ? 'À éviter' : 'ما يُفضّل تجنبه'}</b>{local(item.avoidItem, lang)}</span></p></div>
+      {item.safety && <p className="advice-safety"><ShieldCheck /> {local(item.safety, lang)}</p>}
+      <a className="personal-advice-source" href={item.source.url} target="_blank" rel="noreferrer" onClick={() => track('source_open', { advice_id: item.id, source_id: item.source.id })}><BookOpen /><span><b>{item.source.organisation}</b><small>{item.source.title}</small></span><ArrowUpRight /></a>
+    </article>
+  }
   return <motion.section className="advice-result" id="conseils" initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: .48 }}>
     <div className="journey-wrap">
       <div className="advice-result__hero">
         <span className="advice-result__star"><Sparkles /></span>
-        <div><p>{lang === 'fr' ? 'Votre résultat personnalisé' : 'نتيجتك المخصصة'}</p><h2>{lang === 'fr' ? 'Voici les conseils les plus adaptés à vos choix' : 'هذه النصائح هي الأقرب إلى اختياراتك'}</h2><span>{lang === 'fr' ? 'Vous avez sélectionné :' : 'لقد اخترتِ:'} <b>{selection}</b></span></div>
+        <div><p>{lang === 'fr' ? 'Votre résultat personnalisé' : 'نتيجتك المخصصة'}</p><h2>{lang === 'fr' ? 'Voici les conseils les plus adaptés à vos choix' : 'هذه النصائح هي الأقرب إلى اختياراتك'}</h2><span>{lang === 'fr' ? 'Les conseils prioritaires croisent plusieurs éléments de votre réponse.' : 'تعتمد النصائح ذات الأولوية على أكثر من عنصر من إجاباتك.'}</span></div>
       </div>
-      <div className="advice-result__split">
-        <section className="advice-do"><h3><Check /> {lang === 'fr' ? 'CE QUE VOUS POUVEZ ESSAYER' : 'ما يمكنك تجربته'}</h3>{items.map(item => <article key={`do-${item.id}`}><b>{local(item.title, lang)}</b><p>{local(item.doItem, lang)}</p></article>)}</section>
-        <section className="advice-avoid"><h3><X /> {lang === 'fr' ? 'CE QU’IL VAUT MIEUX ÉVITER' : 'ما يُفضّل تجنبه'}</h3>{items.map(item => <article key={`avoid-${item.id}`}><b>{local(item.title, lang)}</b><p>{local(item.avoidItem, lang)}</p></article>)}</section>
-      </div>
-      <div className="advice-explanations">
-        <div className="advice-explanations__head"><p>{lang === 'fr' ? 'Comprendre le pourquoi' : 'افهمي السبب'}</p><h3>{lang === 'fr' ? 'Chaque conseil garde sa nuance et sa source.' : 'لكل نصيحة تفسيرها ومصدرها.'}</h3></div>
-        {items.map(item => <details key={item.id} onToggle={event => event.currentTarget.open && track('advice_expand', { advice_id: item.id })}>
-          <summary><span><EvidenceBadge item={item} lang={lang} /><b>{local(item.title, lang)}</b></span><ChevronDown /></summary>
-          <div><p>{local(item.explanation, lang)}</p>{item.safety && <p className="advice-safety"><ShieldCheck /> {local(item.safety, lang)}</p>}<a href={item.source.url} target="_blank" rel="noreferrer" onClick={() => track('source_open', { advice_id: item.id, source_id: item.source.id })}><BookOpen /><span><b>{item.source.organisation}</b><small>{item.source.title} — {local(item.source.evidenceNote, lang)}</small></span><ArrowUpRight /></a></div>
-        </details>)}
-      </div>
+      <section className="advice-understood"><p>{lang === 'fr' ? 'Ce que nous avons compris' : 'ما فهمناه من إجاباتك'}</p><div>{chips.map((label, index) => <span key={`${label}-${index}`}><Check /> {label}</span>)}</div></section>
+      <div className="advice-section-heading"><p>{lang === 'fr' ? 'Votre point de départ' : 'نقطة البداية'}</p><h3>{lang === 'fr' ? 'Commencez par ces 3 choses' : 'ابدئي بهذه الخطوات الثلاث'}</h3></div>
+      <div className="priority-advice-grid">{priorities.map((result, index) => <AdviceCard key={result.item.id} result={result} rank={index + 1} />)}</div>
+      {extras.length > 0 && <><div className="advice-section-heading advice-section-heading--more"><p>{lang === 'fr' ? 'À garder en tête' : 'معلومات إضافية مهمة'}</p><h3>{lang === 'fr' ? 'D’autres choses surprenantes qui peuvent vous concerner' : 'أشياء أخرى قد تهمك'}</h3></div><div className="extra-advice-grid">{extras.map(result => <AdviceCard key={result.item.id} result={result} />)}</div></>}
+      {3 + extraShown < recommendations.length && <button type="button" className="after-more" onClick={() => setExtraShown(value => value + 3)}>{lang === 'fr' ? 'Voir encore 3 conseils' : 'عرض 3 نصائح أخرى'} <ChevronDown /></button>}
       <div className="advice-disclaimer"><ShieldCheck /><p><b>{lang === 'fr' ? 'Information générale, pas un diagnostic.' : 'معلومات عامة وليست تشخيصاً.'}</b><span>{lang === 'fr' ? 'Une douleur importante, des lésions profondes, une réaction étendue ou une situation persistante doivent être présentées à un professionnel de santé.' : 'الألم الشديد أو الحبوب العميقة أو التفاعل الواسع أو الحالة المستمرة تستدعي استشارة مختص صحي.'}</span></p></div>
-      <a className="advice-to-form" href="#formulaire" onClick={() => track('form_start', { source: 'personalized_result', concern_id: concern, skin_type_id: profile })}><MessageCircle /><span><b>{lang === 'fr' ? 'Vous voulez des conseils plus personnalisés ?' : 'هل تريدين نصائح أكثر تخصيصاً؟'}</b><small>{lang === 'fr' ? 'Expliquez votre situation à Hanane dans le formulaire très court juste en dessous.' : 'اشرحي حالتك لحنان في النموذج القصير أدناه.'}</small></span><ArrowDown /></a>
+      <a className="advice-to-form" href="#form-fields" onClick={() => track('form_start', { source: 'personalized_result' })}><MessageCircle /><span><b>{lang === 'fr' ? 'Vous voulez des conseils plus personnalisés ?' : 'هل تريدين نصائح أكثر تخصيصاً؟'}</b><small>{lang === 'fr' ? 'Expliquez votre situation à Hanane dans le formulaire très court juste en dessous.' : 'اشرحي حالتك لحنان في النموذج القصير أدناه.'}</small></span><ArrowDown /></a>
     </div>
   </motion.section>
 }
 
 export interface DiscoveryExperienceProps {
   lang: Language
-  profile: SkinProfileId
-  concern: string
-  lifestyle: LifestyleId | ''
+  profiles: SkinProfileId[]
+  concerns: string[]
+  contexts: LifestyleId[]
   complexion: ComplexionId
-  setProfile: (id: SkinProfileId) => void
-  setConcern: (id: string) => void
-  setLifestyle: (id: LifestyleId) => void
+  setProfiles: (ids: SkinProfileId[]) => void
+  setConcerns: (ids: string[]) => void
+  setContexts: (ids: LifestyleId[]) => void
   setComplexion: (id: ComplexionId) => void
   onComplete: () => void
 }
@@ -208,8 +241,8 @@ export default function DiscoveryExperience(props: DiscoveryExperienceProps) {
   }
   return <>
     <DiscoveryHero lang={props.lang} start={start} />
-    <Questionnaire lang={props.lang} profile={props.profile} concern={props.concern} lifestyle={props.lifestyle} complexion={props.complexion} setProfile={props.setProfile} setConcern={props.setConcern} setLifestyle={props.setLifestyle} setComplexion={props.setComplexion} onFinished={finish} />
-    {finished && <AdviceResult lang={props.lang} profile={props.profile} concern={props.concern} lifestyle={props.lifestyle} complexion={props.complexion} />}
+    <Questionnaire lang={props.lang} profiles={props.profiles} concerns={props.concerns} contexts={props.contexts} complexion={props.complexion} setProfiles={props.setProfiles} setConcerns={props.setConcerns} setContexts={props.setContexts} setComplexion={props.setComplexion} onFinished={finish} />
+    {finished && <AdviceResult lang={props.lang} profiles={props.profiles} concerns={props.concerns} contexts={props.contexts} complexion={props.complexion} />}
   </>
 }
 
@@ -219,8 +252,13 @@ function StoryModal({ item, lang, close, goToForm }: { item: Testimonial; lang: 
   const [playing, setPlaying] = useState(false)
   const tracked = useRef(false)
   const toggle = () => audio.current?.paused ? void audio.current.play() : audio.current?.pause()
-  return <motion.div className="narrative-overlay" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onMouseDown={event => event.currentTarget === event.target && close()}>
-    <motion.article initial={{ y: 40, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 30, opacity: 0 }}>
+  useEffect(() => {
+    const escape = (event: KeyboardEvent) => event.key === 'Escape' && close()
+    window.addEventListener('keydown', escape)
+    return () => window.removeEventListener('keydown', escape)
+  }, [close])
+  return <motion.div className="narrative-overlay" role="dialog" aria-modal="true" aria-label={`${lang === 'fr' ? 'Histoire de' : 'قصة'} ${item.name}`} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onMouseDown={event => event.currentTarget === event.target && close()}>
+    <motion.article tabIndex={-1} initial={{ y: 40, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 30, opacity: 0 }}>
       <button className="narrative-close" type="button" onClick={close} aria-label={lang === 'fr' ? 'Fermer' : 'إغلاق'}><X /></button>
       <div className="narrative-photo"><img src={item.image} alt={item.name} width="720" height="900" /><span>{item.name}</span></div>
       <div className="narrative-copy">
@@ -259,11 +297,15 @@ function StorySection({ lang, goToForm }: { lang: Language; goToForm: () => void
   const [openStory, setOpenStory] = useState<Testimonial | null>(null)
   const open = (item: Testimonial) => { setOpenStory(item); document.body.classList.add('modal-open'); track('story_open', { story_id: String(item.id) }) }
   const close = () => { setOpenStory(null); document.body.classList.remove('modal-open') }
-  useEffect(() => () => document.body.classList.remove('modal-open'), [])
+  useEffect(() => {
+    if (openStory) document.body.classList.add('modal-open')
+    else document.body.classList.remove('modal-open')
+    return () => document.body.classList.remove('modal-open')
+  }, [openStory])
   return <section className="after-stories" id="histoires">
     <div className="journey-wrap">
       <div className="after-heading"><p>{lang === 'fr' ? 'Six voix, six situations' : 'ست تجارب حقيقية'}</p><h2>{lang === 'fr' ? 'Leur histoire va plus loin qu’une photo.' : 'لكل واحدة قصة كاملة.'}</h2><span>{lang === 'fr' ? 'Les photos, identités et audios d’origine sont conservés.' : 'تم الاحتفاظ بالصور والأسماء والتسجيلات الصوتية الأصلية.'}</span></div>
-      <div className="story-grid">{testimonials.map(item => { const story = customerStories.find(entry => entry.id === item.id)!; return <article key={item.id}><div><img src={item.image} alt={item.name} width="520" height="650" loading="lazy" /><button type="button" onClick={() => open(item)} aria-label={`${lang === 'fr' ? 'Lire l’histoire de' : 'قراءة قصة'} ${item.name}`}><Play /></button></div><span><b>{item.name}</b><small>{lang === 'fr' ? 'Histoire vraie • lecture + audio' : 'تجربة حقيقية • قراءة وتسجيل صوتي'}</small></span><p className="story-hook">{local(story.hook, lang)}</p><button className="story-read" type="button" onClick={() => open(item)}>{lang === 'fr' ? 'Lire son histoire' : 'اقرئي قصتها كاملة'} <ArrowUpRight /></button></article> })}</div>
+      <div className="story-grid">{testimonials.map(item => { const story = customerStories.find(entry => entry.id === item.id)!; return <article key={item.id}><button className="story-photo-button" type="button" onClick={() => open(item)} aria-label={`${lang === 'fr' ? 'Lire l’histoire de' : 'قراءة قصة'} ${item.name}`}><img src={item.image} alt={item.name} width="520" height="650" loading="lazy" /><span><Play /><b>{lang === 'fr' ? 'Découvrir son histoire' : 'اكتشفي قصتها'}</b></span></button><span><b>{item.name}</b><small>{lang === 'fr' ? 'Histoire vraie • lecture + audio' : 'تجربة حقيقية • قراءة وتسجيل صوتي'}</small></span><p className="story-hook">{local(story.hook, lang)}</p><button className="story-read" type="button" onClick={() => open(item)}>{lang === 'fr' ? 'Lire son histoire' : 'اقرئي قصتها كاملة'} <ArrowUpRight /></button></article> })}</div>
     </div>
     <AnimatePresence>{openStory && <StoryModal item={openStory} lang={lang} close={close} goToForm={() => { close(); goToForm() }} />}</AnimatePresence>
   </section>
@@ -271,7 +313,7 @@ function StorySection({ lang, goToForm }: { lang: Language; goToForm: () => void
 
 export function DiscoveryAfterForm({ lang, openArticle }: { lang: Language; openArticle: (article: Article) => void }) {
   const reduced = useReducedMotion()
-  const goToForm = () => { track('form_start', { source: 'story_or_expert' }); document.getElementById('formulaire')?.scrollIntoView({ behavior: reduced ? 'auto' : 'smooth' }) }
+  const goToForm = () => { track('form_start', { source: 'story_or_expert' }); document.getElementById('form-fields')?.scrollIntoView({ behavior: reduced ? 'auto' : 'smooth' }) }
   return <>
     <ComplementaryArticles lang={lang} openArticle={openArticle} />
     <StorySection lang={lang} goToForm={goToForm} />

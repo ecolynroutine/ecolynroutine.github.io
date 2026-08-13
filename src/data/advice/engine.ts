@@ -1,63 +1,93 @@
-import { adviceItems, type AdviceItem, type AdviceKind, type ComplexionId } from './index'
+import { adviceItems, type AdviceItem, type ComplexionId } from './index'
 import type { LifestyleId, SkinProfileId } from '../discovery'
 
 export interface AdviceSelections {
-  profile: SkinProfileId
-  concern: string
-  context: LifestyleId | ''
+  profiles: SkinProfileId[]
+  concerns: string[]
+  contexts: LifestyleId[]
   complexion: ComplexionId
+}
+
+export interface AdviceMatches {
+  profiles: SkinProfileId[]
+  concerns: string[]
+  contexts: LifestyleId[]
+  complexion: boolean
+}
+
+export interface AdviceRecommendation {
+  item: AdviceItem
+  score: number
+  matches: AdviceMatches
+}
+
+function intersection<T>(left: T[], right: T[]) {
+  return left.filter(value => right.includes(value))
 }
 
 function matchesComplexion(item: AdviceItem, complexion: ComplexionId) {
   if (!item.tags.complexions.length) return true
-  if (complexion === 'medium-dark') return item.tags.complexions.includes('medium-dark')
-  return false
+  return complexion === 'medium-dark' && item.tags.complexions.includes('medium-dark')
 }
 
-function score(item: AdviceItem, selection: AdviceSelections) {
-  let value = item.priority
-  if (item.tags.skinTypes.includes(selection.profile)) value += 9
-  if (item.tags.concerns.includes(selection.concern)) value += 11
-  if (selection.context && item.tags.contexts.includes(selection.context)) value += 12
-  if (item.tags.complexions.includes(selection.complexion)) value += 5
-  const matchCount = Number(item.tags.skinTypes.includes(selection.profile))
-    + Number(item.tags.concerns.includes(selection.concern))
-    + Number(Boolean(selection.context && item.tags.contexts.includes(selection.context)))
-  value += matchCount * matchCount * 2
-  return value
+function assess(item: AdviceItem, selection: AdviceSelections): AdviceRecommendation {
+  const matchedProfiles = intersection(selection.profiles, item.tags.skinTypes)
+  const matchedConcerns = intersection(selection.concerns, item.tags.concerns)
+  const matches: AdviceMatches = {
+    profiles: item.tags.skinTypes.length >= 5 ? [] : matchedProfiles,
+    concerns: item.tags.concerns.length >= 8 ? [] : matchedConcerns,
+    contexts: intersection(selection.contexts.filter(value => value !== 'none'), item.tags.contexts),
+    complexion: selection.complexion !== 'unspecified' && item.tags.complexions.includes(selection.complexion),
+  }
+  const dimensions = Number(matches.profiles.length > 0)
+    + Number(matches.concerns.length > 0)
+    + Number(matches.contexts.length > 0)
+    + Number(matches.complexion)
+  const profileSpecificity = matches.profiles.length ? matches.profiles.length / Math.max(1, item.tags.skinTypes.length) : 0
+  const concernSpecificity = matches.concerns.length ? matches.concerns.length / Math.max(1, item.tags.concerns.length) : 0
+  const contextSpecificity = matches.contexts.length ? matches.contexts.length / Math.max(1, item.tags.contexts.length) : 0
+  const preciseConcernCross = matches.concerns.length >= 2 && item.tags.concerns.length <= 4
+  const score = item.priority * 3
+    + Number(matches.profiles.length > 0) * 7 + profileSpecificity * 7
+    + Number(matches.concerns.length > 0) * 10 + concernSpecificity * 14
+    + Number(matches.contexts.length > 0) * 9 + contextSpecificity * 10
+    + Number(matches.complexion) * 6
+    + dimensions * dimensions * 6
+    + Number(preciseConcernCross) * 12
+  return { item, score, matches }
 }
 
-function candidates(kind: AdviceKind, selection: AdviceSelections) {
-  return adviceItems
-    .filter(item => item.kind === kind && matchesComplexion(item, selection.complexion))
-    .filter(item => kind === 'skin'
-      ? item.tags.skinTypes.includes(selection.profile)
-      : kind === 'concern'
-        ? item.tags.concerns.includes(selection.concern)
-        : Boolean(selection.context && item.tags.contexts.includes(selection.context)))
-    .sort((a, b) => score(b, selection) - score(a, selection) || a.id.localeCompare(b.id))
+function relevant(result: AdviceRecommendation) {
+  const { matches } = result
+  return Boolean(matches.profiles.length || matches.concerns.length || matches.contexts.length || matches.complexion)
 }
 
-export function recommendAdvice(selection: AdviceSelections, limit = 6) {
-  const picked: AdviceItem[] = []
-  const add = (items: AdviceItem[], count: number) => {
-    for (const item of items) {
-      if (picked.length >= limit || count <= 0) break
-      if (picked.some(current => current.id === item.id)) continue
-      picked.push(item)
-      count -= 1
-    }
+export function recommendAdvice(selection: AdviceSelections, limit = 8) {
+  const safeLimit = Math.max(5, Math.min(8, limit))
+  const ranked = adviceItems
+    .filter(item => matchesComplexion(item, selection.complexion))
+    .filter(item => !(selection.contexts.includes('pregnancy') && item.id === 'retinoid-start-slow'))
+    .map(item => assess(item, selection))
+    .filter(relevant)
+    .sort((a, b) => b.score - a.score || b.item.priority - a.item.priority || a.item.id.localeCompare(b.item.id))
+
+  const picked: AdviceRecommendation[] = []
+  const add = (candidate: AdviceRecommendation | undefined) => {
+    if (!candidate || picked.length >= safeLimit || picked.some(result => result.item.id === candidate.item.id)) return
+    picked.push(candidate)
   }
 
-  add(candidates('skin', selection), 2)
-  add(candidates('concern', selection), 2)
-  if (selection.context && selection.context !== 'none') add(candidates('context', selection), 2)
+  // Les croisements entre au moins deux dimensions passent avant les conseils génériques.
+  ranked
+    .filter(({ matches }) => Number(matches.profiles.length > 0) + Number(matches.concerns.length > 0) + Number(matches.contexts.length > 0) >= 2)
+    .slice(0, 3)
+    .forEach(add)
 
-  const fallback = adviceItems
-    .filter(item => matchesComplexion(item, selection.complexion))
-    .filter(item => item.tags.skinTypes.includes(selection.profile) || item.tags.concerns.includes(selection.concern))
-    .sort((a, b) => score(b, selection) - score(a, selection) || a.id.localeCompare(b.id))
-  add(fallback, Math.max(0, Math.min(limit, 4) - picked.length))
+  // Chaque préoccupation choisie peut apporter au moins un conseil, sans dépasser la lecture courte.
+  for (const concern of selection.concerns) add(ranked.find(result => result.matches.concerns.includes(concern)))
+  for (const context of selection.contexts.filter(value => value !== 'none')) add(ranked.find(result => result.matches.contexts.includes(context)))
+  for (const profile of selection.profiles) add(ranked.find(result => result.matches.profiles.includes(profile)))
+  ranked.forEach(add)
 
-  return picked.slice(0, limit)
+  return picked.slice(0, safeLimit)
 }
