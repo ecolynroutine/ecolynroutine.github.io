@@ -247,6 +247,10 @@ html[dir=rtl] .mobile-menu nav a{font-family:Naskh}
 .service-notes span{display:flex;align-items:center;gap:8px;font-size:.72rem;font-weight:700}.service-notes svg{color:var(--rose)}
 
 .form-section{padding:40px 24px 150px;background:#fffaf7;scroll-margin-top:70px}
+.form-trust{position:relative;z-index:2;display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:18px;width:min(980px,calc(100% - 32px));margin:0 auto 22px;padding:16px 20px;border:1px solid rgba(212,20,90,.15);border-radius:24px;background:rgba(255,255,255,.88);box-shadow:0 18px 50px rgba(9,55,74,.08);backdrop-filter:blur(16px)}
+.form-trust img{width:66px;height:66px;object-fit:cover;object-position:center 24%;border:3px solid #fff;border-radius:50%;box-shadow:0 8px 20px rgba(9,55,74,.14)}
+.form-trust>div p{margin:0 0 4px;font-family:var(--serif);font-size:1.35rem;font-weight:650}.form-trust>div span{display:block;max-width:540px;color:rgba(9,55,74,.62);font-size:.75rem;line-height:1.55}
+.form-trust ul{display:grid;gap:6px;margin:0;padding:0;list-style:none}.form-trust li{display:flex;align-items:center;gap:7px;font-size:.68rem;font-weight:750;white-space:nowrap}.form-trust li svg{width:15px;color:var(--rose)}
 .form-shell{width:min(1380px,100%);min-height:780px;margin:auto;border-radius:46px;overflow:hidden;display:grid;grid-template-columns:.72fr 1.28fr;background:#fff;box-shadow:0 40px 120px rgba(9,55,74,.15)}
 .form-aside{background:var(--ink);color:#fff;padding:70px 54px;position:relative;overflow:hidden}
 .form-aside:after{content:"";position:absolute;right:-160px;bottom:-160px;width:420px;height:420px;border:1px solid rgba(255,255,255,.1);border-radius:50%;box-shadow:0 0 0 60px rgba(255,255,255,.025),0 0 0 120px rgba(255,255,255,.02)}
@@ -270,6 +274,10 @@ html[dir=rtl] .mobile-menu nav a{font-family:Naskh}
 .field>span{font-size:.72rem;font-weight:700}
 .field input:not([type=range]),.field select,.field textarea{width:100%;border:1px solid var(--line);background:#fffaf7;border-radius:14px;padding:14px 15px;outline:0;color:var(--ink);transition:border .2s,box-shadow .2s}
 .field input:not([type=range]),.field select{height:52px}
+.field select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,rgba(9,55,74,.52) 50%),linear-gradient(135deg,rgba(9,55,74,.52) 50%,transparent 50%);background-position:calc(100% - 19px) 50%,calc(100% - 14px) 50%;background-size:5px 5px,5px 5px;background-repeat:no-repeat;padding-inline-end:38px;line-height:normal}
+html[dir=rtl] .field select{background-position:19px 50%,14px 50%;padding-right:15px;padding-left:38px;text-align:right;font-family:var(--arabic);font-size:1rem;line-height:1.45}
+html[dir=rtl] .field input:not([type=range]),html[dir=rtl] .field textarea{font-family:var(--arabic);font-size:1rem;line-height:1.65;text-align:right}
+html[dir=rtl] .field>span{font-family:var(--arabic);font-size:.86rem;line-height:1.55}
 .field textarea{resize:vertical}
 .field input:focus,.field select:focus,.field textarea:focus{border-color:var(--rose);box-shadow:0 0 0 4px rgba(212,20,90,.08)}
 .field input[type=range]{accent-color:var(--rose);width:100%}
@@ -691,6 +699,7 @@ html[dir=rtl] .sticky-advice{left:18px;right:auto}
   .concern-mini-path>div{padding:13px 14px}
   .form-section--short .form-aside ol,.form-section--short .form-progress{display:none}
   .lead-form--short{padding-block:28px}
+  .form-trust{grid-template-columns:auto 1fr;margin-bottom:16px;padding:15px 16px}.form-trust ul{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:8px 16px}.form-trust li{font-size:.72rem}.form-trust>div span{font-size:.78rem}
   .short-form-submit{position:static;flex-direction:column;align-items:stretch;margin:26px 0 0;padding:18px 0 0;background:transparent;box-shadow:none;backdrop-filter:none}
   .short-form-submit>p{max-width:none}
   .whatsapp-group-float{left:auto;right:auto;inset-inline-start:12px;bottom:calc(82px + env(safe-area-inset-bottom));width:50px;height:50px;min-height:0;justify-content:center;padding:0}
@@ -710,4 +719,7 @@ html[dir=rtl] .sticky-advice{left:18px;right:auto}
   .concern-mini-path p,.concern-mini-path li{font-size:.72rem}
   .short-form-grid{grid-template-columns:1fr}
   .lead-form--short .form-step-heading h3{font-size:1.65rem}
+  .form-section{padding-inline:8px}.form-trust{width:calc(100% - 12px);grid-template-columns:56px 1fr;gap:12px;margin-bottom:12px;padding:14px;border-radius:20px}.form-trust img{width:56px;height:56px}.form-trust>div p{font-size:1.2rem;line-height:1.15}.form-trust>div span{margin-top:5px;font-size:.76rem;line-height:1.5}.form-trust ul{display:grid;grid-template-columns:1fr 1fr;gap:7px 10px}.form-trust li{font-size:.7rem;white-space:normal}.form-trust li:last-child{grid-column:1/-1}
+  .field input:not([type=range]),.field select{height:auto;min-height:56px;padding-block:12px}.field select{line-height:1.45}.field textarea{min-height:132px;max-height:none}.field>span{font-size:.8rem}.check-field,.contact-consent-note{font-size:.76rem;line-height:1.6}.optional-photo summary{font-size:.8rem}
+  html[dir=rtl] .lead-form{padding-top:26px}html[dir=rtl] .form-step-heading h3{font-size:1.75rem;line-height:1.35}html[dir=rtl] .field input:not([type=range]),html[dir=rtl] .field select{min-height:56px;padding-top:11px;padding-bottom:11px;font-size:16px;line-height:1.6;overflow:visible}html[dir=rtl] .field textarea{font-size:16px;line-height:1.75}html[dir=rtl] .short-form-submit>p{font-size:.76rem;line-height:1.6}
 }

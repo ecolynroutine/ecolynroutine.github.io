@@ -93,7 +93,6 @@ function Questionnaire({ lang, profile, concern, lifestyle, complexion, setProfi
   const chooseProfile = (id: SkinProfileId) => {
     setProfile(id); setChosenProfile(true)
     track('select_skin_type', { skin_type_id: id, step: 1 })
-    advance(2)
   }
   const chooseConcern = (id: string) => {
     setConcern(id); setChosenConcern(true)
@@ -123,13 +122,14 @@ function Questionnaire({ lang, profile, concern, lifestyle, complexion, setProfi
           </div>
         </motion.div>
       </AnimatePresence>
-      {chosenProfile && <div className="complexion-optional">
+      {chosenProfile && step === 1 && <div className="complexion-optional">
         <div><b>{lang === 'fr' ? 'Votre peau est-elle mate à foncée ?' : 'هل بشرتك متوسطة إلى داكنة؟'}</b><small>{lang === 'fr' ? 'Facultatif — ce n’est pas un type de peau.' : 'اختياري — هذا ليس نوع البشرة.'}</small></div>
-        <div>{([
+        <div className="complexion-choices">{([
           ['medium-dark', lang === 'fr' ? 'Oui' : 'نعم'],
           ['not-medium-dark', lang === 'fr' ? 'Non' : 'لا'],
           ['unspecified', lang === 'fr' ? 'Ne pas préciser' : 'أفضل عدم التحديد'],
         ] as [ComplexionId, string][]).map(([id, label]) => <button type="button" className={complexion === id ? 'is-active' : ''} onClick={() => chooseComplexion(id)} key={id}>{label}</button>)}</div>
+        <button type="button" className="complexion-next" onClick={() => advance(2)}>{lang === 'fr' ? 'Continuer' : 'متابعة'} <ChevronDown /></button>
       </div>}
       {step > 1 && <button className="journey-back" type="button" onClick={() => setStep(step - 1)}>{lang === 'fr' ? '← Modifier le choix précédent' : 'تعديل الاختيار السابق →'}</button>}
     </div>
@@ -259,10 +259,11 @@ function StorySection({ lang, goToForm }: { lang: Language; goToForm: () => void
   const [openStory, setOpenStory] = useState<Testimonial | null>(null)
   const open = (item: Testimonial) => { setOpenStory(item); document.body.classList.add('modal-open'); track('story_open', { story_id: String(item.id) }) }
   const close = () => { setOpenStory(null); document.body.classList.remove('modal-open') }
+  useEffect(() => () => document.body.classList.remove('modal-open'), [])
   return <section className="after-stories" id="histoires">
     <div className="journey-wrap">
       <div className="after-heading"><p>{lang === 'fr' ? 'Six voix, six situations' : 'ست تجارب حقيقية'}</p><h2>{lang === 'fr' ? 'Leur histoire va plus loin qu’une photo.' : 'لكل واحدة قصة كاملة.'}</h2><span>{lang === 'fr' ? 'Les photos, identités et audios d’origine sont conservés.' : 'تم الاحتفاظ بالصور والأسماء والتسجيلات الصوتية الأصلية.'}</span></div>
-      <div className="story-grid">{testimonials.map(item => <article key={item.id}><div><img src={item.image} alt={item.name} width="520" height="650" loading="lazy" /><button type="button" onClick={() => open(item)} aria-label={`${lang === 'fr' ? 'Lire l’histoire de' : 'قراءة قصة'} ${item.name}`}><Play /></button></div><span><b>{item.name}</b><small>{lang === 'fr' ? '1 min de lecture + audio' : 'دقيقة للقراءة + تسجيل صوتي'}</small></span><button className="story-read" type="button" onClick={() => open(item)}>{lang === 'fr' ? 'Lire son histoire' : 'اقرئي قصتها كاملة'} <ArrowUpRight /></button></article>)}</div>
+      <div className="story-grid">{testimonials.map(item => { const story = customerStories.find(entry => entry.id === item.id)!; return <article key={item.id}><div><img src={item.image} alt={item.name} width="520" height="650" loading="lazy" /><button type="button" onClick={() => open(item)} aria-label={`${lang === 'fr' ? 'Lire l’histoire de' : 'قراءة قصة'} ${item.name}`}><Play /></button></div><span><b>{item.name}</b><small>{lang === 'fr' ? 'Histoire vraie • lecture + audio' : 'تجربة حقيقية • قراءة وتسجيل صوتي'}</small></span><p className="story-hook">{local(story.hook, lang)}</p><button className="story-read" type="button" onClick={() => open(item)}>{lang === 'fr' ? 'Lire son histoire' : 'اقرئي قصتها كاملة'} <ArrowUpRight /></button></article> })}</div>
     </div>
     <AnimatePresence>{openStory && <StoryModal item={openStory} lang={lang} close={close} goToForm={() => { close(); goToForm() }} />}</AnimatePresence>
   </section>

@@ -41,30 +41,30 @@ export default function ThankYou() {
     <main className="thank-you-page">
       <div className="thank-you-orbit thank-you-orbit--one" />
       <div className="thank-you-orbit thank-you-orbit--two" />
-      <a className="thank-you-brand" href={routeUrl('home')}><span>ECOLYN</span><small>{lang === 'fr' ? 'COMPRENDRE SA PEAU' : 'نفهمو البشرة'}</small></a>
+      <a className="thank-you-brand" href={routeUrl('home')}><span>ECOLYN</span><small>{lang === 'fr' ? 'COMPRENDRE SA PEAU' : 'فهم بشرتك'}</small></a>
       <section className="thank-you-card">
         <div className="thank-you-check">{confirmed ? <Check /> : <MessageCircle />}</div>
-        <p className="thank-you-kicker">{confirmed ? (lang === 'fr' ? 'Demande enregistrée' : 'تسجل الطلب ديالك') : (lang === 'fr' ? 'Espace de confirmation' : 'فضاء التأكيد')}</p>
-        <h1>{confirmed ? (lang === 'fr' ? 'Votre demande a bien été reçue.' : 'توصلنا بالطلب ديالك بنجاح.') : (lang === 'fr' ? 'Vous n’avez pas encore envoyé de demande.' : 'مازال ما صيفطتي حتى طلب.')}</h1>
+        <p className="thank-you-kicker">{confirmed ? (lang === 'fr' ? 'Demande enregistrée' : 'تم تسجيل الطلب') : (lang === 'fr' ? 'Espace de confirmation' : 'صفحة التأكيد')}</p>
+        <h1>{confirmed ? (lang === 'fr' ? 'Votre demande a bien été reçue ✅' : 'تم استلام طلبك بنجاح ✅') : (lang === 'fr' ? 'Vous n’avez pas encore envoyé de demande.' : 'لم ترسلي أي طلب بعد.')}</h1>
         <p className="thank-you-copy">
           {confirmed ? (lang === 'fr'
-            ? 'Merci. Notre équipe examinera votre situation et vous enverra les prochains conseils directement sur WhatsApp.'
-            : 'شكراً. الفريق غادي يشوف الحالة ديالك ويصيفط ليك النصائح الجاية مباشرة فالواتساب.') : (lang === 'fr'
+            ? 'Hanane pourra maintenant consulter les informations que vous avez envoyées et vous contacter sur WhatsApp.'
+            : 'يمكن لحنان الآن مراجعة المعلومات التي أرسلتِها والتواصل معك عبر WhatsApp.') : (lang === 'fr'
               ? 'Cette page confirme uniquement les demandes réellement envoyées. Commencez le formulaire pour nous expliquer votre situation.'
-              : 'هاد الصفحة كتأكد غير الطلبات اللي تصيفطو بصح. بداي الاستمارة وشرحي لينا الحالة ديالك.')}
+              : 'تؤكد هذه الصفحة الطلبات التي تم إرسالها فعلاً. ابدئي النموذج واشرحي لنا حالتك.')}
         </p>
         {confirmed && reference && <span className="thank-you-reference">{reference}</span>}
         {confirmed && <div className="thank-you-timeline">
-          <div><span><Check /></span><p><strong>{lang === 'fr' ? 'Demande reçue' : 'توصلنا بالطلب'}</strong><small>{lang === 'fr' ? 'Vos informations sont protégées.' : 'المعلومات ديالك محمية.'}</small></p></div>
-          <div><span><HeartHandshake /></span><p><strong>{lang === 'fr' ? 'Analyse personnalisée' : 'مراجعة شخصية'}</strong><small>{lang === 'fr' ? 'Une conseillère étudie votre situation.' : 'مستشارة غادي تشوف الحالة ديالك.'}</small></p></div>
-          <div><span><MessageCircle /></span><p><strong>{lang === 'fr' ? 'Réponse sur WhatsApp' : 'الجواب فالواتساب'}</strong><small>{lang === 'fr' ? 'Vous recevrez les prochaines étapes.' : 'غادي توصلك الخطوات الجاية.'}</small></p></div>
+          <div><span><Check /></span><p><strong>{lang === 'fr' ? 'Demande reçue' : 'تم استلام الطلب'}</strong><small>{lang === 'fr' ? 'Vos informations sont protégées.' : 'معلوماتك محمية.'}</small></p></div>
+          <div><span><HeartHandshake /></span><p><strong>{lang === 'fr' ? 'Analyse personnalisée' : 'مراجعة شخصية'}</strong><small>{lang === 'fr' ? 'Hanane étudie votre situation.' : 'تراجع حنان حالتك.'}</small></p></div>
+          <div><span><MessageCircle /></span><p><strong>{lang === 'fr' ? 'Réponse sur WhatsApp' : 'الرد عبر WhatsApp'}</strong><small>{lang === 'fr' ? 'Vous recevrez les prochaines étapes.' : 'ستصلك الخطوات التالية.'}</small></p></div>
         </div>}
         {confirmed && <section className="thank-you-group">
-          <p>{lang === 'fr' ? 'En attendant, rejoignez notre groupe gratuit de conseils skincare.' : 'وفي انتظار الجواب، انضمي للمجموعة المجانية ديال نصائح العناية بالبشرة.'}</p>
+          <p>{lang === 'fr' ? 'En attendant, rejoignez notre groupe gratuit de conseils skincare.' : 'في انتظار الرد، انضمي إلى مجموعتنا المجانية لنصائح العناية بالبشرة.'}</p>
           <ul>
             {(lang === 'fr'
               ? ['Conseils réguliers', 'Réponses aux questions fréquentes', 'Lives', 'Expériences de la communauté', 'Nouveaux contenus']
-              : ['نصائح منتظمة', 'أجوبة على الأسئلة المتكررة', 'لايفات', 'تجارب المجتمع', 'محتوى جديد']).map(item => <li key={item}><Check /> {item}</li>)}
+              : ['نصائح منتظمة', 'إجابات عن الأسئلة المتكررة', 'لقاءات مباشرة', 'تجارب المجتمع', 'محتوى جديد']).map(item => <li key={item}><Check /> {item}</li>)}
           </ul>
           <a href={groupUrl} target="_blank" rel="noreferrer" onClick={() => track('join_whatsapp_group', { source: 'thank_you_group' })}>
             <MessageCircle /> {lang === 'fr' ? 'Rejoindre le groupe WhatsApp' : 'انضمي لمجموعة WhatsApp'} <ArrowUpRight />
@@ -75,10 +75,10 @@ export default function ThankYou() {
             <a className="thank-you-secondary" href={whatsappUrl} target="_blank" rel="noreferrer" onClick={() => track('whatsapp_click', { source: 'thank_you' })}>
               {lang === 'fr' ? 'Ouvrir WhatsApp' : 'فتح واتساب'} <MessageCircle />
             </a>
-          </> : <a className="thank-you-primary" href={`${routeUrl('home')}#formulaire`}>{lang === 'fr' ? 'Remplir le formulaire' : 'نعمر الاستمارة'} <ArrowUpRight /></a>}
+          </> : <a className="thank-you-primary" href={`${routeUrl('home')}#formulaire`}>{lang === 'fr' ? 'Remplir le formulaire' : 'ملء النموذج'} <ArrowUpRight /></a>}
         </div>
-        <a className="thank-you-return" href={routeUrl('home')}><ArrowLeft /> {lang === 'fr' ? 'Retourner aux conseils' : 'الرجوع للنصائح'}</a>
-        <p className="thank-you-privacy"><ShieldCheck /> {lang === 'fr' ? 'Vos données ne sont accessibles qu’aux administrateurs autorisés.' : 'غير المسؤولين المسموح لهم يقدرو يشوفو المعلومات ديالك.'}</p>
+        <a className="thank-you-return" href={routeUrl('home')}><ArrowLeft /> {lang === 'fr' ? 'Retourner aux conseils' : 'العودة إلى النصائح'}</a>
+        <p className="thank-you-privacy"><ShieldCheck /> {lang === 'fr' ? 'Vos données ne sont accessibles qu’aux administrateurs autorisés.' : 'لا يمكن الاطلاع على بياناتك إلا من طرف المسؤولين المصرح لهم.'}</p>
       </section>
     </main>
   )

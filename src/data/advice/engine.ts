@@ -9,9 +9,9 @@ export interface AdviceSelections {
 }
 
 function matchesComplexion(item: AdviceItem, complexion: ComplexionId) {
-  if (!item.tags.complexions.length || complexion === 'unspecified') return true
+  if (!item.tags.complexions.length) return true
   if (complexion === 'medium-dark') return item.tags.complexions.includes('medium-dark')
-  return true
+  return false
 }
 
 function score(item: AdviceItem, selection: AdviceSelections) {

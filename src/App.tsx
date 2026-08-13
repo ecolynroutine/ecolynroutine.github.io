@@ -270,7 +270,7 @@ function Header({ lang, menuOpen, setMenuOpen }: { lang: Language; menuOpen: boo
       <div className="nav-shell">
         <a className="brand" href="#accueil" aria-label="ECOLYN">
           <img src="./assets/brand/logo.webp" width="232" height="120" alt="ECOLYN" />
-          <span>{lang === 'fr' ? 'Comprendre sa peau' : 'نفهمو البشرة'}</span>
+          <span>{lang === 'fr' ? 'Comprendre sa peau' : 'فهم البشرة'}</span>
         </a>
         <nav className="desktop-nav" aria-label={lang === 'fr' ? 'Navigation principale' : 'التنقل الرئيسي'}>
           {links.map(([href, label]) => <a key={href} href={href}>{label}</a>)}
@@ -515,12 +515,12 @@ function Proofs({ lang }: { lang: Language }) {
       <div className="section-wrap">
         <SectionIntro
           eyebrow={lang === 'fr' ? 'Preuves avec intégrité' : 'دلائل بكل وضوح'}
-          title={lang === 'fr' ? 'Comparer sans déformer la réalité' : 'نقارنو بلا ما نبدلو الحقيقة'}
-          copy={lang === 'fr' ? 'Même cadrage, même espace, aucun titre médical inventé. Faites glisser pour observer cette expérience individuelle.' : 'نفس الكادر ونفس المساحة، بلا تشخيص مخترع. حركي المؤشر باش تشوفي هاد التجربة الفردية.'}
+          title={lang === 'fr' ? 'Comparer sans déformer la réalité' : 'مقارنة من دون تشويه الواقع'}
+          copy={lang === 'fr' ? 'Même cadrage, même espace, aucun titre médical inventé. Faites glisser pour observer cette expérience individuelle.' : 'الإطار والمكان نفسهما، ومن دون ادعاء طبي. حرّكي المؤشر لمشاهدة هذه التجربة الفردية.'}
         />
         <div className="proof-editorial">
           <div className="before-after" style={{ '--position': `${position}%` } as React.CSSProperties}>
-            <img className="before-after__after" src={siteConfig.assets.after} loading="lazy" decoding="async" width="900" height="1125" alt={lang === 'fr' ? 'Photographie après, expérience individuelle' : 'صورة من بعد، تجربة فردية'} />
+            <img className="before-after__after" src={siteConfig.assets.after} loading="lazy" decoding="async" width="900" height="1125" alt={lang === 'fr' ? 'Photographie après, expérience individuelle' : 'صورة بعد، تجربة فردية'} />
             <div className="before-after__before">
               <img src={siteConfig.assets.before} loading="lazy" decoding="async" width="900" height="1125" alt={lang === 'fr' ? 'Photographie avant, expérience individuelle' : 'صورة قبل، تجربة فردية'} />
             </div>
@@ -533,18 +533,18 @@ function Proofs({ lang }: { lang: Language }) {
               max="100"
               value={position}
               onChange={event => update(Number(event.target.value))}
-              aria-label={lang === 'fr' ? 'Comparer la photographie avant et après' : 'قارني الصورة قبل ومن بعد'}
+              aria-label={lang === 'fr' ? 'Comparer la photographie avant et après' : 'قارني الصورة قبل وبعد'}
             />
           </div>
           <div className="proof-copy">
             <p className="proof-badge">{lang === 'fr' ? 'EXPÉRIENCE INDIVIDUELLE' : 'تجربة فردية'}</p>
-            <h3>{lang === 'fr' ? 'Une comparaison, pas une promesse' : 'مقارنة، ماشي وعد'}</h3>
-            <p>{lang === 'fr' ? 'Expérience partagée à titre individuel. L’évolution de la peau peut varier selon la personne, les habitudes et la régularité.' : 'تجربة فردية، والنتائج يمكن تختلف من شخص لآخر حسب البشرة، العادات والاستمرارية.'}</p>
+            <h3>{lang === 'fr' ? 'Une comparaison, pas une promesse' : 'مقارنة وليست وعداً'}</h3>
+            <p>{lang === 'fr' ? 'Expérience partagée à titre individuel. L’évolution de la peau peut varier selon la personne, les habitudes et la régularité.' : 'تجربة فردية، وقد تختلف النتائج من شخص إلى آخر حسب البشرة والعادات والاستمرارية.'}</p>
             <div className="proof-buttons">
-              <button type="button" onClick={() => update(100)}>{lang === 'fr' ? 'Voir avant' : 'شوفي قبل'}</button>
-              <button type="button" onClick={() => update(0)}>{lang === 'fr' ? 'Voir après' : 'شوفي من بعد'}</button>
+              <button type="button" onClick={() => update(100)}>{lang === 'fr' ? 'Voir avant' : 'عرض قبل'}</button>
+              <button type="button" onClick={() => update(0)}>{lang === 'fr' ? 'Voir après' : 'عرض بعد'}</button>
             </div>
-            <small><ShieldCheck /> {lang === 'fr' ? 'Les résultats peuvent varier. Ces images ne constituent ni un diagnostic ni une garantie.' : 'النتائج كتختلف. الصور ماشي تشخيص وماشي ضمان.'}</small>
+            <small><ShieldCheck /> {lang === 'fr' ? 'Les résultats peuvent varier. Ces images ne constituent ni un diagnostic ni une garantie.' : 'قد تختلف النتائج. هذه الصور ليست تشخيصاً ولا ضماناً.'}</small>
           </div>
         </div>
       </div>
@@ -1103,10 +1103,10 @@ function SimpleLeadForm({ lang, concern, setConcern, skinProfile, setSkinProfile
     } catch (nextError) {
       const code = nextError instanceof Error ? nextError.message : ''
       setError(code === 'PHOTO_TOO_LARGE'
-        ? (lang === 'fr' ? 'La photo est trop lourde. Choisissez une image plus légère.' : 'الصورة كبيرة بزاف. اختاري صورة أخف.')
+        ? (lang === 'fr' ? 'La photo est trop lourde. Choisissez une image plus légère.' : 'حجم الصورة كبير جداً. اختاري صورة أصغر.')
         : code === 'PHOTO_CONSENT_REQUIRED'
-          ? (lang === 'fr' ? 'Cochez l’autorisation photo pour joindre cette image.' : 'وافقي على استعمال الصورة باش تزيديها.')
-          : (lang === 'fr' ? 'L’envoi sécurisé n’a pas abouti. Vérifiez votre connexion puis réessayez.' : 'الإرسال الآمن ما كملش. تأكدي من الإنترنت وعاودي.'))
+          ? (lang === 'fr' ? 'Cochez l’autorisation photo pour joindre cette image.' : 'وافقي على استخدام الصورة حتى تتمكني من إرفاقها.')
+          : (lang === 'fr' ? 'L’envoi sécurisé n’a pas abouti. Vérifiez votre connexion puis réessayez.' : 'لم يكتمل الإرسال الآمن. تحققي من اتصالك ثم حاولي مجدداً.'))
     } finally {
       setSending(false)
     }
@@ -1116,9 +1116,9 @@ function SimpleLeadForm({ lang, concern, setConcern, skinProfile, setSkinProfile
     return (
       <Reveal className="form-section form-section--success" id="formulaire">
         <div className="success-orbit"><Check /></div>
-        <p className="eyebrow">{lang === 'fr' ? 'Demande prête' : 'الطلب واجد'}</p>
+        <p className="eyebrow">{lang === 'fr' ? 'Demande prête' : 'الطلب جاهز'}</p>
         <h2>{t('form.successTitle')}</h2>
-        <p>{lang === 'fr' ? 'Ouvrez WhatsApp pour nous transmettre votre demande.' : 'فتحي واتساب باش تصيفطي لينا الطلب.'}</p>
+        <p>{lang === 'fr' ? 'Ouvrez WhatsApp pour nous transmettre votre demande.' : 'افتحي WhatsApp لإرسال طلبك إلينا.'}</p>
         <a className="button button--primary" href={result.whatsappUrl} target="_blank" rel="noreferrer" onClick={() => track('whatsapp_click', { source: 'lead_fallback' })}>{t('form.whatsapp')} <MessageCircle /></a>
       </Reveal>
     )
@@ -1126,6 +1126,11 @@ function SimpleLeadForm({ lang, concern, setConcern, skinProfile, setSkinProfile
 
   return (
     <Reveal className="form-section form-section--short" id="formulaire">
+      <div className="form-trust">
+        <img src={siteConfig.assets.expertProfile} alt="Hanane — ECOLYN" width="160" height="160" loading="lazy" />
+        <div><p>{lang === 'fr' ? 'Votre demande sera examinée par Hanane' : 'ستراجع حنان طلبك'}</p><span>{lang === 'fr' ? 'Elle vous aide à clarifier votre routine et vos priorités, sans poser de diagnostic médical.' : 'تساعدك على توضيح روتينك وأولويات العناية ببشرتك، من دون تشخيص طبي.'}</span></div>
+        <ul><li><Check /> {lang === 'fr' ? 'Conseils gratuits' : 'نصائح مجانية'}</li><li><Check /> {lang === 'fr' ? 'Sans obligation d’achat' : 'من دون إلزام بالشراء'}</li><li><MessageCircle /> {lang === 'fr' ? 'Contact via WhatsApp' : 'تواصل عبر WhatsApp'}</li></ul>
+      </div>
       <div className="form-shell">
         <div className="form-aside">
           <p className="eyebrow">{t('form.eyebrow')}</p>
@@ -1150,9 +1155,9 @@ function SimpleLeadForm({ lang, concern, setConcern, skinProfile, setSkinProfile
             <Field label={lang === 'fr' ? 'Expliquez-nous brièvement ce qui vous dérange avec votre peau.' : 'اشرحي لنا باختصار ما الذي يزعجك في بشرتك.'} wide><textarea name="description" rows={4} required minLength={10} maxLength={1200} placeholder={lang === 'fr' ? 'Exemple : mes traces restent visibles et ma peau réagit facilement…' : 'مثال: تبقى آثار الحبوب ظاهرة وتتفاعل بشرتي بسهولة…'} /></Field>
             <Field label={lang === 'fr' ? 'Email facultatif' : 'الإيميل اختياري'} wide><input name="email" type="email" autoComplete="email" /></Field>
             <details className="optional-photo field--wide">
-              <summary><Upload /> {lang === 'fr' ? 'Ajouter une photo (facultatif)' : 'زيدي صورة (اختياري)'}</summary>
+              <summary><Upload /> {lang === 'fr' ? 'Ajouter une photo (facultatif)' : 'إضافة صورة (اختياري)'}</summary>
               <span className="file-input"><Upload /><input name="photo" type="file" accept="image/jpeg,image/png,image/webp" /><b>{lang === 'fr' ? 'JPG, PNG ou WebP • 8 Mo max' : 'JPG, PNG أو WebP • حتى 8MB'}</b></span>
-              <label className="check-field"><input type="checkbox" name="photoConsent" value="yes" /><span>{lang === 'fr' ? 'J’autorise l’utilisation de cette photo uniquement pour examiner ma demande.' : 'كنوافق تستعمل الصورة غير باش يتراجع الطلب ديالي.'}</span></label>
+              <label className="check-field"><input type="checkbox" name="photoConsent" value="yes" /><span>{lang === 'fr' ? 'J’autorise l’utilisation de cette photo uniquement pour examiner ma demande.' : 'أوافق على استخدام هذه الصورة فقط لمراجعة طلبي.'}</span></label>
             </details>
             <input type="hidden" name="contactConsent" value="yes" />
             <p className="contact-consent-note field--wide">{lang === 'fr' ? 'En envoyant ce formulaire, vous acceptez d’être contactée par notre experte au sujet de votre demande.' : 'بإرسال هذا النموذج، توافقين على أن تتواصل معك خبيرتنا بخصوص طلبك.'}</p>
@@ -1160,7 +1165,7 @@ function SimpleLeadForm({ lang, concern, setConcern, skinProfile, setSkinProfile
           </div>
           {error && <p className="form-error" role="alert">{error}</p>}
           <div className="form-navigation short-form-submit">
-            <p><ShieldCheck /> {lang === 'fr' ? 'Enregistrement sécurisé avant toute mesure de conversion.' : 'التسجيل الآمن كيتم قبل قياس التحويل.'}</p>
+            <p><ShieldCheck /> {lang === 'fr' ? 'Enregistrement sécurisé avant toute mesure de conversion.' : 'يتم تسجيل الطلب بأمان قبل قياس التحويل.'}</p>
             <button type="submit" className="button button--primary" disabled={sending}>{sending ? (lang === 'fr' ? 'Envoi sécurisé…' : 'الإرسال الآمن…') : t('form.submit')} <ArrowUpRight /></button>
           </div>
         </form>
@@ -1195,12 +1200,12 @@ function Events({ lang }: { lang: Language }) {
   return (
     <Reveal className="events-section" id="lives">
       <div className="section-wrap">
-        <SectionIntro eyebrow={lang === 'fr' ? 'Agenda' : 'المواعيد'} title={live ? (lang === 'fr' ? 'Le prochain rendez-vous ECOLYN' : 'الموعد الجاي ديال ECOLYN') : (lang === 'fr' ? 'Soyez prévenue du prochain live' : 'خلي الخبر يوصلك على اللايف الجاي')} copy={live ? (lang === 'fr' ? 'Ajoutez le rendez-vous à votre calendrier en un geste.' : 'زيدي الموعد للأجندة ديالك بخطوة وحدة.') : (lang === 'fr' ? 'Aucune date n’est annoncée pour le moment. Laissez votre demande pour recevoir les prochaines actualités.' : 'ما كاين حتى تاريخ معلن دابا. خلي الطلب ديالك باش يوصلك الجديد.')} />
+        <SectionIntro eyebrow={lang === 'fr' ? 'Agenda' : 'المواعيد'} title={live ? (lang === 'fr' ? 'Le prochain rendez-vous ECOLYN' : 'موعد ECOLYN القادم') : (lang === 'fr' ? 'Soyez prévenue du prochain live' : 'تلقي تنبيهاً بموعد البث القادم')} copy={live ? (lang === 'fr' ? 'Ajoutez le rendez-vous à votre calendrier en un geste.' : 'أضيفي الموعد إلى تقويمك بخطوة واحدة.') : (lang === 'fr' ? 'Aucune date n’est annoncée pour le moment. Laissez votre demande pour recevoir les prochaines actualités.' : 'لا يوجد موعد معلن حالياً. اتركي طلبك لتصلك آخر المستجدات.')} />
         {loading ? <div className="live-loading" aria-label={lang === 'fr' ? 'Chargement du prochain live' : 'تحميل موعد اللايف'} /> : live ? (
           <article className="live-event">
             <div className="live-date">
               <CalendarDays />
-              <span>{lang === 'fr' ? 'Prochain live' : 'اللايف الجاي'}</span>
+              <span>{lang === 'fr' ? 'Prochain live' : 'البث القادم'}</span>
               <strong>{liveDate}</strong>
             </div>
             <div className="live-copy">
@@ -1210,7 +1215,7 @@ function Events({ lang }: { lang: Language }) {
             </div>
             <div className="live-actions">
               <button type="button" onClick={() => downloadLiveCalendar(live, lang)}>
-                <CalendarDays /> {lang === 'fr' ? 'Me prévenir' : 'فكروني'}
+                <CalendarDays /> {lang === 'fr' ? 'Me prévenir' : 'ذكّريني'}
               </button>
               <a
                 href={googleCalendarUrl(live, lang)}
@@ -1220,14 +1225,14 @@ function Events({ lang }: { lang: Language }) {
               >
                 Google Agenda <ArrowUpRight />
               </a>
-              <small>{lang === 'fr' ? 'Un rappel sera ajouté 30 min avant.' : 'غادي يزيد تذكير قبل بـ30 دقيقة.'}</small>
+              <small>{lang === 'fr' ? 'Un rappel sera ajouté 30 min avant.' : 'سيُضاف تذكير قبل الموعد بـ30 دقيقة.'}</small>
             </div>
           </article>
         ) : (
           <div className="empty-event">
             <CalendarDays />
-            <div><p>{lang === 'fr' ? 'Prochain rendez-vous' : 'الموعد الجاي'}</p><h3>{lang === 'fr' ? 'Nous vous préviendrons dès que la date sera fixée.' : 'غادي نخبروك ملي يتحدد التاريخ.'}</h3></div>
-            <a href="#formulaire">{lang === 'fr' ? 'Me tenir informée' : 'خبروني بالجديد'} <ArrowDown /></a>
+            <div><p>{lang === 'fr' ? 'Prochain rendez-vous' : 'الموعد القادم'}</p><h3>{lang === 'fr' ? 'Nous vous préviendrons dès que la date sera fixée.' : 'سنخبرك فور تحديد الموعد.'}</h3></div>
+            <a href="#formulaire">{lang === 'fr' ? 'Me tenir informée' : 'أخبروني بالمستجدات'} <ArrowDown /></a>
           </div>
         )}
       </div>
@@ -1242,8 +1247,8 @@ function FAQ({ lang }: { lang: Language }) {
       <div className="section-wrap faq-layout">
         <div className="faq-heading">
           <p className="eyebrow">FAQ / {lang === 'fr' ? 'Conseils' : 'النصائح'}</p>
-          <h2>{lang === 'fr' ? 'Avant de nous parler de votre peau' : 'قبل ما تحكي لينا على بشرتك'}</h2>
-          <p>{lang === 'fr' ? 'Des réponses claires sur le service, la confidentialité et les limites des conseils.' : 'أجوبة واضحة على الخدمة، الخصوصية وحدود النصائح.'}</p>
+          <h2>{lang === 'fr' ? 'Avant de nous parler de votre peau' : 'قبل أن تحدّثينا عن بشرتك'}</h2>
+          <p>{lang === 'fr' ? 'Des réponses claires sur le service, la confidentialité et les limites des conseils.' : 'إجابات واضحة عن الخدمة والخصوصية وحدود النصائح.'}</p>
         </div>
         <div className="faq-list">
           {faqs.map((item, index) => (
@@ -1263,12 +1268,12 @@ function Footer({ lang, openLegal }: { lang: Language; openLegal: (type: 'privac
   return (
     <footer>
       <div className="footer-main">
-        <div className="footer-brand"><img src="./assets/brand/logo.webp" alt="ECOLYN" /><p>{lang === 'fr' ? 'Une plateforme marocaine pour mieux comprendre sa peau, simplifier sa routine et recevoir des conseils gratuits.' : 'منصة مغربية باش تفهمي بشرتك، تبسطي الروتين وتستافدي من نصائح مجانية.'}</p><span>{local(siteConfig.expert.role, lang)}</span></div>
+        <div className="footer-brand"><img src="./assets/brand/logo.webp" alt="ECOLYN" /><p>{lang === 'fr' ? 'Une plateforme marocaine pour mieux comprendre sa peau, simplifier sa routine et recevoir des conseils gratuits.' : 'منصة مغربية تساعدك على فهم بشرتك وتبسيط روتينك والاستفادة من نصائح مجانية.'}</p><span>{local(siteConfig.expert.role, lang)}</span></div>
         <div className="footer-links"><h3>{lang === 'fr' ? 'Explorer' : 'تصفحي'}</h3><a href="#conseils">{lang === 'fr' ? 'Conseils' : 'النصائح'}</a><a href="#cas">{lang === 'fr' ? 'Cas pratiques' : 'حالات واقعية'}</a><a href="#experiences">{lang === 'fr' ? 'Expériences audio' : 'التجارب الصوتية'}</a><a href="#nutrition">{lang === 'fr' ? 'Nutrition' : 'التغذية'}</a><a href="#experte">{lang === 'fr' ? 'L’experte' : 'المستشارة'}</a></div>
         <div className="footer-links"><h3>{lang === 'fr' ? 'Agir' : 'تواصلي'}</h3><a href="#formulaire">{lang === 'fr' ? 'Demander des conseils' : 'طلب نصائح'}</a><a href={packHref} onClick={() => { track('pack_cta_click', { cta_location: 'footer' }); track('initiate_checkout', { cta_location: 'footer' }) }}>{lang === 'fr' ? 'Routine ECOLYN' : 'روتين ECOLYN'} <ArrowUpRight /></a><a href="mailto:ecolyn@proton.me">ecolyn@proton.me</a></div>
         <div className="footer-links"><h3>{lang === 'fr' ? 'Confiance' : 'الثقة'}</h3><button onClick={() => openLegal('privacy')}>{lang === 'fr' ? 'Politique de confidentialité' : 'سياسة الخصوصية'}</button><button onClick={() => openLegal('terms')}>{lang === 'fr' ? 'Conditions' : 'الشروط'}</button><button onClick={() => i18n.changeLanguage(lang === 'fr' ? 'ar' : 'fr')}>{lang === 'fr' ? 'العربية' : 'Français'} <Languages /></button></div>
       </div>
-      <div className="footer-bottom"><span>© {new Date().getFullYear()} ECOLYN</span><p>{lang === 'fr' ? 'Les conseils sont informatifs et ne remplacent pas l’avis d’un dermatologue.' : 'النصائح توعوية وما كتعوضش رأي طبيب الجلد.'}</p><a href="#accueil"><ArrowDown /> {lang === 'fr' ? 'Retour en haut' : 'نرجعو للفوق'}</a></div>
+      <div className="footer-bottom"><span>© {new Date().getFullYear()} ECOLYN</span><p>{lang === 'fr' ? 'Les conseils sont informatifs et ne remplacent pas l’avis d’un dermatologue.' : 'النصائح توعوية ولا تغني عن رأي طبيب الجلد.'}</p><a href="#accueil"><ArrowDown /> {lang === 'fr' ? 'Retour en haut' : 'العودة إلى الأعلى'}</a></div>
     </footer>
   )
 }
@@ -1294,18 +1299,18 @@ function ArticleDrawer({ article, lang, close, next }: { article: Article; lang:
           track('article_complete', { article_slug: article.slug })
         }
       }}>
-        <div className="drawer-top"><div><span>{local(article.category, lang)}</span><p><Clock3 /> {article.time} {lang === 'fr' ? 'min de lecture' : 'دقائق للقراءة'}</p></div><button onClick={close} aria-label={lang === 'fr' ? 'Fermer l’article' : 'سد المقال'}><X /></button></div>
+        <div className="drawer-top"><div><span>{local(article.category, lang)}</span><p><Clock3 /> {article.time} {lang === 'fr' ? 'min de lecture' : 'دقائق للقراءة'}</p></div><button onClick={close} aria-label={lang === 'fr' ? 'Fermer l’article' : 'إغلاق المقال'}><X /></button></div>
         <div className="drawer-hero"><p>ECOLYN / {lang === 'fr' ? 'CONSEILS' : 'نصائح'}</p><h2>{local(article.title, lang)}</h2><b>{local(article.summary, lang)}</b><span className={`evidence-badge evidence-badge--${article.evidence}`}>{evidenceLabel(article.evidence, lang)}</span></div>
         <div className="article-body">
           <p className="article-intro">{local(article.introduction, lang)}</p>
-          <h3>{lang === 'fr' ? 'Ce qu’il faut comprendre' : 'شنو خاص نفهمو'}</h3><p>{local(article.explanation, lang)}</p>
-          <h3>{lang === 'fr' ? 'Ce que vous pouvez observer' : 'شنو تقدري تراقبي'}</h3><p>{local(article.observe, lang)}</p>
+          <h3>{lang === 'fr' ? 'Ce qu’il faut comprendre' : 'ما الذي ينبغي فهمه؟'}</h3><p>{local(article.explanation, lang)}</p>
+          <h3>{lang === 'fr' ? 'Ce que vous pouvez observer' : 'ما الذي يمكنك ملاحظته؟'}</h3><p>{local(article.observe, lang)}</p>
           <h3>{lang === 'fr' ? 'Erreurs fréquentes' : 'أخطاء متكررة'}</h3><ul>{article.mistakes[lang].map(item => <li key={item}><X />{item}</li>)}</ul>
           <h3>{lang === 'fr' ? 'Gestes utiles' : 'خطوات مفيدة'}</h3><ul className="positive">{article.gestures[lang].map(item => <li key={item}><Check />{item}</li>)}</ul>
-          <div className="watch-box"><Eye /><div><h3>{lang === 'fr' ? 'Point à surveiller' : 'نقطة خاص نراقبوها'}</h3><p>{local(article.watch, lang)}</p></div></div>
+          <div className="watch-box"><Eye /><div><h3>{lang === 'fr' ? 'Point à surveiller' : 'نقطة ينبغي مراقبتها'}</h3><p>{local(article.watch, lang)}</p></div></div>
           <div className="professional-box"><ShieldCheck /><p>{local(article.professional, lang)}</p></div>
           <div className="article-sources"><h3>{lang === 'fr' ? 'Sources' : 'المصادر'}</h3>{article.sources.map(source => <a href={source.url} target="_blank" rel="noreferrer" key={source.url}>{source.label} <ArrowUpRight /></a>)}</div>
-          <a href="#formulaire" className="button button--primary" onClick={close}>{lang === 'fr' ? 'Demander des conseils personnalisés' : 'نطلب نصائح مناسبة'} <MessageCircle /></a>
+          <a href="#formulaire" className="button button--primary" onClick={close}>{lang === 'fr' ? 'Demander des conseils personnalisés' : 'طلب نصائح مخصصة'} <MessageCircle /></a>
         </div>
         <button className="drawer-next" onClick={next}>{lang === 'fr' ? 'Article suivant' : 'المقال التالي'} {lang === 'fr' ? <ArrowRight /> : <ArrowLeft />}</button>
       </motion.article>
@@ -1320,17 +1325,17 @@ function LegalModal({ type, lang, close }: { type: 'privacy' | 'terms'; lang: La
       <motion.article initial={{ y: 40, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 30, opacity: 0 }}>
         <button onClick={close} aria-label="Fermer"><X /></button>
         <p className="eyebrow">{privacy ? 'CONFIDENTIALITÉ' : 'CONDITIONS'}</p>
-        <h2>{privacy ? (lang === 'fr' ? 'Vos informations restent les vôtres' : 'المعلومات ديالك كتبقى ديالك') : (lang === 'fr' ? 'Cadre du service de conseils' : 'إطار خدمة النصائح')}</h2>
+        <h2>{privacy ? (lang === 'fr' ? 'Vos informations restent les vôtres' : 'معلوماتك تبقى ملكاً لك') : (lang === 'fr' ? 'Cadre du service de conseils' : 'إطار خدمة النصائح')}</h2>
         {privacy ? <>
-          <p>{lang === 'fr' ? 'Les informations servent uniquement à examiner votre demande, vous contacter et, si vous y consentez séparément, vous envoyer de futurs contenus.' : 'المعلومات كتستعمل غير لمراجعة الطلب، التواصل معاك، وإلا وافقتي بوحدها، إرسال محتوى مستقبلي.'}</p>
-          <h3>{lang === 'fr' ? 'Photos facultatives' : 'الصور اختيارية'}</h3><p>{lang === 'fr' ? 'Aucune photo n’est obligatoire, publiée ou utilisée dans une publicité sans autorisation séparée et explicite.' : 'حتى صورة ما إجبارية، وما تنشرش وما تستعملش فالإشهار بلا موافقة واضحة بوحدها.'}</p>
-          <h3>{lang === 'fr' ? 'Stockage' : 'التخزين'}</h3><p>{lang === 'fr' ? 'Les demandes sont enregistrées dans un espace sécurisé. Les visiteurs ne peuvent ni lire, ni modifier, ni supprimer ces informations.' : 'الطلبات كتتخزن فمساحة محمية. الزوار ما يقدروش يقراو ولا يبدلو ولا يمسحو هاد المعلومات.'}</p>
-          <h3>{lang === 'fr' ? 'Mesure publicitaire facultative' : 'قياس الإعلانات اختياري'}</h3><p>{lang === 'fr' ? 'Seulement si vous cochez le consentement marketing séparé, vos coordonnées normalisées et hachées peuvent être transmises à Meta pour mesurer la demande. Les identifiants publicitaires restent désactivables depuis l’administration.' : 'غير إلا وافقتي على التسويق بوحدو، معلومات التواصل كتتهيا وكتتشفر قبل ما تتبعث لـ Meta باش نقيسو الطلب. أدوات الإشهار يمكن توقيفها من الإدارة.'}</p>
-          <h3>{lang === 'fr' ? 'Vos droits' : 'الحقوق ديالك'}</h3><p>{lang === 'fr' ? 'Vous pouvez demander l’accès, la correction ou la suppression de vos données à ecolyn@proton.me.' : 'تقدري تطلبي الاطلاع، التصحيح أو الحذف عبر ecolyn@proton.me.'}</p>
+          <p>{lang === 'fr' ? 'Les informations servent uniquement à examiner votre demande, vous contacter et, si vous y consentez séparément, vous envoyer de futurs contenus.' : 'تُستخدم المعلومات فقط لمراجعة طلبك والتواصل معك، وإذا وافقتِ بشكل منفصل، لإرسال محتوى مستقبلي.'}</p>
+          <h3>{lang === 'fr' ? 'Photos facultatives' : 'الصور اختيارية'}</h3><p>{lang === 'fr' ? 'Aucune photo n’est obligatoire, publiée ou utilisée dans une publicité sans autorisation séparée et explicite.' : 'لا توجد صورة إلزامية، ولا تُنشر الصور أو تُستخدم في الإعلانات من دون موافقة منفصلة وصريحة.'}</p>
+          <h3>{lang === 'fr' ? 'Stockage' : 'التخزين'}</h3><p>{lang === 'fr' ? 'Les demandes sont enregistrées dans un espace sécurisé. Les visiteurs ne peuvent ni lire, ni modifier, ni supprimer ces informations.' : 'تُحفظ الطلبات في مساحة آمنة، ولا يستطيع الزوار قراءة هذه المعلومات أو تعديلها أو حذفها.'}</p>
+          <h3>{lang === 'fr' ? 'Mesure publicitaire facultative' : 'قياس الإعلانات اختياري'}</h3><p>{lang === 'fr' ? 'Seulement si vous cochez le consentement marketing séparé, vos coordonnées normalisées et hachées peuvent être transmises à Meta pour mesurer la demande. Les identifiants publicitaires restent désactivables depuis l’administration.' : 'فقط عند الموافقة المنفصلة على القياس الإعلاني، يمكن إرسال بيانات التواصل بعد توحيدها وتشفيرها إلى Meta لقياس مصدر الطلب. ويمكن تعطيل أدوات القياس من لوحة الإدارة.'}</p>
+          <h3>{lang === 'fr' ? 'Vos droits' : 'حقوقك'}</h3><p>{lang === 'fr' ? 'Vous pouvez demander l’accès, la correction ou la suppression de vos données à ecolyn@proton.me.' : 'يمكنك طلب الاطلاع على بياناتك أو تصحيحها أو حذفها عبر ecolyn@proton.me.'}</p>
         </> : <>
-          <p>{lang === 'fr' ? 'Le service fournit des informations de routine à partir des éléments déclarés. Il ne constitue ni un diagnostic ni une consultation médicale.' : 'الخدمة كتقدم معلومات للروتين حسب المعطيات اللي قلتي. ماشي تشخيص ولا استشارة طبية.'}</p>
-          <h3>{lang === 'fr' ? 'Limites' : 'الحدود'}</h3><p>{lang === 'fr' ? 'Les résultats et la tolérance varient selon les personnes. Aucun résultat n’est garanti.' : 'النتائج والتحمل كيختلفو من شخص لآخر. ما كاين حتى ضمان للنتيجة.'}</p>
-          <h3>{lang === 'fr' ? 'Urgence et persistance' : 'الحالات القوية أو المستمرة'}</h3><p>{lang === 'fr' ? 'Toute situation sévère, inhabituelle ou persistante doit être présentée à un dermatologue.' : 'أي حالة قوية، غريبة أو مستمرة خاصها طبيب الجلد.'}</p>
+          <p>{lang === 'fr' ? 'Le service fournit des informations de routine à partir des éléments déclarés. Il ne constitue ni un diagnostic ni une consultation médicale.' : 'تقدم الخدمة معلومات عن الروتين انطلاقاً من المعطيات التي تصرّحين بها، ولا تُعد تشخيصاً أو استشارة طبية.'}</p>
+          <h3>{lang === 'fr' ? 'Limites' : 'الحدود'}</h3><p>{lang === 'fr' ? 'Les résultats et la tolérance varient selon les personnes. Aucun résultat n’est garanti.' : 'تختلف النتائج وقدرة البشرة على التحمل من شخص إلى آخر، ولا توجد نتيجة مضمونة.'}</p>
+          <h3>{lang === 'fr' ? 'Urgence et persistance' : 'الحالات الشديدة أو المستمرة'}</h3><p>{lang === 'fr' ? 'Toute situation sévère, inhabituelle ou persistante doit être présentée à un dermatologue.' : 'يجب عرض أي حالة شديدة أو غير معتادة أو مستمرة على طبيب جلد.'}</p>
         </>}
       </motion.article>
     </motion.div>
@@ -1435,7 +1440,7 @@ export default function App() {
       </main>
       <Footer lang={lang} openLegal={setLegal} />
       <a className="sticky-advice" href={journeyComplete ? '#formulaire' : '#personnalisation'} onClick={() => track(journeyComplete ? 'form_start' : 'journey_start', { source: 'sticky' })}>
-        <span>{journeyComplete ? <MessageCircle /> : <Sparkles />}</span><b>{journeyComplete ? currentConcernLabel : 'ECOLYN'}</b><em>{journeyComplete ? (lang === 'fr' ? 'Contacter Hanane' : 'التواصل مع حنان') : (lang === 'fr' ? 'Faire mes 3 choix' : 'ابدئي 3 اختيارات')}</em><ArrowUpRight />
+        <span>{journeyComplete ? <MessageCircle /> : <Sparkles />}</span><b>{journeyComplete ? currentConcernLabel : 'ECOLYN'}</b><em>{journeyComplete ? (lang === 'fr' ? 'Contacter Hanane' : 'التواصل مع حنان') : (lang === 'fr' ? 'Faire mes 3 choix' : 'ابدئي اختياراتك الثلاثة')}</em><ArrowUpRight />
       </a>
       <a
         className="whatsapp-group-float"
