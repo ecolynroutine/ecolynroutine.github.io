@@ -14,7 +14,7 @@ import { testimonials } from './data/testimonials'
 import { nutritionChapters } from './data/nutrition'
 import { siteConfig } from './data/site'
 import { faqs } from './data/faqs'
-import { initializeTracking, track } from './lib/tracking'
+import { initializeTracking, track, trackOncePerSession } from './lib/tracking'
 import { submitLead, type LeadResult } from './lib/submitLead'
 import { navigate, packUrl } from './lib/navigation'
 import DiscoveryExperience, { DiscoveryAfterForm } from './components/DiscoveryExperience'
@@ -242,7 +242,7 @@ function RailNavigation({ railRef, count, lang, label }: {
   )
 }
 
-function Header({ lang, menuOpen, setMenuOpen }: { lang: Language; menuOpen: boolean; setMenuOpen: (open: boolean) => void }) {
+function Header({ lang, menuOpen, setMenuOpen, journeyComplete }: { lang: Language; menuOpen: boolean; setMenuOpen: (open: boolean) => void; journeyComplete: boolean }) {
   const { t, i18n } = useTranslation()
   const [scrolled, setScrolled] = useState(false)
   useEffect(() => {
@@ -257,9 +257,13 @@ function Header({ lang, menuOpen, setMenuOpen }: { lang: Language; menuOpen: boo
     return () => { document.body.style.overflow = '' }
   }, [menuOpen])
   const links = [
-    ['#accueil', t('nav.home')], ['#personnalisation', lang === 'fr' ? 'Ma peau' : 'بشرتي'],
-    ['#conseils', t('nav.advice')], ['#histoires', t('nav.stories')],
-    ['#hanane', lang === 'fr' ? 'Hanane' : 'حنان']
+    ['#accueil', t('nav.home')],
+    ['#personnalisation', lang === 'fr' ? 'Ma peau' : 'بشرتي'],
+    ...(journeyComplete ? [
+      ['#conseils', t('nav.advice')],
+      ['#histoires', t('nav.stories')],
+      ['#hanane', lang === 'fr' ? 'Hanane' : 'حنان'],
+    ] : []),
   ]
   const changeLanguage = () => {
     i18n.changeLanguage(lang === 'fr' ? 'ar' : 'fr')
@@ -334,8 +338,8 @@ function Hero({ lang, onConcern }: { lang: Language; onConcern: (id: string) => 
           <p className="hero-lede">{t('hero.copy')}</p>
           <p className="free-badge"><Sparkles size={16} /> {t('hero.badge')}</p>
           <div className="hero-actions">
-            <a className="button button--primary" href="#personnalisation" onClick={() => track('journey_start', { source: 'hero' })}>{t('hero.primary')} <ArrowDown size={17} /></a>
-            <a className="button button--ghost" href="#conseils">{t('hero.secondary')} <MoveRight size={17} /></a>
+            <a className="button button--primary" href="#personnalisation" onClick={() => trackOncePerSession('journey_start', { source: 'hero' })}>{t('hero.primary')} <ArrowDown size={17} /></a>
+            <a className="button button--ghost" href="#personnalisation">{t('hero.secondary')} <MoveRight size={17} /></a>
           </div>
           <div className="hero-trust">
             <span><ShieldCheck /> {lang === 'fr' ? 'Approche informative' : 'مقاربة توعوية'}</span>
@@ -370,7 +374,7 @@ function Hero({ lang, onConcern }: { lang: Language; onConcern: (id: string) => 
           </div>
         </motion.div>
       </motion.div>
-      <a className="scroll-cue" href="#besoins"><span>{t('hero.scroll')}</span><ArrowDown /></a>
+      <a className="scroll-cue" href="#personnalisation"><span>{t('hero.scroll')}</span><ArrowDown /></a>
     </section>
   )
 }
@@ -420,7 +424,7 @@ function ConcernExplorer({ lang, selected, setSelected, describe }: { lang: Lang
                 <div className="concern-case">
                   <b>{lang === 'fr' ? 'Cas concret' : 'حالة واقعية'}</b>
                   <p>{local(active.caseStudy, lang)}</p>
-                  <a href="#experiences" onClick={() => track('similar_case_open', { concern_id: active.id })}>{lang === 'fr' ? 'Voir une expérience de la communauté' : 'نشوف تجربة من المجتمع'} <ArrowDown /></a>
+                  <a href="#histoires" onClick={() => track('similar_case_open', { concern_id: active.id })}>{lang === 'fr' ? 'Voir une expérience de la communauté' : 'نشوف تجربة من المجتمع'} <ArrowDown /></a>
                 </div>
               </div>
               <div className="answer-actions">
@@ -1044,44 +1048,23 @@ function LeadForm({ lang, concern, setConcern }: { lang: Language; concern: stri
   )
 }
 
-function MultiChoiceEditor<T extends string>({ label, items, selected, setSelected, group, lang, exclusiveId }: {
-  label: string
-  items: { id: T; label: Localized }[]
-  selected: T[]
-  setSelected: (values: T[]) => void
-  group: string
-  lang: Language
-  exclusiveId?: T
-}) {
-  const toggle = (id: T) => {
-    const active = selected.includes(id)
-    if (active && selected.length === 1) return
-    const next = exclusiveId && id === exclusiveId
-      ? [id]
-      : active
-        ? selected.filter(value => value !== id)
-        : [...selected.filter(value => value !== exclusiveId), id]
-    setSelected(next)
-    track(active ? 'journey_option_remove' : 'journey_option_select', { option_group: group, option_id: id, selection_source: 'short_form' })
-  }
-  return <div className="form-choice-editor field--wide"><span>{label}</span><div>{items.map(item => <button type="button" key={item.id} className={selected.includes(item.id) ? 'is-active' : ''} aria-pressed={selected.includes(item.id)} onClick={() => toggle(item.id)}>{selected.includes(item.id) && <Check />} {local(item.label, lang)}</button>)}</div></div>
-}
-
-function SimpleLeadForm({ lang, concerns: selectedConcerns, setConcerns, profiles, setProfiles, contexts, setContexts }: {
+function SimpleLeadForm({ lang, concerns: selectedConcerns, profiles, contexts, onModifyChoices }: {
   lang: Language
   concerns: string[]
-  setConcerns: (values: string[]) => void
   profiles: SkinProfileId[]
-  setProfiles: (values: SkinProfileId[]) => void
   contexts: LifestyleId[]
-  setContexts: (values: LifestyleId[]) => void
+  onModifyChoices: () => void
 }) {
   const { t } = useTranslation()
-  const [started, setStarted] = useState(false)
   const [sending, setSending] = useState(false)
   const [result, setResult] = useState<LeadResult | null>(null)
   const [error, setError] = useState('')
   const formRef = useRef<HTMLFormElement>(null)
+  const summaryChoices = [
+    profiles[0] ? local(skinProfiles.find(item => item.id === profiles[0])?.label || { fr: profiles[0], ar: profiles[0] }, lang) : '',
+    selectedConcerns[0] ? local(concernOptions.find(item => item.id === selectedConcerns[0])?.label || { fr: selectedConcerns[0], ar: selectedConcerns[0] }, lang) : '',
+    contexts[0] ? local(lifestyleTopics.find(item => item.id === contexts[0])?.label || { fr: contexts[0], ar: contexts[0] }, lang) : '',
+  ].filter(Boolean)
 
   useEffect(() => {
     const section = document.getElementById('formulaire')
@@ -1096,10 +1079,22 @@ function SimpleLeadForm({ lang, concerns: selectedConcerns, setConcerns, profile
     }
   }, [])
 
-  const begin = () => {
-    if (started) return
-    setStarted(true)
-    track('form_start', { source: 'short_form', concern_count: selectedConcerns.length })
+  useEffect(() => {
+    const fields = document.getElementById('form-fields')
+    if (!fields) return
+    const observer = new IntersectionObserver(([entry]) => {
+      if (!entry.isIntersecting) return
+      trackOncePerSession('form_view', { source: 'short_form' })
+      observer.disconnect()
+    }, { threshold: .08, rootMargin: '0px 0px -18% 0px' })
+    observer.observe(fields)
+    return () => observer.disconnect()
+  }, [])
+
+  const begin = (event: React.SyntheticEvent<HTMLFormElement>) => {
+    const target = event.target as HTMLElement
+    if (!target.matches('input:not([type="hidden"]), textarea, select')) return
+    trackOncePerSession('form_start', { source: 'short_form' })
   }
 
   const onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -1168,17 +1163,18 @@ function SimpleLeadForm({ lang, concerns: selectedConcerns, setConcerns, profile
           </div>
           <p className="medical-note">{lang === 'fr' ? 'Ces conseils sont informatifs. Une situation sévère, inhabituelle ou persistante doit être présentée à un dermatologue.' : 'هذه النصائح تثقيفية. يجب عرض أي حالة شديدة أو غير معتادة أو مستمرة على طبيب جلد.'}</p>
         </div>
-        <form ref={formRef} onSubmit={onSubmit} onFocus={begin} className="lead-form lead-form--short">
+        <form ref={formRef} onSubmit={onSubmit} onFocusCapture={begin} onInputCapture={begin} onChangeCapture={begin} className="lead-form lead-form--short">
           <div className="form-step-heading"><span>01</span><div><p>{lang === 'fr' ? 'Votre demande' : 'طلبك'}</p><h3>{lang === 'fr' ? 'Parlez-nous brièvement de votre peau' : 'حدّثينا باختصار عن بشرتك'}</h3></div></div>
+          <div className="form-choice-summary">
+            <div><p>{lang === 'fr' ? 'Nous avons retenu :' : 'اختياراتك:'}</p><span>{summaryChoices.map(choice => <b key={choice}><Check /> {choice}</b>)}</span></div>
+            <button type="button" onClick={onModifyChoices}>{lang === 'fr' ? 'Modifier mes choix' : 'تعديل اختياراتي'}</button>
+          </div>
           <div className="form-grid short-form-grid" id="form-fields">
             <Field label={lang === 'fr' ? 'Prénom' : 'الاسم'}><input name="firstName" required autoComplete="given-name" /></Field>
             <Field label={lang === 'fr' ? 'Numéro WhatsApp' : 'رقم واتساب'}><input name="whatsapp" required type="tel" inputMode="tel" autoComplete="tel" placeholder="06 12 34 56 78" pattern="[+0-9 ()-]{9,20}" /></Field>
-            <MultiChoiceEditor label={lang === 'fr' ? 'Vos préoccupations (modifiable)' : 'المشكلات التي تهمك (يمكن تعديلها)'} items={concernOptions} selected={selectedConcerns} setSelected={setConcerns} group="skin_concern" lang={lang} />
-            <MultiChoiceEditor label={lang === 'fr' ? 'Votre profil de peau (modifiable)' : 'وصف بشرتك (يمكن تعديله)'} items={skinProfiles} selected={profiles} setSelected={setProfiles} group="skin_profile" lang={lang} exclusiveId="unknown" />
-            <MultiChoiceEditor label={lang === 'fr' ? 'Votre contexte (modifiable)' : 'سياقك اليومي (يمكن تعديله)'} items={lifestyleTopics} selected={contexts} setSelected={setContexts} group="lifestyle_context" lang={lang} exclusiveId="none" />
-            <input type="hidden" name="primaryConcern" value={selectedConcerns.join(', ')} />
-            <input type="hidden" name="skinType" value={profiles.join(', ')} />
-            <input type="hidden" name="lifestyleContext" value={contexts.join(', ')} />
+            <input type="hidden" name="primaryConcern" value={selectedConcerns[0] || ''} />
+            <input type="hidden" name="skinType" value={profiles[0] || ''} />
+            <input type="hidden" name="lifestyleContext" value={contexts[0] || ''} />
             <input type="hidden" name="selectedConcernsJson" value={JSON.stringify(selectedConcerns)} />
             <input type="hidden" name="selectedSkinProfilesJson" value={JSON.stringify(profiles)} />
             <input type="hidden" name="selectedContextsJson" value={JSON.stringify(contexts)} />
@@ -1293,13 +1289,13 @@ function FAQ({ lang }: { lang: Language }) {
   )
 }
 
-function Footer({ lang, openLegal }: { lang: Language; openLegal: (type: 'privacy' | 'terms') => void }) {
+function Footer({ lang, openLegal, journeyComplete }: { lang: Language; openLegal: (type: 'privacy' | 'terms') => void; journeyComplete: boolean }) {
   const { i18n } = useTranslation()
   return (
     <footer>
       <div className="footer-main">
         <div className="footer-brand"><img src="./assets/brand/logo.webp" alt="ECOLYN" /><p>{lang === 'fr' ? 'Une plateforme marocaine pour mieux comprendre sa peau, simplifier sa routine et recevoir des conseils gratuits.' : 'منصة مغربية تساعدك على فهم بشرتك وتبسيط روتينك والاستفادة من نصائح مجانية.'}</p><span>{local(siteConfig.expert.role, lang)}</span></div>
-        <div className="footer-links"><h3>{lang === 'fr' ? 'Explorer' : 'تصفحي'}</h3><a href="#conseils">{lang === 'fr' ? 'Conseils' : 'النصائح'}</a><a href="#cas">{lang === 'fr' ? 'Cas pratiques' : 'حالات واقعية'}</a><a href="#experiences">{lang === 'fr' ? 'Expériences audio' : 'التجارب الصوتية'}</a><a href="#nutrition">{lang === 'fr' ? 'Nutrition' : 'التغذية'}</a><a href="#experte">{lang === 'fr' ? 'L’experte' : 'المستشارة'}</a></div>
+        <div className="footer-links"><h3>{lang === 'fr' ? 'Explorer' : 'تصفحي'}</h3><a href="#personnalisation">{lang === 'fr' ? 'Mes 3 choix' : 'اختياراتي الثلاثة'}</a><a href={journeyComplete ? '#conseils' : '#personnalisation'}>{lang === 'fr' ? 'Conseils' : 'النصائح'}</a><a href={journeyComplete ? '#articles' : '#personnalisation'}>{lang === 'fr' ? 'Articles' : 'المقالات'}</a><a href={journeyComplete ? '#histoires' : '#personnalisation'}>{lang === 'fr' ? 'Témoignages' : 'التجارب'}</a><a href={journeyComplete ? '#hanane' : '#personnalisation'}>{lang === 'fr' ? 'Hanane' : 'حنان'}</a><a href="#lives">{lang === 'fr' ? 'Prochain live' : 'البث القادم'}</a></div>
         <div className="footer-links"><h3>{lang === 'fr' ? 'Agir' : 'تواصلي'}</h3><a href="#form-fields">{lang === 'fr' ? 'Demander des conseils' : 'طلب نصائح'}</a><a href={packHref} onClick={() => { track('pack_cta_click', { cta_location: 'footer' }); track('initiate_checkout', { cta_location: 'footer' }) }}>{lang === 'fr' ? 'Routine ECOLYN' : 'روتين ECOLYN'} <ArrowUpRight /></a><a href="mailto:ecolyn@proton.me">ecolyn@proton.me</a></div>
         <div className="footer-links"><h3>{lang === 'fr' ? 'Confiance' : 'الثقة'}</h3><button onClick={() => openLegal('privacy')}>{lang === 'fr' ? 'Politique de confidentialité' : 'سياسة الخصوصية'}</button><button onClick={() => openLegal('terms')}>{lang === 'fr' ? 'Conditions' : 'الشروط'}</button><button onClick={() => i18n.changeLanguage(lang === 'fr' ? 'ar' : 'fr')}>{lang === 'fr' ? 'العربية' : 'Français'} <Languages /></button></div>
       </div>
@@ -1394,24 +1390,25 @@ export default function App() {
   const contextIds: LifestyleId[] = ['pregnancy', 'sleep', 'stress', 'motherhood', 'emotional', 'diet', 'sun', 'hair-products', 'none']
   const [selectedConcerns, setSelectedConcerns] = useState<string[]>(() => {
     const hasSavedChoice = Boolean(localStorage.getItem('ecolyn-skin-concerns') || localStorage.getItem('ecolyn-skin-concern'))
-    return readSavedArray('ecolyn-skin-concerns', hasSavedChoice ? [initialConcern] : [], concernIds)
+    return readSavedArray('ecolyn-skin-concerns', hasSavedChoice ? [initialConcern] : [], concernIds).slice(0, 1)
   })
   const savedProfile = localStorage.getItem('ecolyn-skin-profile') as SkinProfileId | null
   const initialProfile: SkinProfileId = ['oily', 'dry', 'sensitive', 'combination', 'unknown'].includes(savedProfile || '') ? savedProfile as SkinProfileId : 'unknown'
   const [skinProfilesSelected, setSkinProfilesSelected] = useState<SkinProfileId[]>(() => {
     const hasSavedChoice = Boolean(localStorage.getItem('ecolyn-skin-profiles') || localStorage.getItem('ecolyn-skin-profile'))
     const saved = readSavedArray('ecolyn-skin-profiles', hasSavedChoice ? [initialProfile] : [], profileIds)
-    return saved.includes('unknown') && saved.length > 1 ? saved.filter(value => value !== 'unknown') : saved
+    return (saved.includes('unknown') && saved.length > 1 ? saved.filter(value => value !== 'unknown') : saved).slice(0, 1)
   })
   const savedLifestyle = localStorage.getItem('ecolyn-lifestyle-topic') as LifestyleId | null
   const initialLifestyle: LifestyleId | '' = ['pregnancy', 'sleep', 'stress', 'motherhood', 'emotional', 'diet', 'sun', 'hair-products', 'none'].includes(savedLifestyle || '') ? savedLifestyle as LifestyleId : ''
   const [lifestyleContexts, setLifestyleContexts] = useState<LifestyleId[]>(() => {
     const saved = readSavedArray('ecolyn-lifestyle-topics', initialLifestyle ? [initialLifestyle] : [], contextIds)
-    return saved.includes('none') && saved.length > 1 ? saved.filter(value => value !== 'none') : saved
+    return (saved.includes('none') && saved.length > 1 ? saved.filter(value => value !== 'none') : saved).slice(0, 1)
   })
   const [journeyComplete, setJourneyComplete] = useState(false)
+  const [journeyEditToken, setJourneyEditToken] = useState(0)
   const savedComplexion = localStorage.getItem('ecolyn-complexion') as ComplexionId | null
-  const [complexion, setComplexionState] = useState<ComplexionId>(['medium-dark', 'not-medium-dark', 'unspecified'].includes(savedComplexion || '') ? savedComplexion as ComplexionId : 'unspecified')
+  const [complexion] = useState<ComplexionId>(['medium-dark', 'not-medium-dark', 'unspecified'].includes(savedComplexion || '') ? savedComplexion as ComplexionId : 'unspecified')
   const [article, setArticle] = useState<Article | null>(null)
   const [legal, setLegal] = useState<'privacy' | 'terms' | null>(null)
   const { scrollYProgress } = useScroll()
@@ -1420,14 +1417,20 @@ export default function App() {
 
   useEffect(() => { void initializeTracking('advice_home') }, [])
   useEffect(() => {
-    const fallbackToJourney = (event: MouseEvent) => {
-      const anchor = (event.target as HTMLElement).closest<HTMLAnchorElement>('a[href="#form-fields"]')
-      if (!anchor || document.getElementById('form-fields')) return
+    const handleFunnelAnchors = (event: MouseEvent) => {
+      const anchor = (event.target as HTMLElement).closest<HTMLAnchorElement>('a[href^="#"]')
+      if (!anchor) return
+      if (anchor.getAttribute('href') === '#personnalisation') {
+        trackOncePerSession('journey_start', { source: anchor.dataset.journeySource || 'navigation' })
+      }
+      if (anchor.getAttribute('href') !== '#form-fields') return
       event.preventDefault()
-      document.getElementById('personnalisation')?.scrollIntoView({ behavior: reduced ? 'auto' : 'smooth' })
+      track('form_cta_click', { source: anchor.dataset.formCta || 'page_link' })
+      const target = document.getElementById('form-fields') || document.getElementById('personnalisation')
+      target?.scrollIntoView({ behavior: reduced ? 'auto' : 'smooth', block: 'start' })
     }
-    document.addEventListener('click', fallbackToJourney)
-    return () => document.removeEventListener('click', fallbackToJourney)
+    document.addEventListener('click', handleFunnelAnchors)
+    return () => document.removeEventListener('click', handleFunnelAnchors)
   }, [reduced])
 
   const openArticle = (nextArticle: Article) => {
@@ -1449,27 +1452,26 @@ export default function App() {
       localStorage.setItem('ecolyn-skin-concern', mapped)
       localStorage.setItem('ecolyn-skin-concerns', JSON.stringify([mapped]))
     }
-    track('form_start', { source: 'concern_path', concern_id: mapped })
+    track('form_cta_click', { source: 'concern_path', concern_id: mapped })
     setTimeout(() => document.getElementById('form-fields')?.scrollIntoView({ behavior: reduced ? 'auto' : 'smooth' }), 40)
   }
   const chooseConcerns = (ids: string[]) => {
-    setSelectedConcerns(ids)
-    localStorage.setItem('ecolyn-skin-concerns', JSON.stringify(ids))
-    if (ids[0]) localStorage.setItem('ecolyn-skin-concern', ids[0])
+    const next = ids.slice(0, 1)
+    setSelectedConcerns(next)
+    localStorage.setItem('ecolyn-skin-concerns', JSON.stringify(next))
+    if (next[0]) localStorage.setItem('ecolyn-skin-concern', next[0])
   }
   const chooseProfiles = (ids: SkinProfileId[]) => {
-    setSkinProfilesSelected(ids)
-    localStorage.setItem('ecolyn-skin-profiles', JSON.stringify(ids))
-    if (ids[0]) localStorage.setItem('ecolyn-skin-profile', ids[0])
+    const next = ids.slice(0, 1)
+    setSkinProfilesSelected(next)
+    localStorage.setItem('ecolyn-skin-profiles', JSON.stringify(next))
+    if (next[0]) localStorage.setItem('ecolyn-skin-profile', next[0])
   }
   const chooseContexts = (ids: LifestyleId[]) => {
-    setLifestyleContexts(ids)
-    localStorage.setItem('ecolyn-lifestyle-topics', JSON.stringify(ids))
-    if (ids[0]) localStorage.setItem('ecolyn-lifestyle-topic', ids[0])
-  }
-  const chooseComplexion = (id: ComplexionId) => {
-    setComplexionState(id)
-    localStorage.setItem('ecolyn-complexion', id)
+    const next = ids.slice(0, 1)
+    setLifestyleContexts(next)
+    localStorage.setItem('ecolyn-lifestyle-topics', JSON.stringify(next))
+    if (next[0]) localStorage.setItem('ecolyn-lifestyle-topic', next[0])
   }
   const selectHeroConcern = (id: string) => {
     chooseConcerns([id])
@@ -1477,14 +1479,18 @@ export default function App() {
     track('select_skin_concern', { selection_source: 'hero', concern_id: id })
   }
 
-  const currentConcernLabel = useMemo(() => selectedConcerns.length > 1
-    ? (lang === 'fr' ? `${selectedConcerns.length} préoccupations` : `${selectedConcerns.length} مشكلات`)
-    : local(concerns.find(item => item.id === selectedConcerns[0])?.short || concerns[0].short, lang), [selectedConcerns, lang])
+  const currentConcernLabel = useMemo(() => local(concerns.find(item => item.id === selectedConcerns[0])?.short || concerns[0].short, lang), [selectedConcerns, lang])
+
+  const modifyJourneyChoices = () => {
+    setJourneyComplete(false)
+    setJourneyEditToken(value => value + 1)
+    window.setTimeout(() => document.getElementById('personnalisation')?.scrollIntoView({ behavior: reduced ? 'auto' : 'smooth', block: 'start' }), 30)
+  }
 
   return (
     <>
       <motion.div className="page-progress" style={{ scaleX: progress }} />
-      <Header lang={lang} menuOpen={menuOpen} setMenuOpen={setMenuOpen} />
+      <Header lang={lang} menuOpen={menuOpen} setMenuOpen={setMenuOpen} journeyComplete={journeyComplete} />
       <main>
         <DiscoveryExperience
           lang={lang}
@@ -1495,19 +1501,19 @@ export default function App() {
           setProfiles={chooseProfiles}
           setConcerns={chooseConcerns}
           setContexts={chooseContexts}
-          setComplexion={chooseComplexion}
           onComplete={() => setJourneyComplete(true)}
+          editToken={journeyEditToken}
         />
         {journeyComplete && <>
-          <SimpleLeadForm lang={lang} concerns={selectedConcerns} setConcerns={chooseConcerns} profiles={skinProfilesSelected} setProfiles={chooseProfiles} contexts={lifestyleContexts} setContexts={chooseContexts} />
+          <SimpleLeadForm lang={lang} concerns={selectedConcerns} profiles={skinProfilesSelected} contexts={lifestyleContexts} onModifyChoices={modifyJourneyChoices} />
           <DiscoveryAfterForm lang={lang} openArticle={openArticle} />
         </>}
         <Proofs lang={lang} />
         <Events lang={lang} />
         <FAQ lang={lang} />
       </main>
-      <Footer lang={lang} openLegal={setLegal} />
-      <a className="sticky-advice" href={journeyComplete ? '#form-fields' : '#personnalisation'} onClick={() => track(journeyComplete ? 'form_start' : 'journey_start', { source: 'sticky' })}>
+      <Footer lang={lang} openLegal={setLegal} journeyComplete={journeyComplete} />
+      <a className="sticky-advice" href={journeyComplete ? '#form-fields' : '#personnalisation'} data-form-cta="sticky" data-journey-source="sticky">
         <span>{journeyComplete ? <MessageCircle /> : <Sparkles />}</span><b>{journeyComplete ? currentConcernLabel : 'ECOLYN'}</b><em>{journeyComplete ? (lang === 'fr' ? 'Contacter Hanane' : 'التواصل مع حنان') : (lang === 'fr' ? 'Faire mes 3 choix' : 'ابدئي اختياراتك الثلاثة')}</em><ArrowUpRight />
       </a>
       <a

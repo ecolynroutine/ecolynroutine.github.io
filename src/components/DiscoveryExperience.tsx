@@ -15,7 +15,7 @@ import {
 } from '../data/discovery'
 import { recommendAdvice } from '../data/advice/engine'
 import type { AdviceItem, ComplexionId } from '../data/advice'
-import { track } from '../lib/tracking'
+import { track, trackOncePerSession } from '../lib/tracking'
 
 const whatsappGroupHref = 'https://chat.whatsapp.com/IbrwixzaySqLYawg3D7WiP?s=cl&p=a&ilr=1'
 
@@ -57,10 +57,10 @@ function DiscoveryHero({ lang, start }: { lang: Language; start: () => void }) {
   )
 }
 
-function ChoiceButton<T extends string>({ id, label, hint, active, choose }: {
-  id: T; label: string; hint: string; active: boolean; choose: (id: T) => void
+function ChoiceButton<T extends string>({ id, label, hint, active, choose, disabled }: {
+  id: T; label: string; hint: string; active: boolean; choose: (id: T) => void; disabled?: boolean
 }) {
-  return <button type="button" className={`journey-choice${active ? ' is-active' : ''}`} onClick={() => choose(id)} aria-pressed={active}>
+  return <button type="button" className={`journey-choice${active ? ' is-active' : ''}`} onClick={() => choose(id)} aria-pressed={active} disabled={disabled}>
     <i>{active ? <Check /> : <span />}</i><b>{label}</b><small>{hint}</small>
   </button>
 }
@@ -70,59 +70,60 @@ interface QuestionnaireProps {
   profiles: SkinProfileId[]
   concerns: string[]
   contexts: LifestyleId[]
-  complexion: ComplexionId
   setProfiles: (ids: SkinProfileId[]) => void
   setConcerns: (ids: string[]) => void
   setContexts: (ids: LifestyleId[]) => void
-  setComplexion: (id: ComplexionId) => void
   onFinished: () => void
+  editToken: number
 }
 
-function Questionnaire({ lang, profiles, concerns, contexts, complexion, setProfiles, setConcerns, setContexts, setComplexion, onFinished }: QuestionnaireProps) {
+function Questionnaire({ lang, profiles, concerns, contexts, setProfiles, setConcerns, setContexts, onFinished, editToken }: QuestionnaireProps) {
   const [step, setStep] = useState(1)
+  const [transitioning, setTransitioning] = useState(false)
+  const transitionTimer = useRef<number | null>(null)
   const reduced = useReducedMotion()
-  const advance = (next: number) => window.setTimeout(() => setStep(next), reduced ? 0 : 260)
   const progress = `${step * 33.333}%`
   const steps = [
-    { eyebrow: { fr: 'Type de peau', ar: 'نوع البشرة' }, title: { fr: 'Qu’est-ce qui vous ressemble le plus ?', ar: 'ما الوصف الأقرب إلى بشرتك؟' } },
-    { eyebrow: { fr: 'Préoccupation principale', ar: 'المشكلة الأساسية' }, title: { fr: 'Qu’aimeriez-vous comprendre d’abord ?', ar: 'ما الذي تريدين فهمه أولاً؟' } },
-    { eyebrow: { fr: 'Contexte quotidien', ar: 'السياق اليومي' }, title: { fr: 'Quel élément ressemble le plus à votre quotidien ?', ar: 'ما العنصر الأقرب إلى حياتك اليومية؟' } },
+    { eyebrow: { fr: 'Type de peau', ar: 'نوع البشرة' }, title: { fr: 'Quel profil ressemble le plus à votre peau ?', ar: 'ما الوصف الأقرب إلى بشرتك؟' } },
+    { eyebrow: { fr: 'Préoccupation principale', ar: 'المشكلة الأساسية' }, title: { fr: 'Quel est le problème qui vous dérange le plus actuellement ?', ar: 'ما المشكلة التي تزعجك أكثر حالياً؟' } },
+    { eyebrow: { fr: 'Contexte quotidien', ar: 'السياق اليومي' }, title: { fr: 'Quel élément influence le plus votre quotidien actuellement ?', ar: 'ما العامل الأكثر ارتباطاً بحياتك اليومية حالياً؟' } },
   ]
+  useEffect(() => () => {
+    if (transitionTimer.current) window.clearTimeout(transitionTimer.current)
+  }, [])
+  useEffect(() => {
+    if (!editToken) return
+    if (transitionTimer.current) window.clearTimeout(transitionTimer.current)
+    setTransitioning(false)
+    setStep(1)
+  }, [editToken])
+  const completeSelection = (currentStep: number) => {
+    setTransitioning(true)
+    if (transitionTimer.current) window.clearTimeout(transitionTimer.current)
+    transitionTimer.current = window.setTimeout(() => {
+      setTransitioning(false)
+      if (currentStep < 3) setStep(currentStep + 1)
+      else onFinished()
+    }, reduced ? 0 : 260)
+  }
   const chooseProfile = (id: SkinProfileId) => {
-    const removing = profiles.includes(id)
-    const next = id === 'unknown'
-      ? (removing ? [] : ['unknown'] as SkinProfileId[])
-      : (removing ? profiles.filter(value => value !== id) : [...profiles.filter(value => value !== 'unknown'), id])
-    setProfiles(next)
-    track(removing ? 'journey_option_remove' : 'journey_option_select', { option_group: 'skin_profile', option_id: id, step: 1 })
-    track('select_skin_type', { skin_type_id: id, selection_action: removing ? 'remove' : 'select', step: 1 })
+    if (transitioning) return
+    trackOncePerSession('journey_start', { source: 'first_choice' })
+    setProfiles([id])
+    track('select_skin_type', { skin_type_id: id, step: 1 })
+    completeSelection(1)
   }
   const chooseConcern = (id: string) => {
-    const removing = concerns.includes(id)
-    const next = removing ? concerns.filter(value => value !== id) : [...concerns, id]
-    setConcerns(next)
-    track(removing ? 'journey_option_remove' : 'journey_option_select', { option_group: 'skin_concern', option_id: id, step: 2 })
-    track('select_skin_concern', { concern_id: id, selection_action: removing ? 'remove' : 'select', step: 2 })
+    if (transitioning) return
+    setConcerns([id])
+    track('select_skin_concern', { concern_id: id, step: 2 })
+    completeSelection(2)
   }
   const chooseLifestyle = (id: LifestyleId) => {
-    const removing = contexts.includes(id)
-    const next = id === 'none'
-      ? (removing ? [] : ['none'] as LifestyleId[])
-      : (removing ? contexts.filter(value => value !== id) : [...contexts.filter(value => value !== 'none'), id])
-    setContexts(next)
-    track(removing ? 'journey_option_remove' : 'journey_option_select', { option_group: 'lifestyle_context', option_id: id, step: 3 })
-    track('select_lifestyle_context', { context_id: id, selection_action: removing ? 'remove' : 'select', step: 3 })
-  }
-  const chooseComplexion = (id: ComplexionId) => {
-    setComplexion(id)
-    track('select_complexion', { complexion_id: id })
-  }
-  const selectedCount = step === 1 ? profiles.length : step === 2 ? concerns.length : contexts.length
-  const continueJourney = () => {
-    if (!selectedCount) return
-    track('journey_step_complete', { step, selection_count: selectedCount })
-    if (step < 3) advance(step + 1)
-    else window.setTimeout(onFinished, reduced ? 0 : 220)
+    if (transitioning) return
+    setContexts([id])
+    track('select_lifestyle_context', { context_id: id, step: 3 })
+    completeSelection(3)
   }
 
   return <section className="journey-questionnaire" id="personnalisation">
@@ -131,26 +132,14 @@ function Questionnaire({ lang, profiles, concerns, contexts, complexion, setProf
       <AnimatePresence mode="wait">
         <motion.div className="journey-step" key={step} initial={{ opacity: 0, x: lang === 'ar' ? -18 : 18 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: lang === 'ar' ? 12 : -12 }} transition={{ duration: reduced ? 0 : .28 }}>
           <div className="journey-step__head"><span>0{step}</span><div><p>{local(steps[step - 1].eyebrow, lang)}</p><h2>{local(steps[step - 1].title, lang)}</h2></div></div>
-          <p className="journey-multiselect-help"><Check /> {lang === 'fr' ? 'Vous pouvez sélectionner plusieurs réponses.' : 'يمكنك اختيار أكثر من إجابة.'}</p>
           <div className={`journey-choices journey-choices--${step}`}>
-            {step === 1 && skinProfiles.map(item => <ChoiceButton key={item.id} id={item.id} label={local(item.label, lang)} hint={local(item.hint, lang)} active={profiles.includes(item.id)} choose={chooseProfile} />)}
-            {step === 2 && concernOptions.map(item => <ChoiceButton key={item.id} id={item.id} label={local(item.label, lang)} hint={local(item.hint, lang)} active={concerns.includes(item.id)} choose={chooseConcern} />)}
-            {step === 3 && lifestyleTopics.map(item => <ChoiceButton key={item.id} id={item.id} label={local(item.label, lang)} hint={local(item.hint, lang)} active={contexts.includes(item.id)} choose={chooseLifestyle} />)}
+            {step === 1 && skinProfiles.map(item => <ChoiceButton key={item.id} id={item.id} label={local(item.label, lang)} hint={local(item.hint, lang)} active={profiles[0] === item.id} choose={chooseProfile} disabled={transitioning} />)}
+            {step === 2 && concernOptions.map(item => <ChoiceButton key={item.id} id={item.id} label={local(item.label, lang)} hint={local(item.hint, lang)} active={concerns[0] === item.id} choose={chooseConcern} disabled={transitioning} />)}
+            {step === 3 && lifestyleTopics.map(item => <ChoiceButton key={item.id} id={item.id} label={local(item.label, lang)} hint={local(item.hint, lang)} active={contexts[0] === item.id} choose={chooseLifestyle} disabled={transitioning} />)}
           </div>
         </motion.div>
       </AnimatePresence>
-      {profiles.length > 0 && step === 1 && <div className="complexion-optional">
-        <div><b>{lang === 'fr' ? 'Votre peau est-elle mate à foncée ?' : 'هل بشرتك متوسطة إلى داكنة؟'}</b><small>{lang === 'fr' ? 'Facultatif — ce n’est pas un type de peau.' : 'اختياري — هذا ليس نوع البشرة.'}</small></div>
-        <div className="complexion-choices">{([
-          ['medium-dark', lang === 'fr' ? 'Oui' : 'نعم'],
-          ['not-medium-dark', lang === 'fr' ? 'Non' : 'لا'],
-          ['unspecified', lang === 'fr' ? 'Ne pas préciser' : 'أفضل عدم التحديد'],
-        ] as [ComplexionId, string][]).map(([id, label]) => <button type="button" className={complexion === id ? 'is-active' : ''} onClick={() => chooseComplexion(id)} key={id}>{label}</button>)}</div>
-      </div>}
-      <div className="journey-step-actions">
-        {step > 1 && <button className="journey-back" type="button" onClick={() => setStep(step - 1)}>{lang === 'fr' ? '← Modifier l’étape précédente' : 'تعديل الخطوة السابقة →'}</button>}
-        <button type="button" className="complexion-next" disabled={!selectedCount} onClick={continueJourney}>{step === 3 ? (lang === 'fr' ? 'Voir mes conseils' : 'عرض نصائحي') : (lang === 'fr' ? 'Continuer' : 'متابعة')} <ChevronDown /></button>
-      </div>
+      {step > 1 && <div className="journey-step-actions"><button className="journey-back" type="button" disabled={transitioning} onClick={() => setStep(step - 1)}>{lang === 'fr' ? '← Modifier l’étape précédente' : 'تعديل الخطوة السابقة →'}</button></div>}
     </div>
   </section>
 }
@@ -167,7 +156,7 @@ function EvidenceBadge({ item, lang }: { item: AdviceItem; lang: Language }) {
 function AdviceResult({ lang, profiles, concerns, contexts, complexion }: {
   lang: Language; profiles: SkinProfileId[]; concerns: string[]; contexts: LifestyleId[]; complexion: ComplexionId
 }) {
-  const [extraShown, setExtraShown] = useState(3)
+  const [extraShown, setExtraShown] = useState(0)
   const recommendations = useMemo(() => recommendAdvice({ profiles, concerns, contexts, complexion }), [profiles, concerns, contexts, complexion])
   const viewed = useRef('')
   useEffect(() => {
@@ -193,7 +182,7 @@ function AdviceResult({ lang, profiles, concerns, contexts, complexion }: {
     return <article className="personal-advice-card">
       <div className="personal-advice-card__top">{rank && <span>0{rank}</span>}<EvidenceBadge item={item} lang={lang} /></div>
       <h4>{local(item.title, lang)}</h4>
-      <p className="personal-advice-why">{local(item.explanation, lang)}</p>
+      <p className="personal-advice-why"><b>{lang === 'fr' ? 'Ce que cela signifie' : 'ماذا يعني ذلك؟'}</b>{local(item.explanation, lang)}</p>
       <div className="personal-advice-matches"><small>{lang === 'fr' ? 'Adapté à :' : 'مناسب لـ:'}</small>{matchLabels(result).map(label => <b key={label}>{label}</b>)}</div>
       <div className="personal-advice-actions"><p><Check /><span><b>{lang === 'fr' ? 'À essayer' : 'ما يمكنك تجربته'}</b>{local(item.doItem, lang)}</span></p><p><X /><span><b>{lang === 'fr' ? 'À éviter' : 'ما يُفضّل تجنبه'}</b>{local(item.avoidItem, lang)}</span></p></div>
       {item.safety && <p className="advice-safety"><ShieldCheck /> {local(item.safety, lang)}</p>}
@@ -210,9 +199,9 @@ function AdviceResult({ lang, profiles, concerns, contexts, complexion }: {
       <div className="advice-section-heading"><p>{lang === 'fr' ? 'Votre point de départ' : 'نقطة البداية'}</p><h3>{lang === 'fr' ? 'Commencez par ces 3 choses' : 'ابدئي بهذه الخطوات الثلاث'}</h3></div>
       <div className="priority-advice-grid">{priorities.map((result, index) => <AdviceCard key={result.item.id} result={result} rank={index + 1} />)}</div>
       {extras.length > 0 && <><div className="advice-section-heading advice-section-heading--more"><p>{lang === 'fr' ? 'À garder en tête' : 'معلومات إضافية مهمة'}</p><h3>{lang === 'fr' ? 'D’autres choses surprenantes qui peuvent vous concerner' : 'أشياء أخرى قد تهمك'}</h3></div><div className="extra-advice-grid">{extras.map(result => <AdviceCard key={result.item.id} result={result} />)}</div></>}
-      {3 + extraShown < recommendations.length && <button type="button" className="after-more" onClick={() => setExtraShown(value => value + 3)}>{lang === 'fr' ? 'Voir encore 3 conseils' : 'عرض 3 نصائح أخرى'} <ChevronDown /></button>}
+      {3 + extraShown < recommendations.length && <button type="button" className="after-more" onClick={() => setExtraShown(value => value + 3)}>{extraShown === 0 ? (lang === 'fr' ? 'Voir d’autres conseils' : 'عرض نصائح أخرى') : (lang === 'fr' ? 'Voir encore 3 conseils' : 'عرض 3 نصائح أخرى')} <ChevronDown /></button>}
       <div className="advice-disclaimer"><ShieldCheck /><p><b>{lang === 'fr' ? 'Information générale, pas un diagnostic.' : 'معلومات عامة وليست تشخيصاً.'}</b><span>{lang === 'fr' ? 'Une douleur importante, des lésions profondes, une réaction étendue ou une situation persistante doivent être présentées à un professionnel de santé.' : 'الألم الشديد أو الحبوب العميقة أو التفاعل الواسع أو الحالة المستمرة تستدعي استشارة مختص صحي.'}</span></p></div>
-      <a className="advice-to-form" href="#form-fields" onClick={() => track('form_start', { source: 'personalized_result' })}><MessageCircle /><span><b>{lang === 'fr' ? 'Vous voulez des conseils plus personnalisés ?' : 'هل تريدين نصائح أكثر تخصيصاً؟'}</b><small>{lang === 'fr' ? 'Expliquez votre situation à Hanane dans le formulaire très court juste en dessous.' : 'اشرحي حالتك لحنان في النموذج القصير أدناه.'}</small></span><ArrowDown /></a>
+      <a className="advice-to-form" href="#form-fields" data-form-cta="personalized_result"><MessageCircle /><span><b>{lang === 'fr' ? 'Vous voulez des conseils plus personnalisés ?' : 'هل تريدين نصائح أكثر تخصيصاً؟'}</b><small>{lang === 'fr' ? 'Expliquez votre situation à Hanane dans le formulaire très court juste en dessous.' : 'اشرحي حالتك لحنان في النموذج القصير أدناه.'}</small></span><ArrowDown /></a>
     </div>
   </motion.section>
 }
@@ -226,14 +215,20 @@ export interface DiscoveryExperienceProps {
   setProfiles: (ids: SkinProfileId[]) => void
   setConcerns: (ids: string[]) => void
   setContexts: (ids: LifestyleId[]) => void
-  setComplexion: (id: ComplexionId) => void
   onComplete: () => void
+  editToken: number
 }
 
 export default function DiscoveryExperience(props: DiscoveryExperienceProps) {
   const [finished, setFinished] = useState(false)
   const reduced = useReducedMotion()
-  const start = () => document.getElementById('personnalisation')?.scrollIntoView({ behavior: reduced ? 'auto' : 'smooth' })
+  useEffect(() => {
+    if (props.editToken) setFinished(false)
+  }, [props.editToken])
+  const start = () => {
+    trackOncePerSession('journey_start', { source: 'journey_hero' })
+    document.getElementById('personnalisation')?.scrollIntoView({ behavior: reduced ? 'auto' : 'smooth' })
+  }
   const finish = () => {
     setFinished(true)
     props.onComplete()
@@ -241,7 +236,7 @@ export default function DiscoveryExperience(props: DiscoveryExperienceProps) {
   }
   return <>
     <DiscoveryHero lang={props.lang} start={start} />
-    <Questionnaire lang={props.lang} profiles={props.profiles} concerns={props.concerns} contexts={props.contexts} complexion={props.complexion} setProfiles={props.setProfiles} setConcerns={props.setConcerns} setContexts={props.setContexts} setComplexion={props.setComplexion} onFinished={finish} />
+    <Questionnaire lang={props.lang} profiles={props.profiles} concerns={props.concerns} contexts={props.contexts} setProfiles={props.setProfiles} setConcerns={props.setConcerns} setContexts={props.setContexts} onFinished={finish} editToken={props.editToken} />
     {finished && <AdviceResult lang={props.lang} profiles={props.profiles} concerns={props.concerns} contexts={props.contexts} complexion={props.complexion} />}
   </>
 }
@@ -313,7 +308,7 @@ function StorySection({ lang, goToForm }: { lang: Language; goToForm: () => void
 
 export function DiscoveryAfterForm({ lang, openArticle }: { lang: Language; openArticle: (article: Article) => void }) {
   const reduced = useReducedMotion()
-  const goToForm = () => { track('form_start', { source: 'story_or_expert' }); document.getElementById('form-fields')?.scrollIntoView({ behavior: reduced ? 'auto' : 'smooth' }) }
+  const goToForm = () => { track('form_cta_click', { source: 'story_or_expert' }); document.getElementById('form-fields')?.scrollIntoView({ behavior: reduced ? 'auto' : 'smooth', block: 'start' }) }
   return <>
     <ComplementaryArticles lang={lang} openArticle={openArticle} />
     <StorySection lang={lang} goToForm={goToForm} />

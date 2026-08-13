@@ -41,20 +41,21 @@ const metaMap: Record<string, string> = {
 }
 
 const metaCustomMap: Record<string, string> = {
+  journey_start: 'JourneyStart',
   select_skin_concern: 'SkinConcernSelected',
   select_skin_type: 'SkinTypeSelected',
-  select_complexion: 'ComplexionSelected',
   select_lifestyle_context: 'LifestyleContextSelected',
   personalized_advice_view: 'PersonalizedAdviceView',
+  form_cta_click: 'FormCtaClick',
+  form_view: 'FormView',
+  form_start: 'FormStart',
+  form_submit: 'FormSubmit',
   advice_expand: 'AdviceExpand',
   source_open: 'SourceOpen',
   story_open: 'StoryOpen',
   story_audio_play: 'StoryAudioPlay',
   article_complete: 'ArticleComplete',
   join_whatsapp_group: 'JoinWhatsappGroup',
-  journey_option_select: 'JourneyOptionSelect',
-  journey_option_remove: 'JourneyOptionRemove',
-  journey_step_complete: 'JourneyStepComplete',
 }
 
 const tiktokMap: Record<string, string> = {
@@ -162,6 +163,10 @@ function isDebugMode() {
   return new URLSearchParams(window.location.search).get('tracking_debug') === '1'
 }
 
+function isLocalPreview() {
+  return window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+}
+
 function attachScript(src: string, platform: 'meta' | 'tiktok' | 'ga4') {
   diagnostics[platform].script = 'loading'
   notifyDiagnostics()
@@ -237,9 +242,11 @@ function loadTikTok(id: string) {
 async function ensureTracking() {
   if (!settingsPromise) {
     settingsPromise = fetchSettings().then(settings => {
-      if (settings.ga4Enabled) loadGa4(settings.ga4MeasurementId)
-      if (settings.metaEnabled) loadMeta(settings.metaPixelId)
-      if (settings.tiktokEnabled) loadTikTok(settings.tiktokPixelId)
+      if (!isLocalPreview()) {
+        if (settings.ga4Enabled) loadGa4(settings.ga4MeasurementId)
+        if (settings.metaEnabled) loadMeta(settings.metaPixelId)
+        if (settings.tiktokEnabled) loadTikTok(settings.tiktokPixelId)
+      }
       return settings
     })
   }
@@ -286,6 +293,7 @@ async function sendMetaCapi(eventName: string, eventId: string, reference?: stri
 }
 
 function sendToPlatforms(event: string, payload: EventPayload, settings: TrackingSettings, eventId: string, options: TrackOptions) {
+  if (isLocalPreview()) return
   const pageContext = {
     page_title: document.title,
     page_location: window.location.href,
@@ -343,8 +351,18 @@ export function track(event: string, payload: EventPayload = {}, options: TrackO
   notifyDiagnostics()
   window.dataLayer = window.dataLayer || []
   window.dataLayer.push(normalized)
+  if (isLocalPreview()) console.info(`[ECOLYN tracking] ${JSON.stringify(normalized)}`)
   void ensureTracking().then(settings => sendToPlatforms(event, safePayload, settings, eventId, options))
   return eventId
+}
+
+export function trackOncePerSession(event: string, payload: EventPayload = {}, key = event) {
+  const storageKey = `ecolyn:tracked:${key}`
+  try {
+    if (sessionStorage.getItem(storageKey)) return ''
+    sessionStorage.setItem(storageKey, '1')
+  } catch { /* Le tracking reste fonctionnel si le stockage navigateur est bloqué. */ }
+  return track(event, payload)
 }
 
 export function getTrackingDiagnostics(): TrackingDiagnostics {
