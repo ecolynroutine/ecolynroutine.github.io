@@ -65,6 +65,7 @@ function relevant(result: AdviceRecommendation) {
 export function recommendAdvice(selection: AdviceSelections, limit = 8) {
   const safeLimit = Math.max(5, Math.min(8, limit))
   const ranked = adviceItems
+    .filter(item => item.id !== 'visible-light-iron-oxide')
     .filter(item => matchesComplexion(item, selection.complexion))
     .filter(item => !(selection.contexts.includes('pregnancy') && item.id === 'retinoid-start-slow'))
     .map(item => assess(item, selection))

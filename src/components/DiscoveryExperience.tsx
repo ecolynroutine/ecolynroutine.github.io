@@ -180,7 +180,7 @@ function AdviceResult({ lang, profiles, concerns, contexts, complexion }: {
   const AdviceCard = ({ result, rank }: { result: typeof recommendations[number]; rank?: number }) => {
     const item = result.item
     return <article className="personal-advice-card">
-      <div className="personal-advice-card__top">{rank && <span>0{rank}</span>}<EvidenceBadge item={item} lang={lang} /></div>
+      <div className="personal-advice-card__top">{rank && <span className="personal-advice-rank">0{rank}</span>}<EvidenceBadge item={item} lang={lang} /></div>
       <h4>{local(item.title, lang)}</h4>
       <p className="personal-advice-why"><b>{lang === 'fr' ? 'Ce que cela signifie' : 'ماذا يعني ذلك؟'}</b>{local(item.explanation, lang)}</p>
       <div className="personal-advice-matches"><small>{lang === 'fr' ? 'Adapté à :' : 'مناسب لـ:'}</small>{matchLabels(result).map(label => <b key={label}>{label}</b>)}</div>
