@@ -16,8 +16,8 @@
   "realCase": {
     "isRealCase": true,
     "consentConfirmed": true,
-    "beforeRealImage": "/assets/real-case/site-avant.jpeg",
-    "afterRealImage": "/assets/real-case/site-apres.jpeg",
+    "beforeRealImage": "https://cdn.gamestrats.com/ecln/Avant%20Apres/Site%20Avant.jpeg",
+    "afterRealImage": "https://cdn.gamestrats.com/ecln/Avant%20Apres/Site%20Apres.jpeg",
     "story": {
       "whatBothered": {
         "fr": "Des boutons visibles sur le visage.",

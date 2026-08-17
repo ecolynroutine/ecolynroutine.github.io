@@ -132,6 +132,13 @@ function Questionnaire({ lang, profiles, concerns, contexts, setProfiles, setCon
       <AnimatePresence mode="wait">
         <motion.div className="journey-step" key={step} initial={{ opacity: 0, x: lang === 'ar' ? -18 : 18 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: lang === 'ar' ? 12 : -12 }} transition={{ duration: reduced ? 0 : .28 }}>
           <div className="journey-step__head"><span>0{step}</span><div><p>{local(steps[step - 1].eyebrow, lang)}</p><h2>{local(steps[step - 1].title, lang)}</h2></div></div>
+          <div className="journey-choice-instruction">
+            <span>{lang === 'fr' ? '○ Choix requis' : '○ اختيار مطلوب'}</span>
+            <div>
+              <b>{lang === 'fr' ? 'Choisissez une seule réponse pour continuer ↓' : 'اختاري إجابة واحدة للمتابعة ↓'}</b>
+              <small>{lang === 'fr' ? 'Sélectionnez l’option qui correspond le mieux à votre situation.' : 'اضغطي على الخيار الأقرب إلى حالتك.'}</small>
+            </div>
+          </div>
           <div className={`journey-choices journey-choices--${step}`}>
             {step === 1 && skinProfiles.map(item => <ChoiceButton key={item.id} id={item.id} label={local(item.label, lang)} hint={local(item.hint, lang)} active={profiles[0] === item.id} choose={chooseProfile} disabled={transitioning} />)}
             {step === 2 && concernOptions.map(item => <ChoiceButton key={item.id} id={item.id} label={local(item.label, lang)} hint={local(item.hint, lang)} active={concerns[0] === item.id} choose={chooseConcern} disabled={transitioning} />)}
@@ -222,6 +229,7 @@ export interface DiscoveryExperienceProps {
 export default function DiscoveryExperience(props: DiscoveryExperienceProps) {
   const [finished, setFinished] = useState(false)
   const reduced = useReducedMotion()
+  const hasCompleteChoices = Boolean(props.profiles[0] && props.concerns[0] && props.contexts[0])
   useEffect(() => {
     if (props.editToken) setFinished(false)
   }, [props.editToken])
@@ -237,7 +245,7 @@ export default function DiscoveryExperience(props: DiscoveryExperienceProps) {
   return <>
     <DiscoveryHero lang={props.lang} start={start} />
     <Questionnaire lang={props.lang} profiles={props.profiles} concerns={props.concerns} contexts={props.contexts} setProfiles={props.setProfiles} setConcerns={props.setConcerns} setContexts={props.setContexts} onFinished={finish} editToken={props.editToken} />
-    {finished && <AdviceResult lang={props.lang} profiles={props.profiles} concerns={props.concerns} contexts={props.contexts} complexion={props.complexion} />}
+    {finished && hasCompleteChoices && <AdviceResult lang={props.lang} profiles={props.profiles} concerns={props.concerns} contexts={props.contexts} complexion={props.complexion} />}
   </>
 }
 

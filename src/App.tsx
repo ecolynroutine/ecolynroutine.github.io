@@ -259,11 +259,9 @@ function Header({ lang, menuOpen, setMenuOpen, journeyComplete }: { lang: Langua
   const links = [
     ['#accueil', t('nav.home')],
     ['#personnalisation', lang === 'fr' ? 'Ma peau' : 'بشرتي'],
-    ...(journeyComplete ? [
-      ['#conseils', t('nav.advice')],
-      ['#histoires', t('nav.stories')],
-      ['#hanane', lang === 'fr' ? 'Hanane' : 'حنان'],
-    ] : []),
+    [journeyComplete ? '#conseils' : '#personnalisation', t('nav.advice')],
+    ['#histoires', t('nav.stories')],
+    ['#hanane', lang === 'fr' ? 'Hanane' : 'حنان'],
   ]
   const changeLanguage = () => {
     i18n.changeLanguage(lang === 'fr' ? 'ar' : 'fr')
@@ -277,7 +275,7 @@ function Header({ lang, menuOpen, setMenuOpen, journeyComplete }: { lang: Langua
           <span>{lang === 'fr' ? 'Comprendre sa peau' : 'فهم البشرة'}</span>
         </a>
         <nav className="desktop-nav" aria-label={lang === 'fr' ? 'Navigation principale' : 'التنقل الرئيسي'}>
-          {links.map(([href, label]) => <a key={href} href={href}>{label}</a>)}
+          {links.map(([href, label]) => <a key={`${href}-${label}`} href={href}>{label}</a>)}
           <a className="pack-link" href={packHref} onClick={() => { track('pack_cta_click', { cta_location: 'desktop_nav' }); track('initiate_checkout', { cta_location: 'desktop_nav' }) }}>{t('nav.pack')} <ArrowUpRight size={14} /></a>
         </nav>
         <div className="nav-actions">
@@ -296,8 +294,8 @@ function Header({ lang, menuOpen, setMenuOpen, journeyComplete }: { lang: Langua
               <button onClick={() => setMenuOpen(false)} aria-label="Fermer le menu"><X /></button>
             </div>
             <nav>
-              {links.map(([href, label], index) => <a key={href} href={href} onClick={() => setMenuOpen(false)}><span>0{index + 1}</span>{label}</a>)}
-              <a href="#personnalisation" onClick={() => setMenuOpen(false)}><span>{String(links.length + 1).padStart(2, '0')}</span>{t('nav.ask')}</a>
+              {links.map(([href, label], index) => <a key={`${href}-${label}`} href={href} onClick={() => setMenuOpen(false)}><span>0{index + 1}</span>{label}</a>)}
+              <a href="#form-fields" data-form-cta="mobile_menu" onClick={() => setMenuOpen(false)}><span>{String(links.length + 1).padStart(2, '0')}</span>{t('nav.ask')}</a>
               <a href={packHref} onClick={() => { track('pack_cta_click', { cta_location: 'mobile_menu' }); track('initiate_checkout', { cta_location: 'mobile_menu' }) }}><span>{String(links.length + 2).padStart(2, '0')}</span>{t('nav.pack')} <ArrowUpRight /></a>
             </nav>
             <button className="mobile-language" onClick={changeLanguage}>{lang === 'fr' ? 'النسخة العربية' : 'Version française'}</button>
@@ -1191,6 +1189,7 @@ function SimpleLeadForm({ lang, concerns: selectedConcerns, profiles, contexts, 
     selectedConcerns[0] ? local(concernOptions.find(item => item.id === selectedConcerns[0])?.label || { fr: selectedConcerns[0], ar: selectedConcerns[0] }, lang) : '',
     contexts[0] ? local(lifestyleTopics.find(item => item.id === contexts[0])?.label || { fr: contexts[0], ar: contexts[0] }, lang) : '',
   ].filter(Boolean)
+  const hasCompleteChoices = Boolean(profiles[0] && selectedConcerns[0] && contexts[0])
 
   useEffect(() => {
     const section = document.getElementById('formulaire')
@@ -1302,10 +1301,12 @@ function SimpleLeadForm({ lang, concerns: selectedConcerns, profiles, contexts, 
         <div className="form-aside">
           <p className="eyebrow">{t('form.eyebrow')}</p>
           <h2>{lang === 'fr' ? 'Vous voulez des conseils plus personnalisés ?' : 'هل تريدين نصائح أكثر تخصيصاً؟'}</h2>
-          <p>{lang === 'fr' ? 'Expliquez brièvement votre situation à Hanane. Vos trois choix sont déjà repris pour ne pas vous demander deux fois la même chose.' : 'اشرحي حالتك لحنان باختصار. اختياراتك الثلاثة موجودة مسبقاً حتى لا نطلب منك المعلومات نفسها مرتين.'}</p>
+          <p>{hasCompleteChoices
+            ? (lang === 'fr' ? 'Expliquez brièvement votre situation à Hanane. Vos trois choix sont déjà repris pour ne pas vous demander deux fois la même chose.' : 'اشرحي حالتك لحنان باختصار. اختياراتك الثلاثة موجودة مسبقاً حتى لا نطلب منك المعلومات نفسها مرتين.')
+            : (lang === 'fr' ? 'Expliquez brièvement votre situation à Hanane. Vous pouvez envoyer votre demande même sans avoir terminé les trois choix.' : 'اشرحي حالتك لحنان باختصار. يمكنك إرسال طلبك حتى من دون إكمال الاختيارات الثلاثة.')}</p>
           <div className="short-form-benefits">
             <span><Check /> {lang === 'fr' ? 'Moins de 2 minutes' : 'أقل من دقيقتين'}</span>
-            <span><Sparkles /> {lang === 'fr' ? 'Vos choix déjà préremplis' : 'اختياراتك معبأة مسبقاً'}</span>
+            <span><Sparkles /> {hasCompleteChoices ? (lang === 'fr' ? 'Vos choix déjà préremplis' : 'اختياراتك معبأة مسبقاً') : (lang === 'fr' ? 'Formulaire très court' : 'نموذج قصير جداً')}</span>
             <span><LockKeyhole /> {lang === 'fr' ? 'Informations confidentielles' : 'معلوماتك خاصة'}</span>
             <span><MessageCircle /> {lang === 'fr' ? 'Contact sur WhatsApp' : 'تواصل عبر WhatsApp'}</span>
           </div>
@@ -1313,10 +1314,10 @@ function SimpleLeadForm({ lang, concerns: selectedConcerns, profiles, contexts, 
         </div>
         <form ref={formRef} onSubmit={onSubmit} onFocusCapture={begin} onInputCapture={begin} onChangeCapture={begin} className="lead-form lead-form--short">
           <div className="form-step-heading"><span>01</span><div><p>{lang === 'fr' ? 'Votre demande' : 'طلبك'}</p><h3>{lang === 'fr' ? 'Parlez-nous brièvement de votre peau' : 'حدّثينا باختصار عن بشرتك'}</h3></div></div>
-          <div className="form-choice-summary">
+          {hasCompleteChoices && <div className="form-choice-summary">
             <div><p>{lang === 'fr' ? 'Nous avons retenu :' : 'اختياراتك:'}</p><span>{summaryChoices.map(choice => <b key={choice}><Check /> {choice}</b>)}</span></div>
             <button type="button" onClick={onModifyChoices}>{lang === 'fr' ? 'Modifier mes choix' : 'تعديل اختياراتي'}</button>
-          </div>
+          </div>}
           <div className="form-grid short-form-grid" id="form-fields">
             <Field label={lang === 'fr' ? 'Prénom' : 'الاسم'}><input name="firstName" required autoComplete="given-name" /></Field>
             <Field label={lang === 'fr' ? 'Numéro WhatsApp' : 'رقم واتساب'}><input name="whatsapp" required type="tel" inputMode="tel" autoComplete="tel" placeholder="06 12 34 56 78" pattern="[+0-9 ()-]{9,20}" /></Field>
@@ -1446,7 +1447,7 @@ function Footer({ lang, openLegal, journeyComplete }: { lang: Language; openLega
     <footer>
       <div className="footer-main">
         <div className="footer-brand"><img src="./assets/brand/logo.webp" alt="ECOLYN" /><p>{lang === 'fr' ? 'Une plateforme marocaine pour mieux comprendre sa peau, simplifier sa routine et recevoir des conseils gratuits.' : 'منصة مغربية تساعدك على فهم بشرتك وتبسيط روتينك والاستفادة من نصائح مجانية.'}</p><span>{local(siteConfig.expert.role, lang)}</span></div>
-        <div className="footer-links"><h3>{lang === 'fr' ? 'Explorer' : 'تصفحي'}</h3><a href="#personnalisation">{lang === 'fr' ? 'Mes 3 choix' : 'اختياراتي الثلاثة'}</a><a href={journeyComplete ? '#conseils' : '#personnalisation'}>{lang === 'fr' ? 'Conseils' : 'النصائح'}</a><a href={journeyComplete ? '#articles' : '#personnalisation'}>{lang === 'fr' ? 'Articles' : 'المقالات'}</a><a href={journeyComplete ? '#histoires' : '#personnalisation'}>{lang === 'fr' ? 'Témoignages' : 'التجارب'}</a><a href={journeyComplete ? '#hanane' : '#personnalisation'}>{lang === 'fr' ? 'Hanane' : 'حنان'}</a><a href="#lives">{lang === 'fr' ? 'Prochain live' : 'البث القادم'}</a></div>
+        <div className="footer-links"><h3>{lang === 'fr' ? 'Explorer' : 'تصفحي'}</h3><a href="#personnalisation">{lang === 'fr' ? 'Mes 3 choix' : 'اختياراتي الثلاثة'}</a><a href={journeyComplete ? '#conseils' : '#personnalisation'}>{lang === 'fr' ? 'Conseils' : 'النصائح'}</a><a href="#articles">{lang === 'fr' ? 'Articles' : 'المقالات'}</a><a href="#histoires">{lang === 'fr' ? 'Témoignages' : 'التجارب'}</a><a href="#hanane">{lang === 'fr' ? 'Hanane' : 'حنان'}</a><a href="#lives">{lang === 'fr' ? 'Prochain live' : 'البث القادم'}</a></div>
         <div className="footer-links"><h3>{lang === 'fr' ? 'Agir' : 'تواصلي'}</h3><a href="#form-fields">{lang === 'fr' ? 'Demander des conseils' : 'طلب نصائح'}</a><a href={packHref} onClick={() => { track('pack_cta_click', { cta_location: 'footer' }); track('initiate_checkout', { cta_location: 'footer' }) }}>{lang === 'fr' ? 'Routine ECOLYN' : 'روتين ECOLYN'} <ArrowUpRight /></a><a href="mailto:ecolyn@proton.me">ecolyn@proton.me</a></div>
         <div className="footer-links"><h3>{lang === 'fr' ? 'Confiance' : 'الثقة'}</h3><button onClick={() => openLegal('privacy')}>{lang === 'fr' ? 'Politique de confidentialité' : 'سياسة الخصوصية'}</button><button onClick={() => openLegal('terms')}>{lang === 'fr' ? 'Conditions' : 'الشروط'}</button><button onClick={() => i18n.changeLanguage(lang === 'fr' ? 'ar' : 'fr')}>{lang === 'fr' ? 'العربية' : 'Français'} <Languages /></button></div>
       </div>
@@ -1522,40 +1523,9 @@ function LegalModal({ type, lang, close }: { type: 'privacy' | 'terms'; lang: La
 export default function App() {
   const lang = useLanguage()
   const [menuOpen, setMenuOpen] = useState(false)
-  const savedConcern = localStorage.getItem('ecolyn-skin-concern') || 'taches'
-  const initialConcern = concerns.some(item => item.id === savedConcern) ? savedConcern : 'taches'
-  const readSavedArray = <T extends string>(key: string, fallback: T[], allowed: readonly T[]) => {
-    const raw = localStorage.getItem(key)
-    if (!raw) return fallback
-    try {
-      const parsed = JSON.parse(raw)
-      if (Array.isArray(parsed)) {
-        const safe = parsed.filter((value): value is T => allowed.includes(value))
-        if (safe.length) return safe
-      }
-    } catch { /* rétrocompatibilité avec les anciennes valeurs simples */ }
-    return allowed.includes(raw as T) ? [raw as T] : fallback
-  }
-  const concernIds = concernOptions.map(item => item.id)
-  const profileIds: SkinProfileId[] = ['oily', 'dry', 'sensitive', 'combination', 'unknown']
-  const contextIds: LifestyleId[] = ['pregnancy', 'sleep', 'stress', 'motherhood', 'emotional', 'diet', 'sun', 'hair-products', 'none']
-  const [selectedConcerns, setSelectedConcerns] = useState<string[]>(() => {
-    const hasSavedChoice = Boolean(localStorage.getItem('ecolyn-skin-concerns') || localStorage.getItem('ecolyn-skin-concern'))
-    return readSavedArray('ecolyn-skin-concerns', hasSavedChoice ? [initialConcern] : [], concernIds).slice(0, 1)
-  })
-  const savedProfile = localStorage.getItem('ecolyn-skin-profile') as SkinProfileId | null
-  const initialProfile: SkinProfileId = ['oily', 'dry', 'sensitive', 'combination', 'unknown'].includes(savedProfile || '') ? savedProfile as SkinProfileId : 'unknown'
-  const [skinProfilesSelected, setSkinProfilesSelected] = useState<SkinProfileId[]>(() => {
-    const hasSavedChoice = Boolean(localStorage.getItem('ecolyn-skin-profiles') || localStorage.getItem('ecolyn-skin-profile'))
-    const saved = readSavedArray('ecolyn-skin-profiles', hasSavedChoice ? [initialProfile] : [], profileIds)
-    return (saved.includes('unknown') && saved.length > 1 ? saved.filter(value => value !== 'unknown') : saved).slice(0, 1)
-  })
-  const savedLifestyle = localStorage.getItem('ecolyn-lifestyle-topic') as LifestyleId | null
-  const initialLifestyle: LifestyleId | '' = ['pregnancy', 'sleep', 'stress', 'motherhood', 'emotional', 'diet', 'sun', 'hair-products', 'none'].includes(savedLifestyle || '') ? savedLifestyle as LifestyleId : ''
-  const [lifestyleContexts, setLifestyleContexts] = useState<LifestyleId[]>(() => {
-    const saved = readSavedArray('ecolyn-lifestyle-topics', initialLifestyle ? [initialLifestyle] : [], contextIds)
-    return (saved.includes('none') && saved.length > 1 ? saved.filter(value => value !== 'none') : saved).slice(0, 1)
-  })
+  const [selectedConcerns, setSelectedConcerns] = useState<string[]>([])
+  const [skinProfilesSelected, setSkinProfilesSelected] = useState<SkinProfileId[]>([])
+  const [lifestyleContexts, setLifestyleContexts] = useState<LifestyleId[]>([])
   const [journeyComplete, setJourneyComplete] = useState(false)
   const [journeyEditToken, setJourneyEditToken] = useState(0)
   const savedComplexion = localStorage.getItem('ecolyn-complexion') as ComplexionId | null
@@ -1656,10 +1626,8 @@ export default function App() {
           editToken={journeyEditToken}
         />
         <Proofs lang={lang} />
-        {journeyComplete && <>
-          <SimpleLeadForm lang={lang} concerns={selectedConcerns} profiles={skinProfilesSelected} contexts={lifestyleContexts} onModifyChoices={modifyJourneyChoices} />
-          <DiscoveryAfterForm lang={lang} openArticle={openArticle} />
-        </>}
+        <SimpleLeadForm lang={lang} concerns={selectedConcerns} profiles={skinProfilesSelected} contexts={lifestyleContexts} onModifyChoices={modifyJourneyChoices} />
+        <DiscoveryAfterForm lang={lang} openArticle={openArticle} />
         <Events lang={lang} />
         <FAQ lang={lang} />
       </main>

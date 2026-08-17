@@ -130,6 +130,7 @@ export async function buildProspectInsert(
   reference: string,
 ): Promise<ProspectInsert> {
   const form = new FormData(formElement)
+  const primaryConcern = scalar(form, 'primaryConcern')
   const photoEntry = form.get('photo')
   if (photoEntry instanceof File && photoEntry.size > 0 && !checked(form, 'photoConsent')) {
     throw new Error('PHOTO_CONSENT_REQUIRED')
@@ -146,7 +147,7 @@ export async function buildProspectInsert(
     whatsapp: scalar(form, 'whatsapp'),
     email: scalar(form, 'email') || null,
     city: scalar(form, 'city') || (language === 'ar' ? 'غير محددة' : 'Non renseignée'),
-    primary_concern: scalar(form, 'primaryConcern'),
+    primary_concern: primaryConcern || 'non-renseigne',
     skin_type: scalar(form, 'skinType') || null,
     goal: scalar(form, 'goal') || null,
     description: scalar(form, 'description') || null,
