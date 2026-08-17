@@ -13,6 +13,31 @@
     "currentPriceDh": 350,
     "formerPriceDh": 450
   },
+  "realCase": {
+    "isRealCase": true,
+    "consentConfirmed": true,
+    "beforeRealImage": "/assets/real-case/site-avant.jpeg",
+    "afterRealImage": "/assets/real-case/site-apres.jpeg",
+    "story": {
+      "whatBothered": {
+        "fr": "Des boutons visibles sur le visage.",
+        "ar": "ظهور حبوب واضحة في الوجه."
+      },
+      "previousRoutine": null,
+      "hananeAdvice": {
+        "fr": "Revoir certaines habitudes de sa routine après avoir pris le temps d’expliquer sa situation.",
+        "ar": "مراجعة بعض العادات في روتينها بعد أن أخذت الوقت لشرح حالتها."
+      },
+      "whatChanged": {
+        "fr": "Certaines habitudes de sa routine ont été ajustées selon les conseils reçus.",
+        "ar": "عدّلت بعض العادات في روتينها وفق النصائح التي تلقتها."
+      },
+      "observedEvolution": {
+        "fr": "Elle a personnellement observé l’évolution montrée dans cette comparaison.",
+        "ar": "لاحظت شخصياً التحسن الظاهر في هذه المقارنة."
+      }
+    }
+  },
   "assets": {
     "favicon": "https://cdn.gamestrats.com/ecln/favicon.ico",
     "expertHero": "https://cdn.gamestrats.com/ecln/Accueil/expert-ecolyn.webp",

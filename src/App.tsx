@@ -504,55 +504,180 @@ function Cases({ lang, describe }: { lang: Language; describe: (id: string) => v
   )
 }
 
+function BeforeAfterSlider({ lang, position, beforeSrc, afterSrc, beforeAlt, afterAlt, onChange }: {
+  lang: Language
+  position: number
+  beforeSrc: string
+  afterSrc: string
+  beforeAlt: string
+  afterAlt: string
+  onChange: (value: number) => void
+}) {
+  return (
+    <div className="before-after" style={{ '--position': `${position}%` } as React.CSSProperties}>
+      <img className="before-after__after" src={afterSrc} loading="lazy" decoding="async" width="900" height="900" alt={afterAlt} />
+      <div className="before-after__before">
+        <img src={beforeSrc} loading="lazy" decoding="async" width="900" height="900" alt={beforeAlt} />
+      </div>
+      <span className="before-after__label before-after__label--before">{lang === 'fr' ? 'Avant' : 'قبل'}</span>
+      <span className="before-after__label before-after__label--after">{lang === 'fr' ? 'Après' : 'بعد'}</span>
+      <div className="before-after__line"><span><ArrowLeft /><ArrowRight /></span></div>
+      <input
+        type="range"
+        min="0"
+        max="100"
+        value={position}
+        onChange={event => onChange(Number(event.target.value))}
+        aria-label={lang === 'fr' ? 'Faire glisser pour comparer avant et après' : 'حرّكي المؤشر للمقارنة بين قبل وبعد'}
+      />
+    </div>
+  )
+}
+
 function Proofs({ lang }: { lang: Language }) {
-  const [position, setPosition] = useState(50)
-  const tracked = useRef(false)
-  const update = (value: number) => {
-    setPosition(value)
-    if (!tracked.current) {
-      tracked.current = true
-      track('before_after_interaction', { interaction_type: 'slider' })
+  const [illustrationPosition, setIllustrationPosition] = useState(50)
+  const [realPosition, setRealPosition] = useState(50)
+  const [storyOpen, setStoryOpen] = useState(false)
+  const illustrationTracked = useRef(false)
+  const realTracked = useRef(false)
+  const realCaseRef = useRef<HTMLElement>(null)
+  const realCase = siteConfig.realCase
+  const showRealCase = Boolean(realCase?.isRealCase && realCase?.consentConfirmed && realCase?.beforeRealImage && realCase?.afterRealImage)
+
+  useEffect(() => {
+    const section = realCaseRef.current
+    if (!section || !showRealCase) return
+    const observer = new IntersectionObserver(([entry]) => {
+      if (!entry.isIntersecting) return
+      trackOncePerSession('real_before_after_view', { placement: 'proof_section' })
+      observer.disconnect()
+    }, { threshold: .3 })
+    observer.observe(section)
+    return () => observer.disconnect()
+  }, [showRealCase])
+
+  useEffect(() => {
+    if (!storyOpen) return
+    const previousOverflow = document.body.style.overflow
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setStoryOpen(false)
+    }
+    document.body.style.overflow = 'hidden'
+    document.addEventListener('keydown', closeOnEscape)
+    return () => {
+      document.body.style.overflow = previousOverflow
+      document.removeEventListener('keydown', closeOnEscape)
+    }
+  }, [storyOpen])
+
+  const updateIllustration = (value: number) => {
+    setIllustrationPosition(value)
+    if (!illustrationTracked.current) {
+      illustrationTracked.current = true
+      track('before_after_interaction', { interaction_type: 'slider', comparison_type: 'educational_illustration' })
     }
   }
+  const updateReal = (value: number) => {
+    setRealPosition(value)
+    if (!realTracked.current) {
+      realTracked.current = true
+      track('real_before_after_interaction', { interaction_type: 'slider' })
+    }
+  }
+  const openStory = () => {
+    track('real_case_story_open', { placement: 'proof_section' })
+    setStoryOpen(true)
+  }
+  const missingStory = lang === 'fr'
+    ? 'Les détails de sa routine précédente sont en cours de validation avec elle.'
+    : 'يجري حالياً التحقق معها من تفاصيل روتينها السابق.'
+  const storyItems = [
+    { label: lang === 'fr' ? 'Ce qui la gênait' : 'ما الذي كان يزعجها', value: realCase.story.whatBothered },
+    { label: lang === 'fr' ? 'Ce qu’elle faisait auparavant' : 'ما كانت تفعله من قبل', value: realCase.story.previousRoutine },
+    { label: lang === 'fr' ? 'Ce que Hanane lui a conseillé de modifier' : 'ما نصحتها حنان بتعديله', value: realCase.story.hananeAdvice },
+    { label: lang === 'fr' ? 'Ce qu’elle a changé' : 'ما الذي غيّرته', value: realCase.story.whatChanged },
+    { label: lang === 'fr' ? 'L’évolution qu’elle a personnellement observée' : 'التحسن الذي لاحظته شخصياً', value: realCase.story.observedEvolution },
+  ]
+
   return (
+    <>
     <Reveal className="proofs-section" id="preuves">
       <div className="section-wrap">
         <SectionIntro
-          eyebrow={lang === 'fr' ? 'Preuves avec intégrité' : 'دلائل بكل وضوح'}
-          title={lang === 'fr' ? 'Comparer sans déformer la réalité' : 'مقارنة من دون تشويه الواقع'}
-          copy={lang === 'fr' ? 'Même cadrage, même espace, aucun titre médical inventé. Faites glisser pour observer cette expérience individuelle.' : 'الإطار والمكان نفسهما، ومن دون ادعاء طبي. حرّكي المؤشر لمشاهدة هذه التجربة الفردية.'}
+          eyebrow={lang === 'fr' ? 'Avant / Après, avec intégrité' : 'قبل وبعد بكل وضوح'}
+          title={lang === 'fr' ? 'Comprendre, puis observer une évolution réelle' : 'نفهم أولاً، ثم نلاحظ تجربة حقيقية'}
+          copy={lang === 'fr' ? 'Une illustration éducative aide à comprendre la texture. Le second cas montre une participante réelle, sans retouche de sa peau ni promesse de résultat.' : 'تساعد الصورة التوضيحية على فهم ملمس البشرة، ثم تعرض الحالة الثانية مشاركة حقيقية من دون تعديل بشرتها أو تقديم وعود بالنتيجة.'}
         />
-        <div className="proof-editorial">
-          <div className="before-after" style={{ '--position': `${position}%` } as React.CSSProperties}>
-            <img className="before-after__after" src={siteConfig.assets.after} loading="lazy" decoding="async" width="900" height="1125" alt={lang === 'fr' ? 'Photographie après, expérience individuelle' : 'صورة بعد، تجربة فردية'} />
-            <div className="before-after__before">
-              <img src={siteConfig.assets.before} loading="lazy" decoding="async" width="900" height="1125" alt={lang === 'fr' ? 'Photographie avant, expérience individuelle' : 'صورة قبل، تجربة فردية'} />
-            </div>
-            <span className="before-after__label before-after__label--before">{lang === 'fr' ? 'Avant' : 'قبل'}</span>
-            <span className="before-after__label before-after__label--after">{lang === 'fr' ? 'Après' : 'بعد'}</span>
-            <div className="before-after__line"><span><ArrowLeft /><ArrowRight /></span></div>
-            <input
-              type="range"
-              min="0"
-              max="100"
-              value={position}
-              onChange={event => update(Number(event.target.value))}
-              aria-label={lang === 'fr' ? 'Comparer la photographie avant et après' : 'قارني الصورة قبل وبعد'}
+
+        <article className="proof-case proof-case--education">
+          <div className="proof-case__heading">
+            <span>01</span>
+            <div><p>{lang === 'fr' ? 'ILLUSTRATION ÉDUCATIVE' : 'صورة توضيحية تعليمية'}</p><h3>{lang === 'fr' ? 'Comprendre la texture de la peau' : 'فهم ملمس البشرة'}</h3></div>
+          </div>
+          <div className="proof-editorial">
+            <BeforeAfterSlider
+              lang={lang}
+              position={illustrationPosition}
+              beforeSrc={siteConfig.assets.before}
+              afterSrc={siteConfig.assets.after}
+              beforeAlt={lang === 'fr' ? 'Illustration agrandie de la texture de la peau, avant' : 'صورة توضيحية مكبّرة لملمس البشرة، قبل'}
+              afterAlt={lang === 'fr' ? 'Illustration agrandie de la texture de la peau, après' : 'صورة توضيحية مكبّرة لملمس البشرة، بعد'}
+              onChange={updateIllustration}
             />
-          </div>
-          <div className="proof-copy">
-            <p className="proof-badge">{lang === 'fr' ? 'EXPÉRIENCE INDIVIDUELLE' : 'تجربة فردية'}</p>
-            <h3>{lang === 'fr' ? 'Une comparaison, pas une promesse' : 'مقارنة وليست وعداً'}</h3>
-            <p>{lang === 'fr' ? 'Expérience partagée à titre individuel. L’évolution de la peau peut varier selon la personne, les habitudes et la régularité.' : 'تجربة فردية، وقد تختلف النتائج من شخص إلى آخر حسب البشرة والعادات والاستمرارية.'}</p>
-            <div className="proof-buttons">
-              <button type="button" onClick={() => update(100)}>{lang === 'fr' ? 'Voir avant' : 'عرض قبل'}</button>
-              <button type="button" onClick={() => update(0)}>{lang === 'fr' ? 'Voir après' : 'عرض بعد'}</button>
+            <div className="proof-copy">
+              <p className="proof-badge">{lang === 'fr' ? 'AVANT / APRÈS 01' : 'قبل / بعد 01'}</p>
+              <h3>{lang === 'fr' ? 'Illustration agrandie de la texture de la peau' : 'صورة توضيحية مكبّرة لملمس البشرة'}</h3>
+              <p>{lang === 'fr' ? 'Cette comparaison est une illustration éducative. Elle aide à observer visuellement une différence de texture, mais ne présente pas le résultat d’une personne réelle.' : 'هذه المقارنة صورة توضيحية تعليمية تساعد على ملاحظة اختلاف الملمس، ولا تعرض نتيجة لشخص حقيقي.'}</p>
+              <div className="proof-buttons">
+                <button type="button" onClick={() => updateIllustration(100)}>{lang === 'fr' ? 'Voir avant' : 'عرض قبل'}</button>
+                <button type="button" onClick={() => updateIllustration(0)}>{lang === 'fr' ? 'Voir après' : 'عرض بعد'}</button>
+              </div>
             </div>
-            <small><ShieldCheck /> {lang === 'fr' ? 'Les résultats peuvent varier. Ces images ne constituent ni un diagnostic ni une garantie.' : 'قد تختلف النتائج. هذه الصور ليست تشخيصاً ولا ضماناً.'}</small>
           </div>
-        </div>
+        </article>
+
+        {showRealCase && <article className="proof-case proof-case--real" ref={realCaseRef}>
+          <div className="proof-case__heading">
+            <span>02</span>
+            <div><p>{lang === 'fr' ? 'CAS HUMAIN RÉEL' : 'تجربة حقيقية'}</p><h3>{lang === 'fr' ? 'Une évolution réelle' : 'تجربة حقيقية'}</h3><small>{lang === 'fr' ? 'Une participante accompagnée par Hanane' : 'إحدى المشاركات التي تابعت حالتها مع حنان'}</small></div>
+          </div>
+          <div className="proof-editorial proof-editorial--real">
+            <BeforeAfterSlider
+              lang={lang}
+              position={realPosition}
+              beforeSrc={realCase.beforeRealImage}
+              afterSrc={realCase.afterRealImage}
+              beforeAlt={lang === 'fr' ? 'Photo avant de la participante accompagnée par Hanane' : 'صورة المشاركة قبل متابعة حالتها مع حنان'}
+              afterAlt={lang === 'fr' ? 'Photo après de la participante accompagnée par Hanane' : 'صورة المشاركة بعد متابعة حالتها مع حنان'}
+              onChange={updateReal}
+            />
+            <div className="proof-copy">
+              <p className="proof-badge">{lang === 'fr' ? 'AVANT / APRÈS 02' : 'قبل / بعد 02'}</p>
+              <h3>{lang === 'fr' ? 'Une participante, une évolution observée' : 'مشاركة لاحظت هذا التحسن'}</h3>
+              <p>{lang === 'fr' ? 'Cette participante présentait des boutons visibles sur le visage. Après avoir expliqué sa situation et ajusté certaines habitudes de sa routine selon les conseils reçus, elle a observé cette évolution.' : 'كانت هذه المشاركة تعاني من ظهور حبوب واضحة في الوجه. بعد أن شرحت حالتها وعدّلت بعض العادات في روتينها وفق النصائح التي تلقتها، لاحظت هذا التحسن.'}</p>
+              <div className="proof-buttons">
+                <button type="button" onClick={() => updateReal(100)}>{lang === 'fr' ? 'Voir avant' : 'عرض قبل'}</button>
+                <button type="button" onClick={() => updateReal(0)}>{lang === 'fr' ? 'Voir après' : 'عرض بعد'}</button>
+              </div>
+              <button type="button" className="real-story-cta" onClick={openStory}>{lang === 'fr' ? 'Voir ce qu’elle a changé dans sa routine' : 'اكتشفي ما الذي غيّرته في روتينها'} <ArrowUpRight /></button>
+              <small><ShieldCheck /> {lang === 'fr' ? 'Résultats individuels : l’évolution peut varier d’une personne à l’autre.' : 'تختلف النتائج من شخص إلى آخر حسب الحالة.'}</small>
+            </div>
+          </div>
+        </article>}
       </div>
     </Reveal>
+      <AnimatePresence>
+        {storyOpen && <motion.div className="real-story-overlay" role="presentation" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onMouseDown={() => setStoryOpen(false)}>
+          <motion.aside className="real-story-drawer" role="dialog" aria-modal="true" aria-labelledby="real-story-title" initial={{ x: lang === 'fr' ? '100%' : '-100%' }} animate={{ x: 0 }} exit={{ x: lang === 'fr' ? '100%' : '-100%' }} transition={{ type: 'spring', stiffness: 260, damping: 30 }} onMouseDown={event => event.stopPropagation()}>
+            <div className="real-story-drawer__top"><div><p>{lang === 'fr' ? 'CAS RÉEL 02' : 'تجربة حقيقية 02'}</p><h2 id="real-story-title">{lang === 'fr' ? 'Ce qu’elle a changé dans sa routine' : 'ما الذي غيّرته في روتينها'}</h2></div><button type="button" autoFocus onClick={() => setStoryOpen(false)} aria-label={lang === 'fr' ? 'Fermer' : 'إغلاق'}><X /></button></div>
+            <div className="real-story-drawer__body">
+              <ol>{storyItems.map((item, index) => <li key={item.label}><span>{String(index + 1).padStart(2, '0')}</span><div><h3>{item.label}</h3><p>{item.value ? local(item.value, lang) : missingStory}</p></div></li>)}</ol>
+              <p className="real-story-disclaimer"><ShieldCheck /> {lang === 'fr' ? 'Seules les informations confirmées par la participante sont présentées ici. Les résultats peuvent varier.' : 'نعرض هنا فقط المعلومات التي أكّدتها المشاركة. وقد تختلف النتائج من شخص إلى آخر.'}</p>
+            </div>
+          </motion.aside>
+        </motion.div>}
+      </AnimatePresence>
+    </>
   )
 }
 
@@ -1060,6 +1185,7 @@ function SimpleLeadForm({ lang, concerns: selectedConcerns, profiles, contexts, 
   const [result, setResult] = useState<LeadResult | null>(null)
   const [error, setError] = useState('')
   const formRef = useRef<HTMLFormElement>(null)
+  const trustRef = useRef<HTMLDivElement>(null)
   const summaryChoices = [
     profiles[0] ? local(skinProfiles.find(item => item.id === profiles[0])?.label || { fr: profiles[0], ar: profiles[0] }, lang) : '',
     selectedConcerns[0] ? local(concernOptions.find(item => item.id === selectedConcerns[0])?.label || { fr: selectedConcerns[0], ar: selectedConcerns[0] }, lang) : '',
@@ -1088,6 +1214,18 @@ function SimpleLeadForm({ lang, concerns: selectedConcerns, profiles, contexts, 
       observer.disconnect()
     }, { threshold: .08, rootMargin: '0px 0px -18% 0px' })
     observer.observe(fields)
+    return () => observer.disconnect()
+  }, [])
+
+  useEffect(() => {
+    const block = trustRef.current
+    if (!block) return
+    const observer = new IntersectionObserver(([entry]) => {
+      if (!entry.isIntersecting) return
+      trackOncePerSession('free_consultation_block_view', { placement: 'before_short_form' })
+      observer.disconnect()
+    }, { threshold: .45 })
+    observer.observe(block)
     return () => observer.disconnect()
   }, [])
 
@@ -1145,10 +1283,20 @@ function SimpleLeadForm({ lang, concerns: selectedConcerns, profiles, contexts, 
 
   return (
     <Reveal className="form-section form-section--short" id="formulaire">
-      <div className="form-trust">
+      <div className="form-trust" ref={trustRef}>
         <img src={siteConfig.assets.expertProfile} alt="Hanane — ECOLYN" width="160" height="160" loading="lazy" />
-        <div><p>{lang === 'fr' ? 'Votre demande sera examinée par Hanane' : 'ستراجع حنان طلبك'}</p><span>{lang === 'fr' ? 'Elle vous aide à clarifier votre routine et vos priorités, sans poser de diagnostic médical.' : 'تساعدك على توضيح روتينك وأولويات العناية ببشرتك، من دون تشخيص طبي.'}</span></div>
-        <ul><li><Check /> {lang === 'fr' ? 'Conseils gratuits' : 'نصائح مجانية'}</li><li><Check /> {lang === 'fr' ? 'Sans obligation d’achat' : 'من دون إلزام بالشراء'}</li><li><MessageCircle /> {lang === 'fr' ? 'Contact via WhatsApp' : 'تواصل عبر WhatsApp'}</li></ul>
+        <div className="form-trust__copy">
+          <strong>{lang === 'fr' ? 'CONSEILS PERSONNALISÉS 100 % GRATUITS' : 'نصائح شخصية مجانية 100%'}</strong>
+          <p>{lang === 'fr' ? 'Votre demande sera examinée par Hanane' : 'ستراجع حنان طلبك شخصياً'}</p>
+          <small>{lang === 'fr' ? 'Expertise en esthétique et soins de la peau' : 'خبرة في التجميل والعناية بالبشرة'}</small>
+          <span>{lang === 'fr' ? 'Hanane prendra le temps de lire les informations que vous nous envoyez afin de mieux comprendre votre situation. Elle vous contactera ensuite personnellement sur WhatsApp pour échanger avec vous et vous donner ses conseils.' : 'ستراجع حنان المعلومات التي ترسلينها حتى تفهم حالتك بشكل أفضل، ثم ستتواصل معك شخصياً عبر WhatsApp للحديث معك وتقديم النصائح المناسبة.'}</span>
+        </div>
+        <ul>
+          <li><Check /> {lang === 'fr' ? '100 % gratuit' : 'الخدمة مجانية 100%'}</li>
+          <li><Check /> {lang === 'fr' ? 'Aucun achat obligatoire' : 'لا يوجد أي التزام بالشراء'}</li>
+          <li><Check /> {lang === 'fr' ? 'Hanane étudie personnellement votre situation' : 'تراجع حنان حالتك شخصياً'}</li>
+          <li><MessageCircle /> {lang === 'fr' ? 'Réponse directement sur WhatsApp' : 'التواصل مباشرة عبر WhatsApp'}</li>
+        </ul>
       </div>
       <div className="form-shell">
         <div className="form-aside">
@@ -1178,7 +1326,7 @@ function SimpleLeadForm({ lang, concerns: selectedConcerns, profiles, contexts, 
             <input type="hidden" name="selectedConcernsJson" value={JSON.stringify(selectedConcerns)} />
             <input type="hidden" name="selectedSkinProfilesJson" value={JSON.stringify(profiles)} />
             <input type="hidden" name="selectedContextsJson" value={JSON.stringify(contexts)} />
-            <Field label={lang === 'fr' ? 'Expliquez-nous brièvement ce qui vous dérange avec votre peau.' : 'اشرحي لنا باختصار ما الذي يزعجك في بشرتك.'} wide><textarea name="description" rows={4} required minLength={10} maxLength={1200} placeholder={lang === 'fr' ? 'Exemple : mes traces restent visibles et ma peau réagit facilement…' : 'مثال: تبقى آثار الحبوب ظاهرة وتتفاعل بشرتي بسهولة…'} /></Field>
+            <Field label={lang === 'fr' ? 'Qu’est-ce qui vous dérange le plus actuellement ?' : 'ما أكثر شيء يزعجك في بشرتك حالياً؟'} wide><textarea name="description" rows={4} required minLength={10} maxLength={1200} placeholder={lang === 'fr' ? 'Par exemple : mes boutons reviennent souvent sur les joues et laissent des marques…' : 'مثال: تظهر لدي الحبوب باستمرار على الخدين وتترك آثاراً بعد اختفائها…'} /></Field>
             <Field label={lang === 'fr' ? 'Email facultatif' : 'الإيميل اختياري'} wide><input name="email" type="email" autoComplete="email" /></Field>
             <details className="optional-photo field--wide">
               <summary><Upload /> {lang === 'fr' ? 'Ajouter une photo (facultatif)' : 'إضافة صورة (اختياري)'}</summary>
@@ -1192,7 +1340,10 @@ function SimpleLeadForm({ lang, concerns: selectedConcerns, profiles, contexts, 
           {error && <p className="form-error" role="alert">{error}</p>}
           <div className="form-navigation short-form-submit">
             <p><ShieldCheck /> {lang === 'fr' ? 'Enregistrement sécurisé avant toute mesure de conversion.' : 'يتم تسجيل الطلب بأمان قبل قياس التحويل.'}</p>
-            <button type="submit" className="button button--primary" disabled={sending}>{sending ? (lang === 'fr' ? 'Envoi sécurisé…' : 'الإرسال الآمن…') : t('form.submit')} <ArrowUpRight /></button>
+            <div className="short-form-submit__cta">
+              <button type="submit" className="button button--primary" disabled={sending}>{sending ? (lang === 'fr' ? 'Envoi sécurisé…' : 'الإرسال الآمن…') : (lang === 'fr' ? 'Envoyer ma question gratuitement' : 'أرسل سؤالي مجاناً')} <ArrowUpRight /></button>
+              <small>{lang === 'fr' ? 'Gratuit • Sans obligation d’achat' : 'مجاني • دون أي التزام بالشراء'}</small>
+            </div>
           </div>
         </form>
       </div>
@@ -1504,11 +1655,11 @@ export default function App() {
           onComplete={() => setJourneyComplete(true)}
           editToken={journeyEditToken}
         />
+        <Proofs lang={lang} />
         {journeyComplete && <>
           <SimpleLeadForm lang={lang} concerns={selectedConcerns} profiles={skinProfilesSelected} contexts={lifestyleContexts} onModifyChoices={modifyJourneyChoices} />
           <DiscoveryAfterForm lang={lang} openArticle={openArticle} />
         </>}
-        <Proofs lang={lang} />
         <Events lang={lang} />
         <FAQ lang={lang} />
       </main>
@@ -1517,7 +1668,7 @@ export default function App() {
         <span>{journeyComplete ? <MessageCircle /> : <Sparkles />}</span><b>{journeyComplete ? currentConcernLabel : 'ECOLYN'}</b><em>{journeyComplete ? (lang === 'fr' ? 'Contacter Hanane' : 'التواصل مع حنان') : (lang === 'fr' ? 'Faire mes 3 choix' : 'ابدئي اختياراتك الثلاثة')}</em><ArrowUpRight />
       </a>
       <a
-        className="whatsapp-group-float"
+        className={`whatsapp-group-float${journeyComplete ? ' whatsapp-group-float--quiet' : ''}`}
         href={whatsappGroupHref}
         target="_blank"
         rel="noreferrer"

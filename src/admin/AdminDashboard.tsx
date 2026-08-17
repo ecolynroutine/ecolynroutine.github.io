@@ -401,7 +401,7 @@ function TrackingPanel() {
       )}
       <div className="tracking-events">
         <p className="admin-kicker">Événements couverts</p>
-        <div>{['PageView', 'ViewContent', 'journey_start', 'select_skin_type', 'select_skin_concern', 'select_lifestyle_context', 'personalized_advice_view', 'form_cta_click', 'form_view', 'form_start', 'form_submit', 'generate_lead / Lead', 'join_whatsapp_group', 'whatsapp_click', 'story_open', 'story_audio_play', 'article_open', 'article_complete', 'pack_view', 'pack_cta_click', 'live_calendar_click'].map(event => <span key={event}>{event}</span>)}</div>
+        <div>{['PageView', 'ViewContent', 'journey_start', 'select_skin_type', 'select_skin_concern', 'select_lifestyle_context', 'personalized_advice_view', 'real_before_after_view', 'real_before_after_interaction', 'real_case_story_open', 'free_consultation_block_view', 'form_cta_click', 'form_view', 'form_start', 'form_submit', 'generate_lead / Lead', 'join_whatsapp_group', 'whatsapp_click', 'story_open', 'story_audio_play', 'article_open', 'article_complete', 'pack_view', 'pack_cta_click', 'live_calendar_click'].map(event => <span key={event}>{event}</span>)}</div>
       </div>
       <div className="tracking-diagnostics">
         <div className="tracking-diagnostics__head">
