@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { AnimatePresence, motion, useReducedMotion, useScroll, useSpring, useTransform } from 'framer-motion'
 import { useTranslation } from 'react-i18next'
 import {
@@ -1302,8 +1302,8 @@ function SimpleLeadForm({ lang, concerns: selectedConcerns, profiles, contexts, 
           <p className="eyebrow">{t('form.eyebrow')}</p>
           <h2>{lang === 'fr' ? 'Vous voulez des conseils plus personnalisés ?' : 'هل تريدين نصائح أكثر تخصيصاً؟'}</h2>
           <p>{hasCompleteChoices
-            ? (lang === 'fr' ? 'Expliquez brièvement votre situation à Hanane. Vos trois choix sont déjà repris pour ne pas vous demander deux fois la même chose.' : 'اشرحي حالتك لحنان باختصار. اختياراتك الثلاثة موجودة مسبقاً حتى لا نطلب منك المعلومات نفسها مرتين.')
-            : (lang === 'fr' ? 'Expliquez brièvement votre situation à Hanane. Vous pouvez envoyer votre demande même sans avoir terminé les trois choix.' : 'اشرحي حالتك لحنان باختصار. يمكنك إرسال طلبك حتى من دون إكمال الاختيارات الثلاثة.')}</p>
+            ? (lang === 'fr' ? 'Laissez simplement vos coordonnées à Hanane. Vos trois choix sont déjà repris pour ne pas vous demander deux fois la même chose.' : 'اتركي فقط معلومات التواصل مع حنان. اختياراتك الثلاثة موجودة مسبقاً حتى لا نطلب منك المعلومات نفسها مرتين.')
+            : (lang === 'fr' ? 'Laissez simplement vos coordonnées à Hanane. Vous pouvez envoyer votre demande même sans avoir terminé les trois choix.' : 'اتركي فقط معلومات التواصل مع حنان. يمكنك إرسال طلبك حتى من دون إكمال الاختيارات الثلاثة.')}</p>
           <div className="short-form-benefits">
             <span><Check /> {lang === 'fr' ? 'Moins de 2 minutes' : 'أقل من دقيقتين'}</span>
             <span><Sparkles /> {hasCompleteChoices ? (lang === 'fr' ? 'Vos choix déjà préremplis' : 'اختياراتك معبأة مسبقاً') : (lang === 'fr' ? 'Formulaire très court' : 'نموذج قصير جداً')}</span>
@@ -1313,7 +1313,7 @@ function SimpleLeadForm({ lang, concerns: selectedConcerns, profiles, contexts, 
           <p className="medical-note">{lang === 'fr' ? 'Ces conseils sont informatifs. Une situation sévère, inhabituelle ou persistante doit être présentée à un dermatologue.' : 'هذه النصائح تثقيفية. يجب عرض أي حالة شديدة أو غير معتادة أو مستمرة على طبيب جلد.'}</p>
         </div>
         <form ref={formRef} onSubmit={onSubmit} onFocusCapture={begin} onInputCapture={begin} onChangeCapture={begin} className="lead-form lead-form--short">
-          <div className="form-step-heading"><span>01</span><div><p>{lang === 'fr' ? 'Votre demande' : 'طلبك'}</p><h3>{lang === 'fr' ? 'Parlez-nous brièvement de votre peau' : 'حدّثينا باختصار عن بشرتك'}</h3></div></div>
+          <div className="form-step-heading"><span>01</span><div><p>{lang === 'fr' ? 'Votre demande' : 'طلبك'}</p><h3>{lang === 'fr' ? 'Comment pouvons-nous vous joindre ?' : 'كيف يمكننا التواصل معك؟'}</h3></div></div>
           {hasCompleteChoices && <div className="form-choice-summary">
             <div><p>{lang === 'fr' ? 'Nous avons retenu :' : 'اختياراتك:'}</p><span>{summaryChoices.map(choice => <b key={choice}><Check /> {choice}</b>)}</span></div>
             <button type="button" onClick={onModifyChoices}>{lang === 'fr' ? 'Modifier mes choix' : 'تعديل اختياراتي'}</button>
@@ -1327,13 +1327,6 @@ function SimpleLeadForm({ lang, concerns: selectedConcerns, profiles, contexts, 
             <input type="hidden" name="selectedConcernsJson" value={JSON.stringify(selectedConcerns)} />
             <input type="hidden" name="selectedSkinProfilesJson" value={JSON.stringify(profiles)} />
             <input type="hidden" name="selectedContextsJson" value={JSON.stringify(contexts)} />
-            <Field label={lang === 'fr' ? 'Qu’est-ce qui vous dérange le plus actuellement ?' : 'ما أكثر شيء يزعجك في بشرتك حالياً؟'} wide><textarea name="description" rows={4} required minLength={10} maxLength={1200} placeholder={lang === 'fr' ? 'Par exemple : mes boutons reviennent souvent sur les joues et laissent des marques…' : 'مثال: تظهر لدي الحبوب باستمرار على الخدين وتترك آثاراً بعد اختفائها…'} /></Field>
-            <Field label={lang === 'fr' ? 'Email facultatif' : 'الإيميل اختياري'} wide><input name="email" type="email" autoComplete="email" /></Field>
-            <details className="optional-photo field--wide">
-              <summary><Upload /> {lang === 'fr' ? 'Ajouter une photo (facultatif)' : 'إضافة صورة (اختياري)'}</summary>
-              <span className="file-input"><Upload /><input name="photo" type="file" accept="image/jpeg,image/png,image/webp" /><b>{lang === 'fr' ? 'JPG, PNG ou WebP • 8 Mo max' : 'JPG, PNG أو WebP • حتى 8MB'}</b></span>
-              <label className="check-field"><input type="checkbox" name="photoConsent" value="yes" /><span>{lang === 'fr' ? 'J’autorise l’utilisation de cette photo uniquement pour examiner ma demande.' : 'أوافق على استخدام هذه الصورة فقط لمراجعة طلبي.'}</span></label>
-            </details>
             <input type="hidden" name="contactConsent" value="yes" />
             <p className="contact-consent-note field--wide">{lang === 'fr' ? 'En envoyant ce formulaire, vous acceptez d’être contactée par notre experte au sujet de votre demande.' : 'بإرسال هذا النموذج، توافقين على أن تتواصل معك خبيرتنا بخصوص طلبك.'}</p>
             <label className="check-field field--wide"><input type="checkbox" name="marketingConsent" value="yes" defaultChecked /><span>{lang === 'fr' ? 'J’autorise ECOLYN à transmettre à Meta, de façon sécurisée, les informations nécessaires pour mesurer si cette demande provient d’une publicité. Vous pouvez décocher cette autorisation.' : 'أسمح لـ ECOLYN بإرسال المعلومات اللازمة إلى Meta بشكل آمن لقياس ما إذا كان هذا الطلب ناتجاً عن إعلان. يمكنك إلغاء هذا الخيار.'}</span></label>
@@ -1342,7 +1335,7 @@ function SimpleLeadForm({ lang, concerns: selectedConcerns, profiles, contexts, 
           <div className="form-navigation short-form-submit">
             <p><ShieldCheck /> {lang === 'fr' ? 'Enregistrement sécurisé avant toute mesure de conversion.' : 'يتم تسجيل الطلب بأمان قبل قياس التحويل.'}</p>
             <div className="short-form-submit__cta">
-              <button type="submit" className="button button--primary" disabled={sending}>{sending ? (lang === 'fr' ? 'Envoi sécurisé…' : 'الإرسال الآمن…') : (lang === 'fr' ? 'Envoyer ma question gratuitement' : 'أرسل سؤالي مجاناً')} <ArrowUpRight /></button>
+              <button type="submit" className="button button--primary" disabled={sending}>{sending ? (lang === 'fr' ? 'Envoi sécurisé…' : 'الإرسال الآمن…') : (lang === 'fr' ? 'Envoyer ma demande gratuitement' : 'أرسل طلبي مجاناً')} <ArrowUpRight /></button>
               <small>{lang === 'fr' ? 'Gratuit • Sans obligation d’achat' : 'مجاني • دون أي التزام بالشراء'}</small>
             </div>
           </div>
@@ -1600,8 +1593,6 @@ export default function App() {
     track('select_skin_concern', { selection_source: 'hero', concern_id: id })
   }
 
-  const currentConcernLabel = useMemo(() => local(concerns.find(item => item.id === selectedConcerns[0])?.short || concerns[0].short, lang), [selectedConcerns, lang])
-
   const modifyJourneyChoices = () => {
     setJourneyComplete(false)
     setJourneyEditToken(value => value + 1)
@@ -1625,15 +1616,17 @@ export default function App() {
           onComplete={() => setJourneyComplete(true)}
           editToken={journeyEditToken}
         />
-        <Proofs lang={lang} />
         <SimpleLeadForm lang={lang} concerns={selectedConcerns} profiles={skinProfilesSelected} contexts={lifestyleContexts} onModifyChoices={modifyJourneyChoices} />
+        <Proofs lang={lang} />
         <DiscoveryAfterForm lang={lang} openArticle={openArticle} />
         <Events lang={lang} />
         <FAQ lang={lang} />
       </main>
       <Footer lang={lang} openLegal={setLegal} journeyComplete={journeyComplete} />
-      <a className="sticky-advice" href={journeyComplete ? '#form-fields' : '#personnalisation'} data-form-cta="sticky" data-journey-source="sticky">
-        <span>{journeyComplete ? <MessageCircle /> : <Sparkles />}</span><b>{journeyComplete ? currentConcernLabel : 'ECOLYN'}</b><em>{journeyComplete ? (lang === 'fr' ? 'Contacter Hanane' : 'التواصل مع حنان') : (lang === 'fr' ? 'Faire mes 3 choix' : 'ابدئي اختياراتك الثلاثة')}</em><ArrowUpRight />
+      <a className="sticky-advice" href="#form-fields" data-form-cta="sticky" data-journey-source="sticky">
+        <span><MessageCircle /></span>
+        <em>{lang === 'fr' ? <>Contacter l’experte <strong>GRATUITEMENT</strong></> : <>تواصلي مع الخبيرة مجاناً</>}</em>
+        <ArrowUpRight />
       </a>
       <a
         className={`whatsapp-group-float${journeyComplete ? ' whatsapp-group-float--quiet' : ''}`}

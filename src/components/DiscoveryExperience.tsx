@@ -38,6 +38,14 @@ function DiscoveryHero({ lang, start }: { lang: Language; start: () => void }) {
         <div className="journey-hero__copy">
           <p className="journey-kicker"><Sparkles /> ECOLYN <span>{lang === 'fr' ? 'Conseils personnalisés' : 'نصائح مخصصة'}</span></p>
           <h1>{lang === 'fr' ? <>Comprenez mieux votre peau, <em>en 3 choix.</em></> : <>افهمي بشرتك بشكل أفضل <em>من خلال 3 اختيارات.</em></>}</h1>
+          <div className="journey-hero__expert">
+            <img src={siteConfig.assets.expertProfile} alt={lang === 'fr' ? 'Hanane, experte ECOLYN' : 'حنان، خبيرة إيكولين'} width="72" height="72" decoding="async" />
+            <span>
+              <b>{lang === 'fr' ? 'Hanane' : 'حنان'}</b>
+              <small>{lang === 'fr' ? 'Experte en esthétique & soins de la peau' : 'خبيرة في التجميل والعناية بالبشرة'}</small>
+              <em>{lang === 'fr' ? 'Conseils personnalisés gratuits' : 'نصائح شخصية مجانية'}</em>
+            </span>
+          </div>
           <p className="journey-hero__lead">{lang === 'fr'
             ? 'Faites 3 choix simples sur votre peau et recevez immédiatement des conseils adaptés à votre situation.'
             : 'اختاري 3 أشياء بسيطة عن بشرتك، وسنعرض لك فوراً نصائح وخطوات تناسب حالتك.'}</p>
