@@ -306,8 +306,9 @@ function sendToPlatforms(event: string, payload: EventPayload, settings: Trackin
   const metaEvent = metaMap[event]
   const metaCustomEvent = metaCustomMap[event]
   if (settings.metaEnabled && window.fbq) {
-    if (metaEvent) window.fbq('track', metaEvent, payload, { eventID: eventId })
-    else {
+    // Final generate_lead is sent to Meta via CAPI only to prevent duplicate conversion counting.
+    if (metaEvent && event !== 'generate_lead') window.fbq('track', metaEvent, payload, { eventID: eventId })
+    else if (!metaEvent) {
       window.fbq('trackCustom', metaCustomEvent || event, payload, { eventID: eventId })
       if (metaCustomEvent && metaCustomEvent !== event) {
         window.fbq('trackCustom', event, payload, { eventID: `${eventId}-canonical` })
