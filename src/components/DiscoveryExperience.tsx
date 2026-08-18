@@ -50,8 +50,8 @@ function DiscoveryHero({ lang, start }: { lang: Language; start: () => void }) {
             ? 'Faites 3 choix simples sur votre peau et recevez immédiatement des conseils adaptés à votre situation.'
             : 'اختاري 3 أشياء بسيطة عن بشرتك، وسنعرض لك فوراً نصائح وخطوات تناسب حالتك.'}</p>
           <p className="journey-hero__sub">{lang === 'fr'
-            ? 'Si vous souhaitez aller plus loin, vous pourrez ensuite expliquer votre situation à Hanane dans un formulaire très court afin qu’elle puisse vous contacter sur WhatsApp.'
-            : 'وإذا أردتِ مساعدة أكثر تخصيصاً، يمكنك بعد ذلك شرح حالتك لحنان عبر نموذج قصير، وستتواصل معك على WhatsApp.'}</p>
+            ? 'Si vous souhaitez aller plus loin, laissez simplement votre prénom et votre WhatsApp. Hanane vous contactera personnellement pour étudier votre situation avec vous.'
+            : 'إذا أردتِ مساعدة أكثر تخصيصاً، اتركي فقط اسمك ورقم WhatsApp، وستتواصل معك حنان شخصياً لفهم حالتك معك بشكل أفضل.'}</p>
           <button className="journey-primary" type="button" onClick={start}>{lang === 'fr' ? 'Commencer mes 3 choix' : 'ابدئي الاختيارات الثلاثة'} <ArrowDown /></button>
           <span className="journey-free"><ShieldCheck /> {lang === 'fr' ? '100% gratuit • Sans obligation d’achat' : 'نصائح مجانية 100% • دون إلزام بالشراء'}</span>
         </div>
@@ -216,7 +216,7 @@ function AdviceResult({ lang, profiles, concerns, contexts, complexion }: {
       {extras.length > 0 && <><div className="advice-section-heading advice-section-heading--more"><p>{lang === 'fr' ? 'À garder en tête' : 'معلومات إضافية مهمة'}</p><h3>{lang === 'fr' ? 'D’autres choses surprenantes qui peuvent vous concerner' : 'أشياء أخرى قد تهمك'}</h3></div><div className="extra-advice-grid">{extras.map(result => <AdviceCard key={result.item.id} result={result} />)}</div></>}
       {3 + extraShown < recommendations.length && <button type="button" className="after-more" onClick={() => setExtraShown(value => value + 3)}>{extraShown === 0 ? (lang === 'fr' ? 'Voir d’autres conseils' : 'عرض نصائح أخرى') : (lang === 'fr' ? 'Voir encore 3 conseils' : 'عرض 3 نصائح أخرى')} <ChevronDown /></button>}
       <div className="advice-disclaimer"><ShieldCheck /><p><b>{lang === 'fr' ? 'Information générale, pas un diagnostic.' : 'معلومات عامة وليست تشخيصاً.'}</b><span>{lang === 'fr' ? 'Une douleur importante, des lésions profondes, une réaction étendue ou une situation persistante doivent être présentées à un professionnel de santé.' : 'الألم الشديد أو الحبوب العميقة أو التفاعل الواسع أو الحالة المستمرة تستدعي استشارة مختص صحي.'}</span></p></div>
-      <a className="advice-to-form" href="#form-fields" data-form-cta="personalized_result"><MessageCircle /><span><b>{lang === 'fr' ? 'Vous voulez des conseils plus personnalisés ?' : 'هل تريدين نصائح أكثر تخصيصاً؟'}</b><small>{lang === 'fr' ? 'Expliquez votre situation à Hanane dans le formulaire très court juste en dessous.' : 'اشرحي حالتك لحنان في النموذج القصير أدناه.'}</small></span><ArrowDown /></a>
+      <a className="advice-to-form" href="#form-fields" data-form-cta="personalized_result"><MessageCircle /><span><b>{lang === 'fr' ? 'Vous voulez des conseils plus personnalisés ?' : 'هل تريدين نصائح أكثر تخصيصاً؟'}</b><small>{lang === 'fr' ? 'Laissez simplement votre prénom et votre WhatsApp juste en dessous. Hanane vous contactera personnellement.' : 'اتركي فقط اسمك ورقم WhatsApp أدناه، وستتواصل معك حنان شخصياً.'}</small></span><ArrowDown /></a>
     </div>
   </motion.section>
 }
@@ -286,7 +286,7 @@ function StoryModal({ item, lang, close, goToForm }: { item: Testimonial; lang: 
             [lang === 'fr' ? 'Ce qu’elle a appris' : 'ما الذي تعلمته', content.learned],
           ].map(([label, value]) => <div key={String(label)}><b>{String(label)}</b><p>{local(value as Localized, lang)}</p></div>)}
         </div>
-        <button className="journey-primary" type="button" onClick={goToForm}>{lang === 'fr' ? 'Votre situation ressemble à la sienne ? Expliquez-la à Hanane.' : 'هل تشبه حالتك هذه التجربة؟ اشرحي حالتك لحنان'} <MessageCircle /></button>
+        <button className="journey-primary" type="button" onClick={goToForm}>{lang === 'fr' ? 'Votre situation ressemble à la sienne ? Laissez vos coordonnées à Hanane.' : 'هل تشبه حالتك هذه التجربة؟ اتركي معلومات التواصل لحنان'} <MessageCircle /></button>
       </div>
     </motion.article>
   </motion.div>
@@ -328,7 +328,7 @@ export function DiscoveryAfterForm({ lang, openArticle }: { lang: Language; open
   return <>
     <ComplementaryArticles lang={lang} openArticle={openArticle} />
     <StorySection lang={lang} goToForm={goToForm} />
-    <section className="after-hanane" id="hanane"><div className="journey-wrap after-hanane__shell"><div className="after-hanane__photo"><img src={siteConfig.assets.expertProfile} alt="Hanane — ECOLYN" width="900" height="1120" loading="lazy" /><span>ECOLYN</span></div><div className="after-hanane__copy"><p>{lang === 'fr' ? 'La personne derrière les conseils' : 'الشخص الذي يقف خلف النصائح'}</p><h2>{lang === 'fr' ? <>Hanane commence par <em>vous écouter.</em></> : <>حنان تبدأ <em>بالاستماع إليك.</em></>}</h2><span>{lang === 'fr' ? 'Elle vous aide à clarifier vos priorités et à éviter les changements inutiles, sans poser de diagnostic en ligne.' : 'تساعدك على توضيح أولوياتك وتجنب التغييرات غير الضرورية، من دون تشخيص عبر الإنترنت.'}</span><div><b><Check /> {lang === 'fr' ? 'Écouter la situation réelle' : 'فهم الوضع الحقيقي'}</b><b><Check /> {lang === 'fr' ? 'Simplifier les priorités' : 'تبسيط الأولويات'}</b><b><Check /> {lang === 'fr' ? 'Orienter avec prudence' : 'التوجيه بحذر'}</b></div><button className="journey-primary" type="button" onClick={goToForm}>{lang === 'fr' ? 'Expliquer ma situation à Hanane' : 'اشرحي حالتك لحنان'} <MessageCircle /></button></div></div></section>
+    <section className="after-hanane" id="hanane"><div className="journey-wrap after-hanane__shell"><div className="after-hanane__photo"><img src={siteConfig.assets.expertProfile} alt="Hanane — ECOLYN" width="900" height="1120" loading="lazy" /><span>ECOLYN</span></div><div className="after-hanane__copy"><p>{lang === 'fr' ? 'La personne derrière les conseils' : 'الشخص الذي يقف خلف النصائح'}</p><h2>{lang === 'fr' ? <>Hanane commence par <em>vous écouter.</em></> : <>حنان تبدأ <em>بالاستماع إليك.</em></>}</h2><span>{lang === 'fr' ? 'Elle vous aide à clarifier vos priorités et à éviter les changements inutiles, sans poser de diagnostic en ligne.' : 'تساعدك على توضيح أولوياتك وتجنب التغييرات غير الضرورية، من دون تشخيص عبر الإنترنت.'}</span><div><b><Check /> {lang === 'fr' ? 'Écouter la situation réelle' : 'فهم الوضع الحقيقي'}</b><b><Check /> {lang === 'fr' ? 'Simplifier les priorités' : 'تبسيط الأولويات'}</b><b><Check /> {lang === 'fr' ? 'Orienter avec prudence' : 'التوجيه بحذر'}</b></div><button className="journey-primary" type="button" onClick={goToForm}>{lang === 'fr' ? 'Être contactée par Hanane' : 'تواصلي مع حنان'} <MessageCircle /></button></div></div></section>
     <section className="after-whatsapp"><div className="journey-wrap"><div><MessageCircle /><span><small>{lang === 'fr' ? 'Conseils courts et rappels utiles' : 'نصائح قصيرة وتذكيرات مفيدة'}</small><b>{lang === 'fr' ? 'Rejoignez le groupe ECOLYN sur WhatsApp' : 'انضمي إلى مجموعة ECOLYN على WhatsApp'}</b></span></div><a href={whatsappGroupHref} target="_blank" rel="noreferrer" onClick={() => track('join_whatsapp_group', { source: 'homepage_invitation' })}>{lang === 'fr' ? 'Rejoindre le groupe' : 'الانضمام إلى المجموعة'} <ArrowUpRight /></a></div></section>
   </>
 }

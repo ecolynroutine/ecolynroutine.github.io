@@ -48,16 +48,16 @@ export default function ThankYou() {
         <h1>{confirmed ? (lang === 'fr' ? 'Votre demande a bien été reçue ✅' : 'تم استلام طلبك بنجاح ✅') : (lang === 'fr' ? 'Vous n’avez pas encore envoyé de demande.' : 'لم ترسلي أي طلب بعد.')}</h1>
         <p className="thank-you-copy">
           {confirmed ? (lang === 'fr'
-            ? 'Hanane pourra maintenant consulter les informations que vous avez envoyées et vous contacter sur WhatsApp.'
-            : 'يمكن لحنان الآن مراجعة المعلومات التي أرسلتِها والتواصل معك عبر WhatsApp.') : (lang === 'fr'
-              ? 'Cette page confirme uniquement les demandes réellement envoyées. Commencez le formulaire pour nous expliquer votre situation.'
-              : 'تؤكد هذه الصفحة الطلبات التي تم إرسالها فعلاً. ابدئي النموذج واشرحي لنا حالتك.')}
+            ? 'Hanane dispose maintenant de vos coordonnées et, si vous avez effectué les 3 choix, de vos réponses. Elle pourra vous contacter personnellement sur WhatsApp afin d’étudier votre situation avec vous.'
+            : 'أصبحت لدى حنان الآن معلومات التواصل الخاصة بك، وإذا أكملتِ الاختيارات الثلاثة فستتوفر أيضاً على إجاباتك. وستتواصل معك شخصياً عبر WhatsApp لفهم حالتك معك بشكل أفضل.') : (lang === 'fr'
+              ? 'Cette page confirme uniquement les demandes réellement envoyées. Commencez le formulaire et laissez simplement vos coordonnées.'
+              : 'تؤكد هذه الصفحة الطلبات التي تم إرسالها فعلاً. ابدئي النموذج واتركي فقط معلومات التواصل الخاصة بك.')}
         </p>
         {confirmed && reference && <span className="thank-you-reference">{reference}</span>}
         {confirmed && <div className="thank-you-timeline">
           <div><span><Check /></span><p><strong>{lang === 'fr' ? 'Demande reçue' : 'تم استلام الطلب'}</strong><small>{lang === 'fr' ? 'Vos informations sont protégées.' : 'معلوماتك محمية.'}</small></p></div>
-          <div><span><HeartHandshake /></span><p><strong>{lang === 'fr' ? 'Analyse personnalisée' : 'مراجعة شخصية'}</strong><small>{lang === 'fr' ? 'Hanane étudie votre situation.' : 'تراجع حنان حالتك.'}</small></p></div>
-          <div><span><MessageCircle /></span><p><strong>{lang === 'fr' ? 'Réponse sur WhatsApp' : 'الرد عبر WhatsApp'}</strong><small>{lang === 'fr' ? 'Vous recevrez les prochaines étapes.' : 'ستصلك الخطوات التالية.'}</small></p></div>
+          <div><span><HeartHandshake /></span><p><strong>{lang === 'fr' ? 'Échange avec Hanane' : 'التواصل مع حنان'}</strong><small>{lang === 'fr' ? 'Hanane prendra le temps de comprendre votre situation avec vous.' : 'ستأخذ حنان الوقت لفهم حالتك معك.'}</small></p></div>
+          <div><span><MessageCircle /></span><p><strong>{lang === 'fr' ? 'Conseils sur WhatsApp' : 'نصائح عبر WhatsApp'}</strong><small>{lang === 'fr' ? 'Vous recevrez les prochaines étapes.' : 'ستصلك الخطوات التالية.'}</small></p></div>
         </div>}
         {confirmed && <section className="thank-you-group">
           <p>{lang === 'fr' ? 'En attendant, rejoignez notre groupe gratuit de conseils skincare.' : 'في انتظار الرد، انضمي إلى مجموعتنا المجانية لنصائح العناية بالبشرة.'}</p>

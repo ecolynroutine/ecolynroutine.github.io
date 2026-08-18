@@ -1288,7 +1288,7 @@ function SimpleLeadForm({ lang, concerns: selectedConcerns, profiles, contexts, 
           <strong>{lang === 'fr' ? 'CONSEILS PERSONNALISÉS 100 % GRATUITS' : 'نصائح شخصية مجانية 100%'}</strong>
           <p>{lang === 'fr' ? 'Votre demande sera examinée par Hanane' : 'ستراجع حنان طلبك شخصياً'}</p>
           <small>{lang === 'fr' ? 'Expertise en esthétique et soins de la peau' : 'خبرة في التجميل والعناية بالبشرة'}</small>
-          <span>{lang === 'fr' ? 'Hanane prendra le temps de lire les informations que vous nous envoyez afin de mieux comprendre votre situation. Elle vous contactera ensuite personnellement sur WhatsApp pour échanger avec vous et vous donner ses conseils.' : 'ستراجع حنان المعلومات التي ترسلينها حتى تفهم حالتك بشكل أفضل، ثم ستتواصل معك شخصياً عبر WhatsApp للحديث معك وتقديم النصائح المناسبة.'}</span>
+          <span>{lang === 'fr' ? 'Hanane vous contactera personnellement sur WhatsApp afin de mieux comprendre votre situation avec vous et vous donner ses conseils.' : 'ستتواصل معك حنان شخصياً عبر WhatsApp لفهم حالتك معك بشكل أفضل وتقديم النصائح المناسبة.'}</span>
         </div>
         <ul>
           <li><Check /> {lang === 'fr' ? '100 % gratuit' : 'الخدمة مجانية 100%'}</li>
@@ -1312,7 +1312,7 @@ function SimpleLeadForm({ lang, concerns: selectedConcerns, profiles, contexts, 
           </div>
           <p className="medical-note">{lang === 'fr' ? 'Ces conseils sont informatifs. Une situation sévère, inhabituelle ou persistante doit être présentée à un dermatologue.' : 'هذه النصائح تثقيفية. يجب عرض أي حالة شديدة أو غير معتادة أو مستمرة على طبيب جلد.'}</p>
         </div>
-        <form ref={formRef} onSubmit={onSubmit} onFocusCapture={begin} onInputCapture={begin} onChangeCapture={begin} className="lead-form lead-form--short">
+        <form id="ecolyn-lead-form" ref={formRef} onSubmit={onSubmit} onFocusCapture={begin} onInputCapture={begin} onChangeCapture={begin} className="lead-form lead-form--short">
           <div className="form-step-heading"><span>01</span><div><p>{lang === 'fr' ? 'Votre demande' : 'طلبك'}</p><h3>{lang === 'fr' ? 'Comment pouvons-nous vous joindre ?' : 'كيف يمكننا التواصل معك؟'}</h3></div></div>
           {hasCompleteChoices && <div className="form-choice-summary">
             <div><p>{lang === 'fr' ? 'Nous avons retenu :' : 'اختياراتك:'}</p><span>{summaryChoices.map(choice => <b key={choice}><Check /> {choice}</b>)}</span></div>
@@ -1329,7 +1329,6 @@ function SimpleLeadForm({ lang, concerns: selectedConcerns, profiles, contexts, 
             <input type="hidden" name="selectedContextsJson" value={JSON.stringify(contexts)} />
             <input type="hidden" name="contactConsent" value="yes" />
             <p className="contact-consent-note field--wide">{lang === 'fr' ? 'En envoyant ce formulaire, vous acceptez d’être contactée par notre experte au sujet de votre demande.' : 'بإرسال هذا النموذج، توافقين على أن تتواصل معك خبيرتنا بخصوص طلبك.'}</p>
-            <label className="check-field field--wide"><input type="checkbox" name="marketingConsent" value="yes" defaultChecked /><span>{lang === 'fr' ? 'J’autorise ECOLYN à transmettre à Meta, de façon sécurisée, les informations nécessaires pour mesurer si cette demande provient d’une publicité. Vous pouvez décocher cette autorisation.' : 'أسمح لـ ECOLYN بإرسال المعلومات اللازمة إلى Meta بشكل آمن لقياس ما إذا كان هذا الطلب ناتجاً عن إعلان. يمكنك إلغاء هذا الخيار.'}</span></label>
           </div>
           {error && <p className="form-error" role="alert">{error}</p>}
           <div className="form-navigation short-form-submit">
@@ -1429,6 +1428,33 @@ function FAQ({ lang }: { lang: Language }) {
             </article>
           ))}
         </div>
+      </div>
+    </Reveal>
+  )
+}
+
+function PrivacyConsent({ lang }: { lang: Language }) {
+  return (
+    <Reveal className="privacy-consent" id="confidentialite">
+      <div className="section-wrap privacy-consent__shell">
+        <div className="privacy-consent__intro">
+          <span><ShieldCheck /></span>
+          <div>
+            <h2>{lang === 'fr' ? 'Confidentialité' : 'الخصوصية'}</h2>
+            <p>{lang === 'fr'
+              ? 'Vos informations servent à traiter votre demande et à permettre à Hanane de vous contacter. ECOLYN peut également utiliser des données techniques limitées pour mesurer si une demande provient d’une publicité.'
+              : 'تُستخدم معلوماتك لمعالجة طلبك والسماح لحنان بالتواصل معك. ويمكن لإيكولين أيضاً استخدام بيانات تقنية محدودة لقياس ما إذا كان الطلب قد جاء من إعلان.'}</p>
+          </div>
+        </div>
+        <label className="privacy-consent__choice">
+          <input type="checkbox" name="marketingConsent" value="yes" defaultChecked form="ecolyn-lead-form" />
+          <span>
+            <strong>{lang === 'fr' ? 'Mesure publicitaire' : 'قياس أداء الإعلانات'}</strong>
+            <small>{lang === 'fr'
+              ? 'J’autorise ECOLYN à transmettre de manière sécurisée les informations nécessaires pour mesurer si ma demande provient d’une publicité. Je peux désactiver cette option.'
+              : 'أسمح لإيكولين بإرسال المعلومات الضرورية بشكل آمن لقياس ما إذا كان طلبي قد جاء من إعلان، ويمكنني إلغاء هذا الخيار.'}</small>
+          </span>
+        </label>
       </div>
     </Reveal>
   )
@@ -1621,6 +1647,7 @@ export default function App() {
         <DiscoveryAfterForm lang={lang} openArticle={openArticle} />
         <Events lang={lang} />
         <FAQ lang={lang} />
+        <PrivacyConsent lang={lang} />
       </main>
       <Footer lang={lang} openLegal={setLegal} journeyComplete={journeyComplete} />
       <a className="sticky-advice" href="#form-fields" data-form-cta="sticky" data-journey-source="sticky">
