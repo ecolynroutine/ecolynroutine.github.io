@@ -1197,10 +1197,25 @@ function SimpleLeadForm({ lang, concerns: selectedConcerns, profiles, contexts, 
     const observer = new IntersectionObserver(([entry]) => {
       document.body.classList.toggle('form-in-view', entry.isIntersecting)
     }, { threshold: .08 })
+    let animationFrame = 0
+    const updateFormPassed = () => {
+      document.body.classList.toggle('form-passed', section.getBoundingClientRect().bottom <= 0)
+    }
+    const scheduleFormPassedUpdate = () => {
+      cancelAnimationFrame(animationFrame)
+      animationFrame = requestAnimationFrame(updateFormPassed)
+    }
     observer.observe(section)
+    updateFormPassed()
+    window.addEventListener('scroll', scheduleFormPassedUpdate, { passive: true })
+    window.addEventListener('resize', scheduleFormPassedUpdate)
     return () => {
       observer.disconnect()
+      cancelAnimationFrame(animationFrame)
+      window.removeEventListener('scroll', scheduleFormPassedUpdate)
+      window.removeEventListener('resize', scheduleFormPassedUpdate)
       document.body.classList.remove('form-in-view')
+      document.body.classList.remove('form-passed')
     }
   }, [])
 
@@ -1656,7 +1671,7 @@ export default function App() {
         <ArrowUpRight />
       </a>
       <a
-        className={`whatsapp-group-float${journeyComplete ? ' whatsapp-group-float--quiet' : ''}`}
+        className="whatsapp-group-float"
         href={whatsappGroupHref}
         target="_blank"
         rel="noreferrer"
