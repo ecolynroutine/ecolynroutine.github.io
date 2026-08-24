@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import './admin.css'
 import {
   ArrowLeft, CalendarDays, Check, ChevronRight, Download, FileText, LayoutDashboard,
-  LogOut, RefreshCw, Search, Settings2, ShoppingBag, SlidersHorizontal, UserRound, X,
+  LogOut, MessageCircle, RefreshCw, Search, Settings2, ShoppingBag, SlidersHorizontal, UserRound, X,
 } from 'lucide-react'
 import type { User } from '@supabase/supabase-js'
 import { getAdminSession, signOutAdmin } from '../lib/admin'
@@ -12,6 +12,7 @@ import { getTrackingDiagnostics, initializeTracking, track, type TrackingDiagnos
 
 type Tab = 'prospects' | 'live' | 'commerce' | 'trackings'
 type ProspectStatus = 'nouveau' | 'a_contacter' | 'contacte' | 'qualifie' | 'converti' | 'archive'
+type ProspectCategory = 'tous' | 'conseils' | 'commandes'
 
 interface Prospect {
   id: string
@@ -145,6 +146,53 @@ function csvCell(value: unknown) {
   return `"${text.replace(/"/g, '""')}"`
 }
 
+function isPackOrder(prospect: Prospect) {
+  return prospect.source === 'ecolyn_pack_builder' || prospect.answers?.type === 'pack_order'
+}
+
+function readableOrderSummary(prospect: Prospect) {
+  const answers = prospect.answers || {}
+  const listedProducts = Array.isArray(answers.selectedProductIds)
+    ? answers.selectedProductIds
+    : Array.isArray(answers.selectedProducts) ? answers.selectedProducts : []
+  const rawCount = Number(answers.numberOfProducts)
+  const count = Number.isFinite(rawCount) && rawCount > 0 ? rawCount : listedProducts.length || null
+  const rawTotal = answers.promoTotalDh == null || answers.promoTotalDh === '' ? Number.NaN : Number(answers.promoTotalDh)
+  const total = Number.isFinite(rawTotal) && rawTotal >= 0 ? rawTotal : null
+  const productText = count == null ? 'Commande' : `${count} produit${count > 1 ? 's' : ''}`
+  return total == null ? productText : `${productText} · ${total} DH`
+}
+
+function prospectSummary(prospect: Prospect) {
+  return isPackOrder(prospect) ? readableOrderSummary(prospect) : 'Demande skincare'
+}
+
+function normalizeMoroccanWhatsapp(value: string) {
+  const rawDigits = value.replace(/\D/g, '')
+  const digits = rawDigits.startsWith('00212') ? rawDigits.slice(2) : rawDigits
+  if (/^0[67]\d{8}$/.test(digits)) return `212${digits.slice(1)}`
+  if (/^212[67]\d{8}$/.test(digits)) return digits
+  return null
+}
+
+function prospectWhatsappUrl(prospect: Prospect) {
+  const number = normalizeMoroccanWhatsapp(prospect.whatsapp || '')
+  if (!number) return null
+  const name = (prospect.first_name || '').trim()
+  const greeting = name ? `Bonjour ${name},` : 'Bonjour,'
+  const message = isPackOrder(prospect)
+    ? `${greeting} je vous contacte de la part d’ECOLYN concernant votre commande.`
+    : `${greeting} c’est Hanane d’ECOLYN. Je vous contacte concernant votre demande de conseils.`
+  return `https://wa.me/${number}?text=${encodeURIComponent(message)}`
+}
+
+function ProspectWhatsappLink({ prospect, prominent = false }: { prospect: Prospect; prominent?: boolean }) {
+  const url = prospectWhatsappUrl(prospect)
+  const className = `admin-whatsapp-link${prominent ? ' admin-whatsapp-link--prominent' : ''}`
+  if (!url) return <span className={`${className} is-disabled`} aria-disabled="true"><MessageCircle /> WhatsApp indisponible</span>
+  return <a className={className} href={url} target="_blank" rel="noreferrer" aria-label={`Ouvrir WhatsApp avec ${prospect.first_name}`}><MessageCircle /> WhatsApp</a>
+}
+
 function downloadCsv(rows: Prospect[]) {
   const columns: Array<[string, (row: Prospect) => unknown]> = [
     ['Référence', row => row.reference],
@@ -208,6 +256,7 @@ function ProspectsPanel() {
   const [error, setError] = useState('')
   const [search, setSearch] = useState('')
   const [status, setStatus] = useState<'tous' | ProspectStatus>('tous')
+  const [category, setCategory] = useState<ProspectCategory>('tous')
   const [selected, setSelected] = useState<Prospect | null>(null)
   const [savingId, setSavingId] = useState('')
   const [photo, setPhoto] = useState('')
@@ -231,13 +280,15 @@ function ProspectsPanel() {
     const needle = search.trim().toLocaleLowerCase('fr')
     return prospects.filter(prospect => {
       if (status !== 'tous' && prospect.status !== status) return false
+      if (category === 'conseils' && isPackOrder(prospect)) return false
+      if (category === 'commandes' && !isPackOrder(prospect)) return false
       if (!needle) return true
       return [
         prospect.reference, prospect.first_name, prospect.whatsapp, prospect.email,
         prospect.city, prospect.primary_concern, prospect.source,
       ].some(value => value?.toLocaleLowerCase('fr').includes(needle))
     })
-  }, [prospects, search, status])
+  }, [prospects, search, status, category])
 
   const updateStatus = async (prospect: Prospect, nextStatus: ProspectStatus) => {
     const supabase = getSupabase()
@@ -303,24 +354,30 @@ function ProspectsPanel() {
         <span className="admin-result-count">{filtered.length} résultat{filtered.length === 1 ? '' : 's'}</span>
       </div>
 
+      <div className="admin-category-filter" aria-label="Filtrer par type de prospect">
+        {([['tous', 'Tous'], ['conseils', 'Conseils'], ['commandes', 'Commandes']] as const).map(([value, label]) => (
+          <button type="button" className={category === value ? 'is-active' : ''} onClick={() => setCategory(value)} key={value}>{label}</button>
+        ))}
+      </div>
+
       {error && <p className="admin-alert" role="alert">{error}</p>}
       {loading ? <div className="admin-loading"><RefreshCw /> Chargement sécurisé…</div> : (
         <div className="admin-table-wrap">
           <table className="admin-table">
-            <thead><tr><th>Prospect</th><th>Besoin</th><th>Source</th><th>Date</th><th>Statut</th><th><span className="sr-only">Détails</span></th></tr></thead>
+            <thead><tr><th>Prospect</th><th>Besoin</th><th>Type</th><th>Date</th><th>Statut</th><th>Actions</th></tr></thead>
             <tbody>
               {filtered.map(prospect => (
                 <tr key={prospect.id}>
                   <td><strong>{prospect.first_name}</strong><span>{prospect.whatsapp}</span><small>{prospect.email || prospect.reference}</small></td>
                   <td><strong>{prospect.primary_concern}</strong><span>{prospect.city} · {prospect.skin_type || 'Type non précisé'}</span></td>
-                  <td><span className="admin-source">{prospect.source}</span><small>{prospect.language.toUpperCase()}</small></td>
+                  <td><span className={`admin-lead-badge admin-lead-badge--${isPackOrder(prospect) ? 'order' : 'advice'}`}>{isPackOrder(prospect) ? 'Commande' : 'Conseil'}</span><strong className="admin-lead-summary">{prospectSummary(prospect)}</strong><small>{prospect.source} · {prospect.language.toUpperCase()}</small></td>
                   <td><span>{new Intl.DateTimeFormat('fr-MA', { dateStyle: 'medium' }).format(new Date(prospect.created_at))}</span><small>{new Intl.DateTimeFormat('fr-MA', { timeStyle: 'short' }).format(new Date(prospect.created_at))}</small></td>
                   <td>
                     <select className={`admin-status admin-status--${prospect.status}`} value={prospect.status} disabled={savingId === prospect.id} onChange={event => void updateStatus(prospect, event.target.value as ProspectStatus)}>
                       {Object.entries(statusLabels).map(([value, label]) => <option value={value} key={value}>{label}</option>)}
                     </select>
                   </td>
-                  <td><button className="admin-icon-button" onClick={() => { setSelected(prospect); setPhoto('') }} aria-label={`Voir ${prospect.first_name}`}><ChevronRight /></button></td>
+                  <td><div className="admin-row-actions"><ProspectWhatsappLink prospect={prospect} /><button className="admin-icon-button" onClick={() => { setSelected(prospect); setPhoto('') }} aria-label={`Voir ${prospect.first_name}`}><ChevronRight /></button></div></td>
                 </tr>
               ))}
               {!filtered.length && <tr><td colSpan={6}><div className="admin-empty"><FileText /><strong>Aucun prospect trouvé</strong><span>Modifiez les filtres ou revenez plus tard.</span></div></td></tr>}
@@ -335,7 +392,9 @@ function ProspectsPanel() {
             <button className="admin-drawer-close" onClick={() => setSelected(null)} aria-label="Fermer"><X /></button>
             <p className="admin-kicker">{selected.reference}</p>
             <h2>{selected.first_name}</h2>
-            <div className="admin-contact-row"><a href={`https://wa.me/${selected.whatsapp.replace(/\D/g, '')}`} target="_blank" rel="noreferrer">{selected.whatsapp}</a>{selected.email && <a href={`mailto:${selected.email}`}>{selected.email}</a>}</div>
+            <div className="admin-drawer-category"><span className={`admin-lead-badge admin-lead-badge--${isPackOrder(selected) ? 'order' : 'advice'}`}>{isPackOrder(selected) ? 'Commande' : 'Conseil'}</span><strong>{prospectSummary(selected)}</strong></div>
+            <div className="admin-contact-row"><span>{selected.whatsapp || 'Téléphone non renseigné'}</span>{selected.email && <a href={`mailto:${selected.email}`}>{selected.email}</a>}</div>
+            <ProspectWhatsappLink prospect={selected} prominent />
             <label className="admin-detail-status">Statut<select value={selected.status} disabled={savingId === selected.id} onChange={event => void updateStatus(selected, event.target.value as ProspectStatus)}>{Object.entries(statusLabels).map(([value, label]) => <option value={value} key={value}>{label}</option>)}</select></label>
             <div className="admin-detail-grid">
               {Object.entries(selected.answers || {}).filter(([key]) => !['contactConsent', 'marketingConsent', 'photoConsent'].includes(key)).map(([key, value]) => (
