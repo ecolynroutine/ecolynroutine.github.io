@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import './admin.css'
 import {
   ArrowLeft, CalendarDays, Check, ChevronRight, Download, FileText, LayoutDashboard,
-  LogOut, RefreshCw, Search, Settings2, SlidersHorizontal, UserRound, X,
+  LogOut, RefreshCw, Search, Settings2, ShoppingBag, SlidersHorizontal, UserRound, X,
 } from 'lucide-react'
 import type { User } from '@supabase/supabase-js'
 import { getAdminSession, signOutAdmin } from '../lib/admin'
@@ -10,7 +10,7 @@ import { navigate, routeUrl } from '../lib/navigation'
 import { getSupabase } from '../lib/supabase'
 import { getTrackingDiagnostics, initializeTracking, track, type TrackingDiagnostics } from '../lib/tracking'
 
-type Tab = 'prospects' | 'live' | 'trackings'
+type Tab = 'prospects' | 'live' | 'commerce' | 'trackings'
 type ProspectStatus = 'nouveau' | 'a_contacter' | 'contacte' | 'qualifie' | 'converti' | 'archive'
 
 interface Prospect {
@@ -99,6 +99,45 @@ const answerLabels: Record<string, string> = {
   selectedConcerns: 'Préoccupations sélectionnées',
   selectedSkinProfiles: 'Profils de peau sélectionnés',
   selectedContexts: 'Contextes sélectionnés',
+  type: 'Type de demande',
+  selectedProductIds: 'Identifiants produits',
+  selectedProducts: 'Produits commandés',
+  numberOfProducts: 'Nombre de produits',
+  separateValueDh: 'Valeur séparée (DH)',
+  promoTotalDh: 'Prix promo (DH)',
+  savingsDh: 'Économie (DH)',
+  shippingDh: 'Livraison (DH)',
+  deliveryAddress: 'Adresse de livraison',
+}
+
+interface CommerceForm {
+  offer_active: boolean
+  offer_end_at: string
+  free_shipping: boolean
+  shipping_fee_dh: number
+  whatsapp_number: string
+  whatsapp_message_fr: string
+  whatsapp_message_ar: string
+  product_prices: Record<string, number>
+  bundle_prices: Record<string, number>
+}
+
+const defaultCommerceForm: CommerceForm = {
+  offer_active: true,
+  offer_end_at: '',
+  free_shipping: true,
+  shipping_fee_dh: 40,
+  whatsapp_number: '212699072913',
+  whatsapp_message_fr: 'Bonjour Hanane, j’ai une question avant de composer ma routine ECOLYN.',
+  whatsapp_message_ar: 'سلام حنان، عندي سؤال قبل ما نختار روتين إيكولين ديالي.',
+  product_prices: { cream: 99, cleanser: 103, sunscreen: 108, serum: 113 },
+  bundle_prices: {
+    'cream+cleanser': 152, 'cream+sunscreen': 155, 'cream+serum': 157,
+    'cleanser+sunscreen': 159, 'cleanser+serum': 161, 'sunscreen+serum': 164,
+    'cream+cleanser+sunscreen': 208, 'cream+cleanser+serum': 210,
+    'cream+sunscreen+serum': 213, 'cleanser+sunscreen+serum': 217,
+    'cream+cleanser+sunscreen+serum': 266,
+  },
 }
 
 function csvCell(value: unknown) {
@@ -401,7 +440,7 @@ function TrackingPanel() {
       )}
       <div className="tracking-events">
         <p className="admin-kicker">Événements couverts</p>
-        <div>{['PageView', 'ViewContent', 'journey_start', 'select_skin_type', 'select_skin_concern', 'select_lifestyle_context', 'personalized_advice_view', 'real_before_after_view', 'real_before_after_interaction', 'real_case_story_open', 'free_consultation_block_view', 'form_cta_click', 'form_view', 'form_start', 'form_submit', 'generate_lead / Lead', 'join_whatsapp_group', 'whatsapp_click', 'story_open', 'story_audio_play', 'article_open', 'article_complete', 'pack_view', 'pack_cta_click', 'live_calendar_click'].map(event => <span key={event}>{event}</span>)}</div>
+        <div>{['PageView', 'ViewContent', 'journey_start', 'select_skin_type', 'select_skin_concern', 'select_lifestyle_context', 'personalized_advice_view', 'real_before_after_view', 'real_before_after_interaction', 'real_case_story_open', 'free_consultation_block_view', 'form_cta_click', 'form_view', 'form_start', 'form_submit', 'generate_lead / Lead', 'join_whatsapp_group', 'whatsapp_click', 'story_open', 'story_audio_play', 'article_open', 'article_complete', 'pack_view', 'product_add', 'product_remove', 'cart_view', 'checkout_start', 'pack_cta_click', 'order_submit', 'live_calendar_click'].map(event => <span key={event}>{event}</span>)}</div>
       </div>
       <div className="tracking-diagnostics">
         <div className="tracking-diagnostics__head">
@@ -575,6 +614,98 @@ function LivePanel() {
   )
 }
 
+const commerceProductLabels: Record<string, string> = {
+  cream: 'Crème hydratante', cleanser: 'Mousse nettoyante', sunscreen: 'Écran solaire SPF50', serum: 'Sérum',
+}
+
+const commerceBundleLabels: Record<string, string> = {
+  'cream+cleanser': 'Crème + Mousse', 'cream+sunscreen': 'Crème + Écran', 'cream+serum': 'Crème + Sérum',
+  'cleanser+sunscreen': 'Mousse + Écran', 'cleanser+serum': 'Mousse + Sérum', 'sunscreen+serum': 'Écran + Sérum',
+  'cream+cleanser+sunscreen': 'Crème + Mousse + Écran', 'cream+cleanser+serum': 'Crème + Mousse + Sérum',
+  'cream+sunscreen+serum': 'Crème + Écran + Sérum', 'cleanser+sunscreen+serum': 'Mousse + Écran + Sérum',
+  'cream+cleanser+sunscreen+serum': 'Les 4 produits',
+}
+
+function CommercePanel() {
+  const [form, setForm] = useState<CommerceForm>(defaultCommerceForm)
+  const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
+  const [message, setMessage] = useState('')
+  const [error, setError] = useState('')
+
+  useEffect(() => {
+    const load = async () => {
+      const supabase = getSupabase()
+      if (!supabase) return
+      const { data, error: loadError } = await supabase.from('commerce_settings').select('*').eq('id', 1).single()
+      if (loadError) setError('Impossible de charger l’offre. Exécutez le fichier supabase/commerce_offer_patch.sql dans Supabase.')
+      else if (data) setForm({
+        offer_active: Boolean(data.offer_active),
+        offer_end_at: dateTimeLocal(data.offer_end_at),
+        free_shipping: Boolean(data.free_shipping),
+        shipping_fee_dh: Number(data.shipping_fee_dh ?? 40),
+        whatsapp_number: data.whatsapp_number || '',
+        whatsapp_message_fr: data.whatsapp_message_fr || '',
+        whatsapp_message_ar: data.whatsapp_message_ar || '',
+        product_prices: { ...defaultCommerceForm.product_prices, ...(data.product_prices || {}) },
+        bundle_prices: { ...defaultCommerceForm.bundle_prices, ...(data.bundle_prices || {}) },
+      })
+      setLoading(false)
+    }
+    void load()
+  }, [])
+
+  const setPrice = (group: 'product_prices' | 'bundle_prices', key: string, value: string) => {
+    const price = Number(value)
+    setForm(current => ({ ...current, [group]: { ...current[group], [key]: Number.isFinite(price) ? price : 0 } }))
+  }
+
+  const save = async () => {
+    setError(''); setMessage('')
+    if (form.offer_active && (!form.offer_end_at || new Date(form.offer_end_at).getTime() <= Date.now())) return setError('Choisissez une date de fin future avant d’activer l’offre.')
+    if (!/^\d{10,15}$/.test(form.whatsapp_number.replace(/\D/g, ''))) return setError('Le numéro WhatsApp doit contenir 10 à 15 chiffres, avec le code pays.')
+    if ([...Object.values(form.product_prices), ...Object.values(form.bundle_prices)].some(value => !Number.isFinite(value) || value < 0)) return setError('Tous les prix doivent être des nombres positifs.')
+    const supabase = getSupabase(); if (!supabase) return
+    setSaving(true)
+    const { error: saveError } = await supabase.from('commerce_settings').update({
+      offer_active: form.offer_active,
+      offer_end_at: form.offer_end_at ? new Date(form.offer_end_at).toISOString() : null,
+      free_shipping: form.free_shipping,
+      shipping_fee_dh: form.shipping_fee_dh,
+      whatsapp_number: form.whatsapp_number.replace(/\D/g, ''),
+      whatsapp_message_fr: form.whatsapp_message_fr.trim(),
+      whatsapp_message_ar: form.whatsapp_message_ar.trim(),
+      product_prices: form.product_prices,
+      bundle_prices: form.bundle_prices,
+    }).eq('id', 1)
+    if (saveError) setError('L’offre n’a pas été enregistrée. Vérifiez le SQL et vos droits administrateur.')
+    else setMessage('Offre enregistrée. La landing page /pack chargera ces valeurs à la prochaine visite.')
+    setSaving(false)
+  }
+
+  if (loading) return <section className="admin-panel"><div className="admin-loading"><RefreshCw /> Chargement sécurisé…</div></section>
+
+  return (
+    <section className="admin-panel">
+      <div className="admin-panel-heading"><div><p className="admin-kicker">Landing page vente</p><h1>Offre commerciale</h1><span>Une date globale, les prix exacts et le contact privé de Hanane.</span></div></div>
+      <div className="commerce-grid">
+        <article className="commerce-card commerce-card--status">
+          <div><strong>Offre active</strong><span>À l’expiration, les ajouts et la commande sont bloqués.</span></div>
+          <label className="admin-switch"><input type="checkbox" checked={form.offer_active} onChange={event => setForm(current => ({ ...current, offer_active: event.target.checked }))} /><i /><span>{form.offer_active ? 'Active' : 'Inactive'}</span></label>
+          <label><span>Date et heure globale de fin</span><input type="datetime-local" value={form.offer_end_at} onChange={event => setForm(current => ({ ...current, offer_end_at: event.target.value }))} /></label>
+          <label className="commerce-checkbox"><input type="checkbox" checked={form.free_shipping} onChange={event => setForm(current => ({ ...current, free_shipping: event.target.checked }))} /><span>Livraison offerte pendant l’offre</span></label>
+          <label><span>Frais hors offre (DH)</span><input type="number" min="0" step="1" value={form.shipping_fee_dh} onChange={event => setForm(current => ({ ...current, shipping_fee_dh: Number(event.target.value) }))} /></label>
+        </article>
+        <article className="commerce-card"><h2>Contact privé Hanane</h2><label><span>Numéro WhatsApp avec code pays</span><input inputMode="numeric" value={form.whatsapp_number} onChange={event => setForm(current => ({ ...current, whatsapp_number: event.target.value }))} placeholder="212699072913" /></label><label><span>Message français</span><textarea rows={3} value={form.whatsapp_message_fr} onChange={event => setForm(current => ({ ...current, whatsapp_message_fr: event.target.value }))} /></label><label dir="rtl"><span>الرسالة بالعربية</span><textarea rows={3} value={form.whatsapp_message_ar} onChange={event => setForm(current => ({ ...current, whatsapp_message_ar: event.target.value }))} /></label></article>
+      </div>
+      <article className="commerce-card commerce-prices"><h2>Prix promo individuels</h2><div>{Object.entries(commerceProductLabels).map(([key, label]) => <label key={key}><span>{label}</span><input type="number" min="0" step="1" value={form.product_prices[key]} onChange={event => setPrice('product_prices', key, event.target.value)} /><small>DH</small></label>)}</div></article>
+      <article className="commerce-card commerce-prices"><h2>Prix promo des combinaisons</h2><div>{Object.entries(commerceBundleLabels).map(([key, label]) => <label key={key}><span>{label}</span><input type="number" min="0" step="1" value={form.bundle_prices[key]} onChange={event => setPrice('bundle_prices', key, event.target.value)} /><small>DH</small></label>)}</div></article>
+      {error && <p className="admin-alert" role="alert">{error}</p>}{message && <p className="admin-success" role="status"><Check /> {message}</p>}
+      <button className="admin-primary-button commerce-save" onClick={() => void save()} disabled={saving}><ShoppingBag /> {saving ? 'Enregistrement…' : 'Enregistrer l’offre commerciale'}</button>
+    </section>
+  )
+}
+
 function TrackingCard({ name, hint, value, enabled, onValue, onEnabled, placeholder }: {
   name: string
   hint: string
@@ -615,13 +746,14 @@ export default function AdminDashboard() {
         <nav>
           <button className={tab === 'prospects' ? 'is-active' : ''} onClick={() => setTab('prospects')}><LayoutDashboard /> Prospects</button>
           <button className={tab === 'live' ? 'is-active' : ''} onClick={() => setTab('live')}><CalendarDays /> Live</button>
+          <button className={tab === 'commerce' ? 'is-active' : ''} onClick={() => setTab('commerce')}><ShoppingBag /> Offre vente</button>
           <button className={tab === 'trackings' ? 'is-active' : ''} onClick={() => setTab('trackings')}><Settings2 /> Trackings</button>
         </nav>
         <div className="admin-sidebar-account"><UserRound /><div><strong>{user.email}</strong><span>Administrateur</span></div></div>
         <button className="admin-logout" onClick={() => void signOutAdmin().then(() => navigate('admin-login', {}, true))}><LogOut /> Se déconnecter</button>
         <a className="admin-site-link" href={routeUrl('home')}><ArrowLeft /> Voir le site</a>
       </aside>
-      <div className="admin-content">{tab === 'prospects' ? <ProspectsPanel /> : tab === 'live' ? <LivePanel /> : <TrackingPanel />}</div>
+      <div className="admin-content">{tab === 'prospects' ? <ProspectsPanel /> : tab === 'live' ? <LivePanel /> : tab === 'commerce' ? <CommercePanel /> : <TrackingPanel />}</div>
     </main>
   )
 }

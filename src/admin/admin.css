@@ -323,12 +323,37 @@
 .live-admin-preview p { margin: 1rem 0; color: rgba(255,255,255,.78); font-size: .75rem; line-height: 1.55; }
 .live-admin-preview small { display: block; border-top: 1px solid rgba(255,255,255,.14); padding-top: 1rem; color: rgba(255,255,255,.55); font-size: .62rem; line-height: 1.5; }
 .live-admin-save { margin-top: 1rem; }
+.commerce-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; margin-bottom: 1rem; }
+.commerce-card { display: grid; gap: 1rem; border: 1px solid rgba(9,55,74,.09); border-radius: 1.35rem; padding: 1.35rem; background: #fff; box-shadow: 0 1rem 2.5rem rgba(9,55,74,.04); }
+.commerce-card h2 { margin: 0; font-family: "Cormorant Garamond", Georgia, serif; font-size: 1.8rem; font-weight: 600; }
+.commerce-card > label,
+.commerce-card--status > label { display: grid; gap: .42rem; color: #3d626e; font-size: .72rem; font-weight: 700; }
+.commerce-card input:not([type="checkbox"]),
+.commerce-card textarea { width: 100%; border: 1px solid rgba(9,55,74,.15); border-radius: .9rem; outline: 0; padding: 0 1rem; color: #09374a; background: #fff; font: inherit; font-size: .84rem; font-weight: 500; }
+.commerce-card input:not([type="checkbox"]) { min-height: 3.1rem; }
+.commerce-card textarea { padding-block: .8rem; resize: vertical; line-height: 1.5; }
+.commerce-card input:focus,
+.commerce-card textarea:focus { border-color: rgba(212,20,90,.55); box-shadow: 0 0 0 .25rem rgba(212,20,90,.08); }
+.commerce-card--status { grid-template-columns: 1fr auto; align-items: start; }
+.commerce-card--status > label:not(.admin-switch) { grid-column: 1 / -1; }
+.commerce-card--status > div strong,
+.commerce-card--status > div span { display: block; }
+.commerce-card--status > div span { margin-top: .35rem; color: #71868d; font-size: .66rem; }
+.commerce-card--status .commerce-checkbox { display: flex; align-items: center; gap: .6rem; }
+.commerce-checkbox input { width: 1.1rem; height: 1.1rem; accent-color: #d4145a; }
+.commerce-prices { margin-bottom: 1rem; }
+.commerce-prices > div { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: .75rem; }
+.commerce-prices label { position: relative; display: grid; gap: .4rem; color: #3d626e; font-size: .68rem; font-weight: 700; }
+.commerce-prices label small { position: absolute; right: .8rem; bottom: 1rem; color: #71868d; }
+.commerce-prices label input { padding-right: 2.7rem!important; }
+.commerce-save { margin-top: .2rem; }
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0, 0, 0, 0); }
 
 @media (max-width: 1050px) {
   .tracking-grid { grid-template-columns: 1fr; }
   .live-admin-layout { grid-template-columns: 1fr; }
   .live-admin-preview { position: static; }
+  .commerce-prices > div { grid-template-columns: repeat(2,minmax(0,1fr)); }
 }
 
 @media (max-width: 820px) {
@@ -352,6 +377,7 @@
   .live-admin-grid { grid-template-columns: 1fr; }
   .live-admin-wide { grid-column: auto; }
   .tracking-status-grid { grid-template-columns: 1fr; }
+  .commerce-grid { grid-template-columns: 1fr; }
 }
 
 @media (max-width: 560px) {
@@ -367,4 +393,5 @@
   .live-admin-publish { align-items: flex-start; }
   .tracking-diagnostics__head { align-items: flex-start; flex-direction: column; }
   .tracking-diagnostics__head button { width: 100%; }
+  .commerce-prices > div { grid-template-columns: 1fr; }
 }

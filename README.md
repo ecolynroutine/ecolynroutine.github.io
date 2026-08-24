@@ -3,7 +3,7 @@
 Le projet ECOLYN est organisé en deux univers :
 
 - `/` : plateforme éditoriale de conseils gratuits, bilingue FR/AR ;
-- `/pack/` : ancienne landing page commerciale conservée et adaptée.
+- `/pack/` : boutique mobile-first où la cliente compose librement une routine de 1 à 4 produits.
 
 La homepage est un parcours séquentiel mobile-first : la visiteuse choisit son
 type de peau, sa préoccupation principale puis un contexte quotidien. Un moteur
@@ -51,6 +51,7 @@ Le projet inclut maintenant :
 - la recherche, les filtres, les statuts, les notes et l’export CSV ;
 - la programmation bilingue du prochain live et son rappel calendrier ;
 - la configuration dynamique Meta Pixel, TikTok Pixel et GA4 ;
+- la gestion de l’offre `/pack` (date globale, livraison, prix et WhatsApp Hanane) ;
 - la page `/merci` ;
 - les politiques RLS complètes dans `supabase/schema.sql`.
 
@@ -58,6 +59,14 @@ L’onglet **Live** de l’administration permet de régler la date, les textes,
 la plateforme et le lien du prochain rendez-vous. Une fois publié, le bouton
 « Me prévenir » ajoute un événement au calendrier avec un rappel 30 minutes
 avant ; Google Agenda est également proposé.
+
+L’onglet **Offre vente** pilote la landing page `/pack` : activation, date et
+heure globales de fin, livraison offerte, prix de chaque produit et de toutes
+les combinaisons, numéro professionnel de Hanane et messages WhatsApp FR/AR.
+Pour ajouter cette table à une installation Supabase existante, exécuter une
+seule fois [`supabase/commerce_offer_patch.sql`](supabase/commerce_offer_patch.sql)
+dans **Supabase → SQL Editor**. La date est enregistrée côté Supabase et ne se
+réinitialise jamais selon la visiteuse.
 
 Le guide le plus court pour le propriétaire des comptes est :
 [`docs/INSTALLATION_SUPABASE_GITHUB.md`](docs/INSTALLATION_SUPABASE_GITHUB.md).
@@ -75,8 +84,9 @@ La clé `service_role` ne doit jamais être ajoutée au frontend, à un fichier
 ## Configuration
 
 La configuration publique du backend se trouve dans `public/config.js`. Les
-informations éditoriales partagées par la plateforme et `/pack/` (URLs, rôle de
-la conseillère, médias CDN et prix) ont une seule source : `site-config.json`.
+informations éditoriales partagées restent dans `site-config.json`. Les prix et
+l’offre de `/pack` sont chargés depuis la table RLS `commerce_settings`, avec un
+jeu de valeurs de secours identique dans `public/pack/pricing.mjs`.
 
 ```js
 window.ECOLYN_CONFIG = {
@@ -164,7 +174,8 @@ La couche `dataLayer` reçoit notamment : `page_view`, `view_content`,
 `article_open`, `article_complete`, `audio_start`, `audio_25`, `audio_50`,
 `audio_75`, `audio_complete`, `before_after_interaction`, `form_start`,
 `form_step_complete`, `form_submit`, `generate_lead`, `whatsapp_click`,
-`pack_view`, `pack_cta_click`, `initiate_checkout`, `order_submit`,
+`pack_view`, `product_add`, `product_remove`, `cart_view`, `checkout_start`,
+`pack_cta_click`, `initiate_checkout`, `order_submit`,
 `select_skin_type`, `select_complexion`, `select_skin_concern`,
 `select_lifestyle_context`, `personalized_advice_view`, `advice_expand`,
 `source_open`, `story_open`, `story_audio_play` et `join_whatsapp_group`.
