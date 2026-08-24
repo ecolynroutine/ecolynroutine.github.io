@@ -126,7 +126,8 @@ function render() {
   document.querySelectorAll('[data-total]').forEach(node => { node.textContent = lastSummary.total })
   document.querySelectorAll('[data-product-card]').forEach(card => { const active = selected.has(card.dataset.productCard); card.classList.toggle('is-selected', active); card.querySelector('[data-add]').setAttribute('aria-pressed', active) })
   const bag = document.querySelector('#bagProducts')
-  bag.innerHTML = ids.length ? ids.map(id => `<img src="${products[id].image}" alt="${products[id][language()]}">`).join('') : `<p class="bag-empty">${language() === 'ar' ? 'اختياراتك غتبان هنا.' : 'Votre sélection apparaîtra ici.'}</p>`
+  bag.dataset.count = String(ids.length)
+  bag.innerHTML = ids.length ? ids.map((id, index) => `<img class="bag-product bag-product--${id} bag-product--slot-${index}" src="${products[id].image}" alt="${products[id][language()]}">`).join('') : `<p class="bag-empty">${language() === 'ar' ? 'اختياراتك غتبان هنا.' : 'Votre sélection apparaîtra ici.'}</p>`
   const checkout = document.querySelector('#checkoutButton'); checkout.disabled = !ids.length || !isOfferAvailable(commerce)
   const sticky = document.querySelector('#stickyCart'); sticky.hidden = !ids.length
   renderMilestone(ids)
@@ -144,17 +145,37 @@ function renderMilestone(ids) {
   }
 }
 
-function flyToBag(card) {
+function flyToBag(card, id) {
   if (matchMedia('(prefers-reduced-motion: reduce)').matches) return
-  const source = card.querySelector('img'); const target = document.querySelector('[data-cart-open]'); const a = source.getBoundingClientRect(); const b = target.getBoundingClientRect(); const clone = source.cloneNode(); clone.className = 'flying-product'; clone.style.left = `${a.left}px`; clone.style.top = `${a.top}px`; document.body.append(clone)
-  requestAnimationFrame(() => { clone.style.transform = `translate(${b.left - a.left}px,${b.top - a.top}px) scale(.2) rotate(12deg)`; clone.style.opacity = '0' })
-  setTimeout(() => clone.remove(), 700)
+  const source = card.querySelector('.product-card__image img')
+  const installedProduct = document.querySelector(`.bag-product--${id}`)
+  installedProduct?.classList.add('is-arriving')
+  const bagObject = document.querySelector('#bagObject')
+  const sticky = document.querySelector('#stickyCart')
+  const bagRect = bagObject.getBoundingClientRect()
+  const bagVisible = bagRect.top < innerHeight - 80 && bagRect.bottom > 100
+  const target = bagVisible ? document.querySelector('#bagMouth') : sticky
+  if (!target || target.hidden) return
+  const a = source.getBoundingClientRect(); const b = target.getBoundingClientRect(); const clone = source.cloneNode()
+  const dx = b.left + b.width / 2 - (a.left + a.width / 2); const dy = b.top + b.height / 2 - (a.top + a.height / 2)
+  clone.className = 'flying-product'; clone.style.left = `${a.left + a.width / 2 - 37}px`; clone.style.top = `${a.top + a.height / 2 - 49}px`; document.body.append(clone)
+  const animation = clone.animate([
+    { transform: 'translate(0,0) scale(.82) rotate(0deg)', opacity: 1 },
+    { transform: `translate(${dx * .52}px,${dy * .34 - 42}px) scale(.58) rotate(-7deg)`, opacity: 1, offset: .54 },
+    { transform: `translate(${dx}px,${dy}px) scale(.16) rotate(9deg)`, opacity: .1 },
+  ], { duration: 760, easing: 'cubic-bezier(.22,1,.36,1)', fill: 'forwards' })
+  animation.finished.finally(() => {
+    clone.remove()
+    installedProduct?.classList.remove('is-arriving')
+    if (bagVisible) { bagObject.classList.remove('is-bumping'); void bagObject.offsetWidth; bagObject.classList.add('is-bumping'); setTimeout(() => bagObject.classList.remove('is-bumping'), 600) }
+    else { sticky.classList.add('fly-target-pulse'); setTimeout(() => sticky.classList.remove('fly-target-pulse'), 600) }
+  })
 }
 
 function toggleProduct(id, card) {
   if (!isOfferAvailable(commerce)) return showToast(language() === 'ar' ? 'العرض منتهي.' : 'L’offre est terminée.')
   if (selected.has(id)) { selected.delete(id); render(); track('product_remove', safeProductPayload(id, lastSummary)); showToast(language() === 'ar' ? 'تحيد المنتج.' : 'Produit retiré.') }
-  else { selected.add(id); flyToBag(card); render(); track('product_add', safeProductPayload(id, lastSummary)); showToast(language() === 'ar' ? 'تزاد فـ الروتين ✓' : 'Ajouté à votre routine ✓') }
+  else { selected.add(id); render(); flyToBag(card, id); track('product_add', safeProductPayload(id, lastSummary)); showToast(language() === 'ar' ? 'تزاد فـ الروتين ✓' : 'Ajouté à votre routine ✓') }
 }
 
 function showToast(message) { const toast = document.querySelector('#toast'); toast.textContent = message; toast.classList.add('is-visible'); clearTimeout(toastTimer); toastTimer = setTimeout(() => toast.classList.remove('is-visible'), 1800) }
@@ -211,8 +232,20 @@ function bind() {
   const range = document.querySelector('#comparisonRange'); range.addEventListener('input', () => document.querySelector('#beforeAfter').style.setProperty('--split', `${range.value}%`)); range.addEventListener('change', () => track('real_before_after_interaction', { position: Number(range.value) }), { once: true })
   const media = [...document.querySelectorAll('video,audio')]
   media.forEach(item => { item.addEventListener('play', () => { media.forEach(other => { if (other !== item) other.pause() }); track(item.tagName === 'VIDEO' ? 'product_video_play' : 'testimonial_audio_play', { media_name: item.parentElement.textContent.trim() }) }) })
-  const observer = new IntersectionObserver(entries => entries.forEach(entry => { if (!entry.isIntersecting && !entry.target.paused) entry.target.pause() }), { threshold: .15 })
-  document.querySelectorAll('video').forEach(video => observer.observe(video))
+  const videos = [...document.querySelectorAll('.story-video')]
+  const loadObserver = new IntersectionObserver(entries => entries.forEach(entry => {
+    const video = entry.target
+    if (entry.isIntersecting && !video.src) { video.src = video.dataset.videoSrc; video.load() }
+  }), { rootMargin: '320px 0px', threshold: 0 })
+  const playObserver = new IntersectionObserver(entries => entries.forEach(entry => {
+    const video = entry.target
+    if (entry.isIntersecting && entry.intersectionRatio >= .42) {
+      if (!video.src) { video.src = video.dataset.videoSrc; video.load() }
+      video.muted = true
+      video.play().catch(() => {})
+    } else if (!video.paused) video.pause()
+  }), { threshold: [0, .15, .42, .75] })
+  videos.forEach(video => { loadObserver.observe(video); playObserver.observe(video) })
   document.querySelector('#checkoutForm').addEventListener('submit', async event => {
     event.preventDefault(); const form = event.currentTarget; const button = form.querySelector('button[type=submit]'); const status = document.querySelector('#formStatus'); button.disabled = true; status.textContent = language() === 'ar' ? 'جاري تسجيل الطلب…' : 'Enregistrement de votre commande…'
     try { const reference = await submitOrder(form); status.textContent = language() === 'ar' ? 'تسجل الطلب بنجاح ✓' : 'Commande enregistrée ✓'; setTimeout(() => { location.href = `../merci?ref=${encodeURIComponent(reference)}` }, 650) } catch { status.textContent = language() === 'ar' ? 'وقع مشكل. عاودي المحاولة.' : 'Une erreur est survenue. Réessayez.'; button.disabled = false }

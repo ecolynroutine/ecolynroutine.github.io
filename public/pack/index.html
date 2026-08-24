@@ -8,34 +8,44 @@
   <link rel="canonical" href="https://ecolyn.ma/pack/">
   <link rel="icon" href="https://cdn.gamestrats.com/ecln/favicon.ico">
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://connect.facebook.net https://www.googletagmanager.com; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https:; media-src 'self' blob: https://cdn.gamestrats.com; connect-src 'self' https:; frame-ancestors 'none'; base-uri 'self'; form-action 'self'">
-  <link rel="stylesheet" href="./shop.css">
+  <link rel="stylesheet" href="./shop.css?v=4">
 </head>
 <body>
   <div class="offer-bar" id="offerBar" role="status">
-    <div><span class="fr-inline">Offre routine en cours</span><span class="ar-inline">عرض الروتين ساري الآن</span> · <span class="fr-inline">Livraison offerte</span><span class="ar-inline">التوصيل مجاني</span></div>
+    <span class="offer-tag"><span class="fr-inline">OFFRE EN LIGNE</span><span class="ar-inline">عرض أونلاين</span></span>
+    <div class="offer-promise"><strong><span class="fr-inline">LIVRAISON OFFERTE</span><span class="ar-inline">التوصيل مجاني</span></strong><small><span class="fr-inline">Temps restant</span><span class="ar-inline">الوقت المتبقي</span></small></div>
     <div class="countdown" id="countdown" aria-label="Temps restant"><span data-time="days">00</span><small>j</small><span data-time="hours">00</span><small>h</small><span data-time="minutes">00</span><small>m</small><span data-time="seconds" hidden>00</span><small data-time="seconds-label" hidden>s</small></div>
   </div>
   <header class="site-header">
     <button class="icon-button" id="langButton" type="button" aria-label="Changer la langue">ع</button>
     <a href="../" class="brand" aria-label="ECOLYN accueil"><img src="./Asset/Logo transparent ECOLYN.webp" alt="ECOLYN" width="188" height="86"></a>
-    <button class="icon-button cart-button" type="button" data-cart-open aria-label="Voir ma sélection">🛍<b data-cart-count>0</b></button>
+    <button class="icon-button cart-button" type="button" data-cart-open aria-label="Voir ma sélection"><span class="mini-bag-icon" aria-hidden="true"></span><b data-cart-count>0</b></button>
   </header>
   <main>
     <section class="hero section-pad">
+      <picture class="hero__portrait fr" aria-hidden="true">
+        <source media="(max-width:820px)" srcset="./Asset/Hero-3-V2 -Mobile.webp">
+        <img src="./Asset/Hero-3-V2.webp" alt="" width="1672" height="940" fetchpriority="high">
+      </picture>
+      <picture class="hero__portrait ar" aria-hidden="true">
+        <source media="(max-width:820px)" srcset="./Asset/Hero-3-V2 -Mobile - Arabe.webp">
+        <img src="./Asset/Hero-3-V2 - Arabe.webp" alt="" width="1672" height="940" fetchpriority="high">
+      </picture>
+      <div class="hero__veil" aria-hidden="true"></div>
       <div class="hero__copy">
-        <p class="kicker"><span class="fr-inline">Votre routine, votre choix</span><span class="ar-inline">روتينك، اختيارك</span></p>
-        <h1><span class="fr">Composez la routine qui convient à <em>votre peau.</em></span><span class="ar">ركّبي الروتين اللي يناسب <em>بشرتك.</em></span></h1>
-        <p><span class="fr-inline">Choisissez 1, 2, 3 ou 4 produits. Le prix de votre combinaison s’ajuste automatiquement.</span><span class="ar-inline">اختاري منتج واحد، جوج، ثلاثة أو أربعة. ثمن الاختيار كيتحسب تلقائياً.</span></p>
-        <a class="primary-button" href="#compose" data-pack-cta="hero"><span class="fr-inline">Composer ma routine</span><span class="ar-inline">نركّب روتيني</span> ↓</a>
+        <p class="kicker"><span class="fr-inline">Le rituel, à votre mesure</span><span class="ar-inline">روتين على قياسك</span></p>
+        <h1><span class="fr">Votre peau. Vos choix. <em>Votre ECOLYN.</em></span><span class="ar">بشرتك. اختيارك. <em>روتينك من إيكولين.</em></span></h1>
+        <p><span class="fr-inline">Composez librement votre routine avec 1, 2, 3 ou 4 soins. Le meilleur prix de votre combinaison apparaît instantanément.</span><span class="ar-inline">ركّبي روتينك بحرية بمنتج واحد، جوج، ثلاثة أو أربعة. أحسن ثمن لاختيارك كيبان مباشرة.</span></p>
+        <a class="primary-button" href="#compose" data-pack-cta="hero"><span class="fr-inline">Créer mon rituel</span><span class="ar-inline">نركّب روتيني</span> <span aria-hidden="true">↓</span></a>
         <div class="trust-row"><span>✓ <span class="fr-inline">Paiement à la livraison</span><span class="ar-inline">الدفع عند الاستلام</span></span><span>✓ <span class="fr-inline">Livraison offerte</span><span class="ar-inline">التوصيل مجاني</span></span></div>
       </div>
-      <div class="hero__visual" aria-hidden="true"><div class="hero__halo"></div><img src="./Asset/le pack complet 3.webp" alt="" width="1254" height="1254"></div>
+      <div class="hero__edition" aria-hidden="true"><span>ECOLYN</span><small>01 — 04</small></div>
     </section>
     <section class="builder section-pad" id="compose">
       <div class="section-heading">
-        <p class="kicker"><span class="fr-inline">01 — Votre sélection</span><span class="ar-inline">01 — اختيارك</span></p>
-        <h2><span class="fr">Choisissez les essentiels de <em>votre routine.</em></span><span class="ar">اختاري أساسيات <em>روتينك.</em></span></h2>
-        <p><span class="fr-inline">Touchez un produit pour l’ajouter. Aucun produit n’est présélectionné.</span><span class="ar-inline">ضغطي على أي منتج باش تزيديه. ما كاين حتى منتج مختار مسبقاً.</span></p>
+        <p class="kicker"><span class="fr-inline">01 — L’atelier de votre routine</span><span class="ar-inline">01 — ركّبي روتينك</span></p>
+        <h2><span class="fr">Quatre soins. Une routine <em>qui vous ressemble.</em></span><span class="ar">أربعة منتجات. روتين <em>كيشبه ليك.</em></span></h2>
+        <p><span class="fr-inline">Touchez simplement les soins qui vous intéressent. Aucun produit n’est présélectionné.</span><span class="ar-inline">ضغطي غير على المنتجات اللي بغيتي. ما كاين حتى منتج مختار مسبقاً.</span></p>
       </div>
       <div class="builder-layout">
         <div class="product-grid" id="productGrid">
@@ -53,10 +63,24 @@
           </article>
         </div>
         <aside class="routine-bag" id="routineBag">
-          <div class="bag-handle" aria-hidden="true"></div><p class="kicker"><span class="fr-inline">Ma pochette beauté</span><span class="ar-inline">حقيبتي ديال العناية</span></p><h3><span class="fr-inline">Votre routine</span><span class="ar-inline">روتينك</span> <span data-cart-count>0</span>/4</h3><div class="bag-products" id="bagProducts"><p class="bag-empty"><span class="fr-inline">Votre sélection apparaîtra ici.</span><span class="ar-inline">اختياراتك غتبان هنا.</span></p></div><div class="milestone" id="milestone"><span class="fr-inline">Ajoutez votre premier essentiel.</span><span class="ar-inline">زيدي أول منتج أساسي.</span></div><div class="price-lines"><div><span class="fr-inline">Valeur séparée</span><span class="ar-inline">الثمن منفصل</span><s><b data-separate>0</b> DH</s></div><div class="saving-row"><span class="fr-inline">Votre économie</span><span class="ar-inline">التوفير ديالك</span><strong>−<b data-savings>0</b> DH</strong></div><div class="total-row"><span>Total</span><strong><b data-total>0</b> DH</strong></div></div><p class="shipping-note">✓ <span class="fr-inline">Livraison offerte pendant l’offre</span><span class="ar-inline">التوصيل مجاني خلال العرض</span></p><button class="checkout-button" id="checkoutButton" type="button" disabled><span class="fr-inline">Finaliser ma commande</span><span class="ar-inline">نكمل الطلب ديالي</span></button><p class="microcopy"><span class="fr-inline">Paiement uniquement à la livraison.</span><span class="ar-inline">الدفع غير عند الاستلام.</span></p>
+          <div class="bag-object" id="bagObject" aria-label="Sac beauté ECOLYN">
+            <div class="bag-handle" aria-hidden="true"></div>
+            <div class="bag-back" aria-hidden="true"></div>
+            <div class="bag-mouth" id="bagMouth"><div class="bag-products" id="bagProducts"><p class="bag-empty"><span class="fr-inline">Votre sélection apparaîtra ici.</span><span class="ar-inline">اختياراتك غتبان هنا.</span></p></div></div>
+            <div class="bag-front" aria-hidden="true"><img src="./Asset/Logo transparent ECOLYN.webp" alt=""><span>RITUEL SUR MESURE</span></div>
+          </div>
+          <div class="bag-summary">
+            <div class="bag-summary__head"><div><p class="kicker"><span class="fr-inline">Mon sac beauté</span><span class="ar-inline">حقيبتي ديال العناية</span></p><h3><span class="fr-inline">Votre sélection</span><span class="ar-inline">اختياراتك</span></h3></div><strong><span data-cart-count>0</span>/4</strong></div>
+            <div class="milestone" id="milestone"><span class="fr-inline">Ajoutez votre premier essentiel.</span><span class="ar-inline">زيدي أول منتج أساسي.</span></div><div class="price-lines"><div><span class="fr-inline">Valeur séparée</span><span class="ar-inline">الثمن منفصل</span><s><b data-separate>0</b> DH</s></div><div class="saving-row"><span class="fr-inline">Votre économie</span><span class="ar-inline">التوفير ديالك</span><strong>−<b data-savings>0</b> DH</strong></div><div class="total-row"><span>Total</span><strong><b data-total>0</b> DH</strong></div></div><p class="shipping-note">✓ <span class="fr-inline">Livraison offerte pendant l’offre</span><span class="ar-inline">التوصيل مجاني خلال العرض</span></p><button class="checkout-button" id="checkoutButton" type="button" disabled><span class="fr-inline">Finaliser ma commande</span><span class="ar-inline">نكمل الطلب ديالي</span></button><p class="microcopy"><span class="fr-inline">Paiement uniquement à la livraison.</span><span class="ar-inline">الدفع غير عند الاستلام.</span></p>
+          </div>
         </aside>
       </div>
     </section>
+    <section class="editorial-video editorial-video--one section-pad" aria-label="ECOLYN en vidéo 1">
+      <div class="video-copy"><p class="kicker"><span class="fr-inline">Le geste ECOLYN · 01</span><span class="ar-inline">خطوة إيكولين · 01</span></p><h2><span class="fr">Le soin commence par un geste <em>simple.</em></span><span class="ar">العناية كتبدا بخطوة <em>بسيطة.</em></span></h2><p><span class="fr-inline">Une texture, un moment, puis la régularité. La vidéo se révèle naturellement à votre passage.</span><span class="ar-inline">قوام، لحظة عناية، ومن بعد الاستمرار. الفيديو كيبان بوحدو ملي توصلي ليه.</span></p></div>
+      <div class="video-frame"><video class="story-video" autoplay muted loop playsinline preload="none" data-video-src="https://cdn.gamestrats.com/ecln/Videos/video1-lp.mp4" aria-label="Vidéo ECOLYN 1"></video><span>01</span></div>
+    </section>
+
     <section class="proof section-pad">
       <div class="section-heading"><p class="kicker"><span class="fr-inline">02 — Une évolution réelle</span><span class="ar-inline">02 — تطور حقيقي</span></p><h2><span class="fr">Une histoire partagée avec <em>transparence.</em></span><span class="ar">تجربة مشاركة بكل <em>وضوح.</em></span></h2></div>
       <div class="proof-grid">
@@ -64,32 +88,44 @@
         <div class="proof-story"><span class="quote-mark">“</span><p class="fr">Cette participante présentait des boutons visibles sur le visage. Après avoir expliqué sa situation et ajusté certaines habitudes de sa routine selon les conseils reçus, elle a observé cette évolution.</p><p class="ar">كانت هاد المشاركة كتعاني من حبوب باينة فالوجه. من بعد ما شرحات الحالة ديالها وبدلات بعض العادات فالروتين حسب النصائح اللي خذات، لاحظات هاد التطور.</p><small><span class="fr-inline">Résultats individuels : l’évolution peut varier d’une personne à l’autre. Cette histoire ne permet pas d’attribuer à elle seule l’évolution aux produits ECOLYN.</span><span class="ar-inline">النتائج فردية وقد تختلف من شخص لآخر. هاد التجربة بوحدها ما كتثبتش أن التطور سبابو منتجات إيكولين.</span></small></div>
       </div>
     </section>
-    <section class="videos section-pad">
-      <div class="section-heading"><p class="kicker"><span class="fr-inline">03 — Voir les textures</span><span class="ar-inline">03 — شوفي القوام</span></p><h2><span class="fr">Découvrez les produits <em>en vrai.</em></span><span class="ar">تعرفي على المنتجات <em>عن قرب.</em></span></h2><p><span class="fr-inline">Les vidéos se lancent uniquement lorsque vous appuyez sur lecture.</span><span class="ar-inline">الفيديوهات كيبداو غير ملي كتضغطي على التشغيل.</span></p></div>
-      <div class="video-rail" id="videoRail">
-        <article><video controls playsinline preload="none" poster="./Asset/products/cleanser.webp"><source src="https://cdn.gamestrats.com/ecln/Videos/video1-lp.mp4" type="video/mp4"></video><h3><span class="fr-inline">ECOLYN en vidéo · 01</span><span class="ar-inline">إيكولين بالفيديو · 01</span></h3></article>
-        <article><video controls playsinline preload="none" poster="./Asset/products/cream.webp"><source src="https://cdn.gamestrats.com/ecln/Videos/video2-lp.mp4" type="video/mp4"></video><h3><span class="fr-inline">ECOLYN en vidéo · 02</span><span class="ar-inline">إيكولين بالفيديو · 02</span></h3></article>
-        <article><video controls playsinline preload="none" poster="./Asset/products/serum.webp"><source src="https://cdn.gamestrats.com/ecln/Videos/video3-lp.mp4" type="video/mp4"></video><h3><span class="fr-inline">ECOLYN en vidéo · 03</span><span class="ar-inline">إيكولين بالفيديو · 03</span></h3></article>
-        <article><video controls playsinline preload="none" poster="./Asset/products/sunscreen.webp"><source src="https://cdn.gamestrats.com/ecln/Videos/video4-lp.mp4" type="video/mp4"></video><h3><span class="fr-inline">ECOLYN en vidéo · 04</span><span class="ar-inline">إيكولين بالفيديو · 04</span></h3></article>
-      </div>
-    </section>
+
+    <section class="editorial-video editorial-video--two section-pad" aria-label="ECOLYN en vidéo 2"><div class="video-frame"><video class="story-video" autoplay muted loop playsinline preload="none" data-video-src="https://cdn.gamestrats.com/ecln/Videos/video2-lp.mp4" aria-label="Vidéo ECOLYN 2"></video><span>02</span></div><div class="video-copy"><p class="kicker"><span class="fr-inline">La matière · 02</span><span class="ar-inline">القوام · 02</span></p><h2><span class="fr">Des textures pensées pour le <em>rituel quotidien.</em></span><span class="ar">قوام داخل <em>روتينك اليومي.</em></span></h2><p><span class="fr-inline">Regardez la matière et choisissez seulement les étapes qui correspondent à votre envie de routine.</span><span class="ar-inline">شوفي القوام واختاري غير الخطوات اللي بغيتي تكون فروتينك.</span></p></div></section>
+
     <section class="sensory section-pad">
       <div class="sensory-card"><div><p class="kicker"><span class="fr-inline">La formule avant le parfum</span><span class="ar-inline">التركيبة قبل العطر</span></p><h2><span class="fr">Pourquoi ECOLYN ne sent pas comme un <em>parfum ?</em></span><span class="ar">علاش إيكولين ما كتشبهش فـ الريحة لـ <em>العطر؟</em></span></h2></div><div class="sensory-points"><p><b>01</b><span><strong><span class="fr-inline">Pas de forte odeur parfumée</span><span class="ar-inline">ما فيهاش ريحة عطرية قوية</span></strong><small><span class="fr-inline">Nous préférons laisser la formule parler plutôt que masquer l’expérience derrière une forte odeur cosmétique.</span><span class="ar-inline">كنفضلو نخليو التركيبة تبان بلا ما نغطيو التجربة بريحة تجميلية قوية.</span></small></span></p><p><b>02</b><span><strong><span class="fr-inline">Une perception qui peut varier</span><span class="ar-inline">الإحساس بالريحة كيقدر يختلف</span></strong><small><span class="fr-inline">L’odeur perçue peut être légère, neutre ou provenir directement des ingrédients de la formule.</span><span class="ar-inline">الريحة اللي كتحسي بها تقدر تكون خفيفة، محايدة أو جاية من مكونات التركيبة.</span></small></span></p><p><b>03</b><span><strong><span class="fr-inline">Une composition à consulter</span><span class="ar-inline">المكونات متاحة للمراجعة</span></strong><small><span class="fr-inline">En cas de sensibilité connue, vérifiez toujours la liste INCI avant usage.</span><span class="ar-inline">إلا كانت عندك حساسية معروفة، راجعي ديما لائحة المكونات قبل الاستعمال.</span></small></span></p></div></div>
     </section>
+
+    <section class="editorial-video editorial-video--three section-pad" aria-label="ECOLYN en vidéo 3"><div class="video-copy"><p class="kicker"><span class="fr-inline">L’expérience · 03</span><span class="ar-inline">التجربة · 03</span></p><h2><span class="fr">Un moment de soin, <em>rien de compliqué.</em></span><span class="ar">لحظة عناية، <em>بلا تعقيد.</em></span></h2><p><span class="fr-inline">Chaque produit peut vivre seul ou rejoindre les autres dans votre sac beauté.</span><span class="ar-inline">كل منتج تقدري تستعمليه بوحدو ولا تجمعيه مع الآخرين فحقيبتك.</span></p></div><div class="video-frame"><video class="story-video" autoplay muted loop playsinline preload="none" data-video-src="https://cdn.gamestrats.com/ecln/Videos/video3-lp.mp4" aria-label="Vidéo ECOLYN 3"></video><span>03</span></div></section>
+
     <section class="testimonials section-pad"><div class="section-heading"><p class="kicker"><span class="fr-inline">Des voix réelles</span><span class="ar-inline">تجارب حقيقية</span></p><h2><span class="fr">Elles partagent leur <em>expérience.</em></span><span class="ar">كيشاركو <em>تجربتهم.</em></span></h2><p><span class="fr-inline">Des témoignages audio existants, à écouter uniquement si vous le souhaitez. Ils ne constituent pas une garantie de résultat.</span><span class="ar-inline">تجارب صوتية حقيقية كتسمعيها إلا بغيتي. ماشي ضمانة لنفس النتيجة.</span></p></div><div class="testimonial-rail">
       <article><img src="https://cdn.gamestrats.com/ecln/Testimonials/Photos%20Ts/Testimonial%20photo%20Imane.webp" alt="Imane" loading="lazy"><div><h3>Imane</h3><audio controls preload="none" src="https://cdn.gamestrats.com/ecln/Testimonials/Audios%20Ts/1.mp3"></audio></div></article>
       <article><img src="https://cdn.gamestrats.com/ecln/Testimonials/Photos%20Ts/Testimonial%20photo%20amal.webp" alt="Amal" loading="lazy"><div><h3>Amal</h3><audio controls preload="none" src="https://cdn.gamestrats.com/ecln/Testimonials/Audios%20Ts/2.mp3"></audio></div></article>
       <article><img src="https://cdn.gamestrats.com/ecln/Testimonials/Photos%20Ts/Testimonial%20photo%20karima.webp" alt="Karima" loading="lazy"><div><h3>Karima</h3><audio controls preload="none" src="https://cdn.gamestrats.com/ecln/Testimonials/Audios%20Ts/3.mp3"></audio></div></article>
     </div></section>
-    <section class="expert section-pad"><div class="expert-card"><img src="https://cdn.gamestrats.com/ecln/Accueil/expert-ecolyn2.webp" alt="Hanane, experte ECOLYN" loading="lazy"><div><p class="kicker"><span class="fr-inline">Une question avant de choisir ?</span><span class="ar-inline">عندك سؤال قبل الاختيار؟</span></p><h2><span class="fr">Hanane vous répond sur <em>WhatsApp.</em></span><span class="ar">حنان غتجاوبك على <em>واتساب.</em></span></h2><p><span class="fr-inline">Écrivez-lui avant de composer votre routine. Ce bouton mène à la conversation privée, pas au groupe.</span><span class="ar-inline">كتبي ليها قبل ما تركبي الروتين. هاد الزر كيمشي للمحادثة الخاصة، ماشي للمجموعة.</span></p><a id="expertWhatsapp" class="whatsapp-button" href="#" target="_blank" rel="noopener">✆ <span class="fr-inline">Parler à Hanane</span><span class="ar-inline">نهضر مع حنان</span></a></div></div></section>
-    <section class="faq section-pad"><div class="section-heading"><p class="kicker">FAQ</p><h2><span class="fr">Avant de <em>commander.</em></span><span class="ar">قبل ما <em>تطلبي.</em></span></h2></div><div class="faq-list">
+
+    <section class="expert section-pad"><div class="expert-card"><div class="expert-portrait"><img src="https://cdn.gamestrats.com/ecln/Accueil/expert-ecolyn2.webp" alt="Hanane, experte ECOLYN" loading="lazy"><span><span class="fr-inline">Conseil privé</span><span class="ar-inline">نصيحة خاصة</span></span></div><div><p class="kicker"><span class="fr-inline">Une question avant de choisir ?</span><span class="ar-inline">عندك سؤال قبل الاختيار؟</span></p><h2><span class="fr">Hanane vous répond sur <em>WhatsApp.</em></span><span class="ar">حنان غتجاوبك على <em>واتساب.</em></span></h2><p><span class="fr-inline">Écrivez-lui avant de composer votre routine. Ce bouton mène à la conversation privée, pas au groupe.</span><span class="ar-inline">كتبي ليها قبل ما تركبي الروتين. هاد الزر كيمشي للمحادثة الخاصة، ماشي للمجموعة.</span></p><a id="expertWhatsapp" class="whatsapp-button" href="#" target="_blank" rel="noopener">✆ <span class="fr-inline">Parler à Hanane</span><span class="ar-inline">نهضر مع حنان</span></a></div></div></section>
+
+    <section class="faq section-pad"><div class="section-heading"><p class="kicker">FAQ</p><h2><span class="fr">Les réponses utiles <em>avant de choisir.</em></span><span class="ar">الأجوبة المهمة <em>قبل ما تختاري.</em></span></h2></div><div class="faq-list">
       <details><summary><span class="fr-inline">Puis-je choisir un seul produit ?</span><span class="ar-inline">نقدر نختار منتج واحد؟</span></summary><p><span class="fr-inline">Oui. Votre routine peut contenir de 1 à 4 produits.</span><span class="ar-inline">نعم. تقدري تختاري من منتج واحد حتى لأربعة.</span></p></details>
       <details><summary><span class="fr-inline">Comment le prix est-il calculé ?</span><span class="ar-inline">كيفاش كيتحسب الثمن؟</span></summary><p><span class="fr-inline">Chaque combinaison a son tarif promotionnel. Le total se met à jour dès que vous ajoutez ou retirez un produit.</span><span class="ar-inline">كل تركيبة عندها الثمن الترويجي ديالها، والمجموع كيتبدل تلقائياً.</span></p></details>
       <details><summary><span class="fr-inline">Comment payer ?</span><span class="ar-inline">كيفاش نخلص؟</span></summary><p><span class="fr-inline">Vous payez à la livraison après confirmation de votre commande.</span><span class="ar-inline">كتخلصي عند الاستلام من بعد تأكيد الطلب.</span></p></details>
       <details><summary><span class="fr-inline">L’offre est-elle individuelle ?</span><span class="ar-inline">واش العرض كيبدا لكل زائرة؟</span></summary><p><span class="fr-inline">Non. La date de fin est globale et configurée par ECOLYN.</span><span class="ar-inline">لا. تاريخ النهاية عام وكتحددو إيكولين.</span></p></details>
     </div></section>
-    <section class="routine-order section-pad"><div class="section-heading"><p class="kicker"><span class="fr-inline">Pour celles qui souhaitent une routine complète</span><span class="ar-inline">للي باغية روتين كامل</span></p><h2><span class="fr">Quatre gestes, <em>sans complication.</em></span><span class="ar">روتين إيكولين، <em>في 4 خطوات.</em></span></h2><p><span class="fr-inline">Cette proposition montre l’ordre complet ; vous restez libre de choisir seulement 1, 2 ou 3 produits.</span><span class="ar-inline">هاد الترتيب كيبين الروتين كامل، وباقي عندك الحرية تختاري غير منتج، جوج أو ثلاثة.</span></p></div><ol><li><b>1</b><span class="fr-inline">Nettoyer</span><span class="ar-inline">نظفي</span></li><li><b>2</b><span class="fr-inline">Appliquer le sérum</span><span class="ar-inline">ديري السيروم</span></li><li><b>3</b><span class="fr-inline">Hydrater</span><span class="ar-inline">رطبي</span></li><li><b>4</b><span class="fr-inline">Protéger le matin</span><span class="ar-inline">حمي صباحاً</span></li></ol></section>
-    <section class="final-cta section-pad"><p class="kicker"><span class="fr-inline">Prête à choisir ?</span><span class="ar-inline">واجدة تختاري؟</span></p><h2><span class="fr">Composez maintenant votre routine <em>ECOLYN.</em></span><span class="ar">ركّبي دابا روتينك <em>ECOLYN.</em></span></h2><a class="primary-button" href="#compose" data-pack-cta="final"><span class="fr-inline">Choisir mes produits</span><span class="ar-inline">نختار منتجاتي</span></a></section>
+
+    <section class="editorial-video editorial-video--four section-pad" aria-label="ECOLYN en vidéo 4"><div class="video-frame"><video class="story-video" autoplay muted loop playsinline preload="none" data-video-src="https://cdn.gamestrats.com/ecln/Videos/video4-lp.mp4" aria-label="Vidéo ECOLYN 4"></video><span>04</span></div><div class="video-copy"><p class="kicker"><span class="fr-inline">Le rituel complet · 04</span><span class="ar-inline">الروتين الكامل · 04</span></p><h2><span class="fr">Quatre étapes si vous le souhaitez. <em>Une seule si elle vous suffit.</em></span><span class="ar">أربع خطوات إلا بغيتي. <em>وحدة إلا كانت كافياك.</em></span></h2></div></section>
+
+    <section class="details-section section-pad" id="details">
+      <div class="details-showcase details-fr-showcase">
+        <div class="details-side-panel"><div><span class="details-kicker">LA ROUTINE ECOLYN</span><h2 class="details-side-title">Le rituel complet,<br>en <em>4 étapes</em>.</h2><p>Un repère visuel pour découvrir l’ordre du rituel complet. Vous restez libre de choisir 1, 2 ou 3 produits.</p></div></div>
+        <div class="details-stage"><img src="./Asset/cercle-ecolyn-fr-v2-768.webp" srcset="./Asset/cercle-ecolyn-fr-v2-480.webp 480w, ./Asset/cercle-ecolyn-fr-v2-768.webp 768w, ./Asset/cercle-ecolyn-fr-v2-1024.webp 1024w" sizes="(max-width:820px) calc(100vw - 36px), 620px" alt="Visualisation du rituel ECOLYN en quatre étapes" loading="lazy" decoding="async" width="1024" height="1024"><div class="details-caption"><strong>ECOLYN</strong><span>La beauté naturelle au quotidien</span></div></div>
+      </div>
+      <div class="details-showcase details-ar-showcase">
+        <div class="details-side-panel"><div><span class="details-kicker">روتين إيكولين</span><h2 class="details-side-title">روتين متكامل،<br>في <em>4 خطوات</em>.</h2><p>دليل بصري باش تعرفي ترتيب الروتين الكامل. وباقي عندك الحرية تختاري منتج، جوج ولا ثلاثة.</p></div></div>
+        <div class="details-stage"><img src="./Asset/cercle-ecolyn-ar-v2-768.webp" srcset="./Asset/cercle-ecolyn-ar-v2-480.webp 480w, ./Asset/cercle-ecolyn-ar-v2-768.webp 768w, ./Asset/cercle-ecolyn-ar-v2-1024.webp 1024w" sizes="(max-width:820px) calc(100vw - 36px), 620px" alt="تصور روتين إيكولين في أربع خطوات" loading="lazy" decoding="async" width="1024" height="1024"><div class="details-caption"><strong>ECOLYN</strong><span>جمال طبيعي يرافقك كل يوم</span></div></div>
+      </div>
+    </section>
+
+    <section class="final-cta section-pad"><p class="kicker"><span class="fr-inline">Votre rituel commence ici</span><span class="ar-inline">روتينك كيبدا هنا</span></p><h2><span class="fr">Choisissez seulement ce dont votre peau et vos envies ont <em>besoin aujourd’hui.</em></span><span class="ar">اختاري غير اللي بشرتك ورغبتك <em>محتاجين ليه اليوم.</em></span></h2><a class="primary-button" href="#compose" data-pack-cta="final"><span class="fr-inline">Composer mon sac beauté</span><span class="ar-inline">نركّب حقيبتي</span></a></section>
   </main>
   <footer><img src="./Asset/Logo transparent ECOLYN.webp" alt="ECOLYN"><p>© 2026 ECOLYN · Maroc</p><a href="mailto:ecolyn@proton.me">ecolyn@proton.me</a></footer>
   <button class="sticky-cart" id="stickyCart" type="button" data-cart-open hidden><span><b data-cart-count>0</b> <span class="fr-inline">produit(s)</span><span class="ar-inline">منتج</span><small><span class="fr-inline">Économie</span><span class="ar-inline">توفير</span> <b data-sticky-savings>0</b> DH</small></span><strong><b data-total>0</b> DH</strong><span class="fr-inline">Commander</span><span class="ar-inline">طلبي</span></button>
@@ -106,6 +142,6 @@
   <dialog class="modal details-modal" id="detailsDialog"><button class="modal__close" type="button" data-close-dialog aria-label="Fermer">×</button><div id="detailsContent"></div></dialog>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
   <script src="../config.js"></script>
-  <script type="module" src="./ecolyn-runtime.js"></script>
+  <script type="module" src="./ecolyn-runtime.js?v=4"></script>
 </body>
 </html>
