@@ -37,7 +37,6 @@ const metaMap: Record<string, string> = {
   generate_lead: 'Lead',
   whatsapp_click: 'Contact',
   initiate_checkout: 'InitiateCheckout',
-  order_submit: 'Lead',
 }
 
 const metaCustomMap: Record<string, string> = {
@@ -56,6 +55,7 @@ const metaCustomMap: Record<string, string> = {
   story_audio_play: 'StoryAudioPlay',
   article_complete: 'ArticleComplete',
   join_whatsapp_group: 'JoinWhatsappGroup',
+  order_submit: 'OrderSubmit',
 }
 
 const tiktokMap: Record<string, string> = {
@@ -310,7 +310,7 @@ function sendToPlatforms(event: string, payload: EventPayload, settings: Trackin
     if (metaEvent && event !== 'generate_lead') window.fbq('track', metaEvent, payload, { eventID: eventId })
     else if (!metaEvent) {
       window.fbq('trackCustom', metaCustomEvent || event, payload, { eventID: eventId })
-      if (metaCustomEvent && metaCustomEvent !== event) {
+      if (metaCustomEvent && metaCustomEvent !== event && event !== 'order_submit') {
         window.fbq('trackCustom', event, payload, { eventID: `${eventId}-canonical` })
       }
     }

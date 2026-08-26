@@ -76,6 +76,7 @@ html[dir=rtl] .brand span{font-family:Naskh;font-size:.82rem}
 .desktop-nav>a:hover:after{transform:scaleX(1)}
 .pack-link{display:flex;align-items:center;gap:5px;color:rgba(9,55,74,.52)}
 .nav-actions{display:flex;align-items:center;gap:8px}
+.mobile-shop-link{display:none}
 .language-button,.menu-button{height:44px;border:1px solid var(--line);background:rgba(255,255,255,.6);border-radius:14px;padding:0 13px;display:flex;align-items:center;gap:7px;cursor:pointer;font-weight:700}
 .nav-cta{height:46px;padding:0 18px;border-radius:14px;display:flex;align-items:center;background:var(--ink);color:#fff;font-size:.78rem;font-weight:700;white-space:nowrap}
 .menu-button{display:none;padding:0 11px;font-size:1.2rem}
@@ -391,7 +392,7 @@ html[dir=rtl] .visual-label{right:auto;left:22px}
   html{scroll-padding-top:80px}
   .section-wrap{width:min(100% - 28px,700px)}
   .section-intro h2,.faq-heading h2{font-size:clamp(2.65rem,11vw,3.5rem);line-height:.98;overflow-wrap:anywhere}
-  .site-header{inset:8px 0 auto}.nav-shell{width:calc(100% - 14px);height:62px;border-radius:18px;padding-inline:14px}.brand img{width:70px}.brand span{display:none}.language-button span{display:none}.language-button{padding:0 12px}.nav-actions{margin-inline-start:auto}
+  .site-header{inset:8px 0 auto}.nav-shell{width:calc(100% - 14px);height:62px;border-radius:18px;padding-inline:14px;gap:12px}.brand{min-width:0;flex:0 0 auto}.brand img{width:70px}.brand span{display:none}.nav-actions{margin-inline-start:auto;gap:7px}.mobile-shop-link{height:40px;padding:0 10px;border:1px solid rgba(212,20,90,.16);border-radius:12px;display:inline-flex;align-items:center;justify-content:center;gap:5px;background:rgba(255,255,255,.72);box-shadow:0 7px 18px rgba(9,55,74,.06);color:var(--ink);font-size:.65rem;font-weight:800;line-height:1;white-space:nowrap}.mobile-shop-link svg{color:var(--rose);flex:0 0 auto}.language-button span{display:none}.language-button{padding:0 11px}.menu-button{padding-inline:10px}
   .hero{min-height:auto;padding:94px 8px 68px;background:radial-gradient(circle at 92% 8%,rgba(212,20,90,.12),transparent 25%),linear-gradient(165deg,#fffaf7 0%,#f9eee9 52%,#e8cbbd 100%)}
   .hero-layout{display:flex;flex-direction:column;gap:4px}
   .hero-copy{order:1;width:100%;margin:0;padding:34px 16px 30px;background:none}

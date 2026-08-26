@@ -73,7 +73,9 @@ function loadTrackers() {
   }
 }
 
-const metaEvents = { page_view: 'PageView', pack_view: 'ViewContent', cart_view: 'ViewContent', checkout_start: 'InitiateCheckout', initiate_checkout: 'InitiateCheckout', order_submit: 'Lead', whatsapp_click: 'Contact' }
+const metaEvents = { page_view: 'PageView', pack_view: 'ViewContent', cart_view: 'ViewContent', initiate_checkout: 'InitiateCheckout', whatsapp_click: 'Contact' }
+// Pack orders use one browser-only custom event because the current CAPI endpoint accepts Lead only.
+const metaCustomEvents = { order_submit: 'OrderSubmit' }
 const tiktokEvents = { page_view: 'PageView', pack_view: 'ViewContent', cart_view: 'ViewContent', checkout_start: 'InitiateCheckout', initiate_checkout: 'InitiateCheckout', order_submit: 'SubmitForm', whatsapp_click: 'Contact' }
 function track(eventName, raw = {}, eventId = uuid()) {
   const blocked = /^(first_?name|last_?name|full_?name|nom|email|phone|telephone|tel|whatsapp|address|adresse|description|photo|message|free_?text|reference)$/i
@@ -81,7 +83,7 @@ function track(eventName, raw = {}, eventId = uuid()) {
   window.dataLayer = window.dataLayer || []
   window.dataLayer.push({ event: eventName, event_id: eventId, page_path: location.pathname, language: language(), ...payload })
   if (tracking?.ga4_enabled && window.gtag && eventName !== 'page_view') window.gtag('event', eventName, payload)
-  if (tracking?.meta_enabled && window.fbq) metaEvents[eventName] ? window.fbq('track', metaEvents[eventName], payload, { eventID: eventId }) : window.fbq('trackCustom', eventName, payload, { eventID: eventId })
+  if (tracking?.meta_enabled && window.fbq) metaEvents[eventName] ? window.fbq('track', metaEvents[eventName], payload, { eventID: eventId }) : window.fbq('trackCustom', metaCustomEvents[eventName] || eventName, payload, { eventID: eventId })
   if (tracking?.tiktok_enabled && window.ttq) tiktokEvents[eventName] === 'PageView' ? window.ttq.page({ ...payload, event_id: eventId }) : window.ttq.track(tiktokEvents[eventName] || eventName, { ...payload, event_id: eventId })
   return eventId
 }
@@ -212,17 +214,9 @@ async function submitOrder(form) {
   }
   const response = await fetch(`${supabaseUrl}/rest/v1/prospects`, { method: 'POST', headers: { ...safeHeaders(), Prefer: 'return=minimal' }, body: JSON.stringify(record) })
   if (!response.ok) throw new Error('ORDER_INSERT_FAILED')
-  const eventId = track('order_submit', { number_of_products: ids.length, value: lastSummary.total, currency: 'MAD', content_ids: ids.join(',') })
-  sendCapi(reference, eventId)
+  track('order_submit', { number_of_products: ids.length, value: lastSummary.total, currency: 'MAD', content_ids: ids.join(',') })
   sessionStorage.setItem('ecolyn-last-lead', JSON.stringify({ reference }))
   return reference
-}
-
-async function sendCapi(reference, eventId) {
-  try {
-    const cookie = name => document.cookie.split('; ').find(row => row.startsWith(`${name}=`))?.split('=').slice(1).join('=') || ''
-    await fetch(`${supabaseUrl}/functions/v1/meta-capi`, { method: 'POST', headers: safeHeaders(), body: JSON.stringify({ event_name: 'Lead', event_id: eventId, reference, event_time: Math.floor(Date.now() / 1000), event_source_url: location.href, fbp: cookie('_fbp'), fbc: cookie('_fbc') }) })
-  } catch { /* L'enregistrement de la commande reste prioritaire si un outil tiers est indisponible. */ }
 }
 
 function switchLanguage() {

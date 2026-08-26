@@ -5,7 +5,7 @@ import {
   ArrowDown, ArrowLeft, ArrowRight, ArrowUpRight, BookOpen, CalendarDays, Check,
   ChevronDown, Clock3, Droplets, Eye, FileText, HeartHandshake,
   Languages, LockKeyhole, Menu, MessageCircle, MoonStar, MoveRight, Pause, Play,
-  ShieldCheck, Sparkles, Sun, Upload, Utensils, Volume2, X
+  ShieldCheck, ShoppingBag, Sparkles, Sun, Upload, Utensils, Volume2, X
 } from 'lucide-react'
 import type { Article, EvidenceLevel, Language, Localized, Testimonial } from './types'
 import { articles, quickTips } from './data/articles'
@@ -279,6 +279,15 @@ function Header({ lang, menuOpen, setMenuOpen, journeyComplete }: { lang: Langua
           <a className="pack-link" href={packHref} onClick={() => { track('pack_cta_click', { cta_location: 'desktop_nav' }); track('initiate_checkout', { cta_location: 'desktop_nav' }) }}>{t('nav.pack')} <ArrowUpRight size={14} /></a>
         </nav>
         <div className="nav-actions">
+          <a
+            className="mobile-shop-link"
+            href={packHref}
+            aria-label={lang === 'fr' ? 'Découvrir nos soins ECOLYN' : 'اكتشفي منتجات إيكولين'}
+            onClick={() => track('pack_cta_click', { cta_location: 'advice_header_mobile' })}
+          >
+            <ShoppingBag size={15} aria-hidden="true" />
+            <span>{lang === 'fr' ? 'Nos soins' : 'منتجاتنا'}</span>
+          </a>
           <button className="language-button" onClick={changeLanguage} aria-label="Changer de langue">
             <Languages size={17} /> <span>{lang === 'fr' ? 'عربي' : 'FR'}</span>
           </button>
