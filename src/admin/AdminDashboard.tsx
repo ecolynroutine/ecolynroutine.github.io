@@ -170,9 +170,15 @@ function prospectSummary(prospect: Prospect) {
 function normalizeMoroccanWhatsapp(value: string) {
   const rawDigits = value.replace(/\D/g, '')
   const digits = rawDigits.startsWith('00212') ? rawDigits.slice(2) : rawDigits
+  if (/^[67]\d{8}$/.test(digits)) return `212${digits}`
   if (/^0[67]\d{8}$/.test(digits)) return `212${digits.slice(1)}`
   if (/^212[67]\d{8}$/.test(digits)) return digits
   return null
+}
+
+function readableMoroccanWhatsapp(value: string) {
+  const normalized = normalizeMoroccanWhatsapp(value)
+  return normalized ? `0${normalized.slice(3)}` : value
 }
 
 function prospectWhatsappUrl(prospect: Prospect) {
@@ -368,7 +374,7 @@ function ProspectsPanel() {
             <tbody>
               {filtered.map(prospect => (
                 <tr key={prospect.id}>
-                  <td><strong>{prospect.first_name}</strong><span>{prospect.whatsapp}</span><small>{prospect.email || prospect.reference}</small></td>
+                  <td><strong>{prospect.first_name}</strong><span>{readableMoroccanWhatsapp(prospect.whatsapp)}</span><small>{prospect.email || prospect.reference}</small></td>
                   <td><strong>{prospect.primary_concern}</strong><span>{prospect.city} · {prospect.skin_type || 'Type non précisé'}</span></td>
                   <td><span className={`admin-lead-badge admin-lead-badge--${isPackOrder(prospect) ? 'order' : 'advice'}`}>{isPackOrder(prospect) ? 'Commande' : 'Conseil'}</span><strong className="admin-lead-summary">{prospectSummary(prospect)}</strong><small>{prospect.source} · {prospect.language.toUpperCase()}</small></td>
                   <td><span>{new Intl.DateTimeFormat('fr-MA', { dateStyle: 'medium' }).format(new Date(prospect.created_at))}</span><small>{new Intl.DateTimeFormat('fr-MA', { timeStyle: 'short' }).format(new Date(prospect.created_at))}</small></td>
@@ -393,7 +399,7 @@ function ProspectsPanel() {
             <p className="admin-kicker">{selected.reference}</p>
             <h2>{selected.first_name}</h2>
             <div className="admin-drawer-category"><span className={`admin-lead-badge admin-lead-badge--${isPackOrder(selected) ? 'order' : 'advice'}`}>{isPackOrder(selected) ? 'Commande' : 'Conseil'}</span><strong>{prospectSummary(selected)}</strong></div>
-            <div className="admin-contact-row"><span>{selected.whatsapp || 'Téléphone non renseigné'}</span>{selected.email && <a href={`mailto:${selected.email}`}>{selected.email}</a>}</div>
+            <div className="admin-contact-row"><span>{selected.whatsapp ? readableMoroccanWhatsapp(selected.whatsapp) : 'Téléphone non renseigné'}</span>{selected.email && <a href={`mailto:${selected.email}`}>{selected.email}</a>}</div>
             <ProspectWhatsappLink prospect={selected} prominent />
             <label className="admin-detail-status">Statut<select value={selected.status} disabled={savingId === selected.id} onChange={event => void updateStatus(selected, event.target.value as ProspectStatus)}>{Object.entries(statusLabels).map(([value, label]) => <option value={value} key={value}>{label}</option>)}</select></label>
             <div className="admin-detail-grid">
