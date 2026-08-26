@@ -276,7 +276,7 @@ function Header({ lang, menuOpen, setMenuOpen, journeyComplete }: { lang: Langua
         </a>
         <nav className="desktop-nav" aria-label={lang === 'fr' ? 'Navigation principale' : 'التنقل الرئيسي'}>
           {links.map(([href, label]) => <a key={`${href}-${label}`} href={href}>{label}</a>)}
-          <a className="pack-link" href={packHref} onClick={() => { track('pack_cta_click', { cta_location: 'desktop_nav' }); track('initiate_checkout', { cta_location: 'desktop_nav' }) }}>{t('nav.pack')} <ArrowUpRight size={14} /></a>
+          <a className="pack-link" href={packHref} onClick={() => track('pack_cta_click', { cta_location: 'desktop_nav' })}>{t('nav.pack')} <ArrowUpRight size={14} /></a>
         </nav>
         <div className="nav-actions">
           <a
@@ -305,7 +305,7 @@ function Header({ lang, menuOpen, setMenuOpen, journeyComplete }: { lang: Langua
             <nav>
               {links.map(([href, label], index) => <a key={`${href}-${label}`} href={href} onClick={() => setMenuOpen(false)}><span>0{index + 1}</span>{label}</a>)}
               <a href="#form-fields" data-form-cta="mobile_menu" onClick={() => setMenuOpen(false)}><span>{String(links.length + 1).padStart(2, '0')}</span>{t('nav.ask')}</a>
-              <a href={packHref} onClick={() => { track('pack_cta_click', { cta_location: 'mobile_menu' }); track('initiate_checkout', { cta_location: 'mobile_menu' }) }}><span>{String(links.length + 2).padStart(2, '0')}</span>{t('nav.pack')} <ArrowUpRight /></a>
+              <a href={packHref} onClick={() => track('pack_cta_click', { cta_location: 'mobile_menu' })}><span>{String(links.length + 2).padStart(2, '0')}</span>{t('nav.pack')} <ArrowUpRight /></a>
             </nav>
             <button className="mobile-language" onClick={changeLanguage}>{lang === 'fr' ? 'النسخة العربية' : 'Version française'}</button>
           </motion.div>
