@@ -15,6 +15,9 @@ let tracking = null
 let countdownTimer = 0
 let lastSummary = summaryFor([], commerce)
 let toastTimer = 0
+let builderVisibilityKnown = false
+let builderVisible = false
+const blockedRoutineCtaZones = new Set()
 
 const products = {
   cream: { fr: 'Crème hydratante', ar: 'كريم مرطب', image: './Asset/products/cream.webp', useFr: 'Appliquez après le sérum, matin et/ou soir selon votre routine.', useAr: 'ديريها من بعد السيروم صباحاً و/أو مساءً حسب الروتين.' },
@@ -117,6 +120,17 @@ function updateCountdown() {
   document.querySelectorAll('[data-time="seconds"],[data-time="seconds-label"]').forEach(node => { node.hidden = !showSeconds })
 }
 
+function updatePersistentCtas() {
+  const hasProducts = selected.size > 0
+  const dialogOpen = [...document.querySelectorAll('dialog')].some(dialog => dialog.open)
+  const sticky = document.querySelector('#stickyCart')
+  const routineCta = document.querySelector('#routineReturnCta')
+  sticky.hidden = !hasProducts
+  const showRoutineCta = builderVisibilityKnown && !builderVisible && !hasProducts && !dialogOpen && blockedRoutineCtaZones.size === 0
+  routineCta.classList.toggle('is-visible', showRoutineCta)
+  routineCta.setAttribute('aria-hidden', String(!showRoutineCta))
+}
+
 function render() {
   const ids = PRODUCT_ORDER.filter(id => selected.has(id)); lastSummary = summaryFor(ids, commerce)
   document.querySelectorAll('[data-cart-count]').forEach(node => { node.textContent = lastSummary.count })
@@ -129,7 +143,7 @@ function render() {
   bag.dataset.count = String(ids.length)
   bag.innerHTML = ids.length ? ids.map((id, index) => `<img class="bag-product bag-product--${id} bag-product--slot-${index}" src="${products[id].image}" alt="${products[id][language()]}">`).join('') : `<p class="bag-empty">${language() === 'ar' ? 'اختياراتك غتبان هنا.' : 'Votre sélection apparaîtra ici.'}</p>`
   const checkout = document.querySelector('#checkoutButton'); checkout.disabled = !ids.length || !isOfferAvailable(commerce)
-  const sticky = document.querySelector('#stickyCart'); sticky.hidden = !ids.length
+  updatePersistentCtas()
   renderMilestone(ids)
 }
 
@@ -212,10 +226,27 @@ async function sendCapi(reference, eventId) {
 }
 
 function switchLanguage() {
-  const next = language() === 'fr' ? 'ar' : 'fr'; document.documentElement.lang = next; document.documentElement.dir = next === 'ar' ? 'rtl' : 'ltr'; localStorage.setItem('ecolyn-lang', next); document.querySelector('#langButton').textContent = next === 'ar' ? 'FR' : 'ع'; document.title = next === 'ar' ? 'ركّبي روتينك ECOLYN' : 'Composez votre routine ECOLYN'; applyCommerce(); track('language_change', { language: next })
+  const next = language() === 'fr' ? 'ar' : 'fr'; document.documentElement.lang = next; document.documentElement.dir = next === 'ar' ? 'rtl' : 'ltr'; localStorage.setItem('ecolyn-lang', next); document.querySelector('#langButton').textContent = next === 'ar' ? 'FR' : 'ع'; document.querySelector('#routineReturnCta').setAttribute('aria-label', next === 'ar' ? 'أركّب روتيني' : 'Composer ma routine'); document.title = next === 'ar' ? 'ركّبي روتينك ECOLYN' : 'Composez votre routine ECOLYN'; applyCommerce(); track('language_change', { language: next })
 }
 
 function bind() {
+  const builder = document.querySelector('#compose')
+  const routineCta = document.querySelector('#routineReturnCta')
+  routineCta.hidden = false
+  routineCta.addEventListener('click', () => builder.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' }))
+  const routineCtaObserver = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if (entry.target === builder) { builderVisibilityKnown = true; builderVisible = entry.isIntersecting }
+      else if (entry.isIntersecting) blockedRoutineCtaZones.add(entry.target)
+      else blockedRoutineCtaZones.delete(entry.target)
+    })
+    updatePersistentCtas()
+  }, { threshold: 0 })
+  routineCtaObserver.observe(builder)
+  document.querySelectorAll('.hero .primary-button,.final-cta,footer').forEach(zone => routineCtaObserver.observe(zone))
+  const dialogObserver = new MutationObserver(updatePersistentCtas)
+  document.querySelectorAll('dialog').forEach(dialog => dialogObserver.observe(dialog, { attributes: true, attributeFilter: ['open'] }))
+  updatePersistentCtas()
   document.querySelectorAll('[data-add]').forEach(button => button.addEventListener('click', () => toggleProduct(button.dataset.add, button.closest('[data-product-card]'))))
   document.querySelectorAll('[data-cart-open]').forEach(button => button.addEventListener('click', openCheckout))
   document.querySelector('#checkoutButton').addEventListener('click', openCheckout)
@@ -253,6 +284,6 @@ function bind() {
 }
 
 const initialLang = localStorage.getItem('ecolyn-lang') === 'ar' ? 'ar' : 'fr'
-document.documentElement.lang = initialLang; document.documentElement.dir = initialLang === 'ar' ? 'rtl' : 'ltr'; document.querySelector('#langButton').textContent = initialLang === 'ar' ? 'FR' : 'ع'
+document.documentElement.lang = initialLang; document.documentElement.dir = initialLang === 'ar' ? 'rtl' : 'ltr'; document.querySelector('#langButton').textContent = initialLang === 'ar' ? 'FR' : 'ع'; document.querySelector('#routineReturnCta').setAttribute('aria-label', initialLang === 'ar' ? 'أركّب روتيني' : 'Composer ma routine')
 bind()
 loadConfiguration().finally(() => { track('page_view', { page_type: 'pack_builder' }); track('pack_view', { content_name: 'Routine ECOLYN personnalisable' }) })

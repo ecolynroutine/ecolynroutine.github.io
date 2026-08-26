@@ -8,7 +8,7 @@
   <link rel="canonical" href="https://ecolyn.ma/pack/">
   <link rel="icon" href="https://cdn.gamestrats.com/ecln/favicon.ico">
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://connect.facebook.net https://www.googletagmanager.com; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https:; media-src 'self' blob: https://cdn.gamestrats.com; connect-src 'self' https:; frame-ancestors 'none'; base-uri 'self'; form-action 'self'">
-  <link rel="stylesheet" href="./shop.css?v=6">
+  <link rel="stylesheet" href="./shop.css?v=7">
 </head>
 <body>
   <div class="offer-bar" id="offerBar" role="status">
@@ -53,7 +53,7 @@
         <div class="formula-proof"><span class="formula-proof__icon" aria-hidden="true">✓</span><strong><span class="fr-inline">Sans sulfates</span><span class="ar-inline">بدون سلفات</span></strong></div>
         <div class="formula-proof formula-proof--strong"><span class="formula-proof__icon" aria-hidden="true">✓</span><strong><span class="fr-inline">Testé dermatologiquement</span><span class="ar-inline">مختبر جلدياً</span></strong></div>
         <div class="formula-proof"><span class="formula-proof__icon formula-proof__icon--jar" aria-hidden="true"><i>12M</i></span><strong><span class="fr-inline">12 mois après ouverture</span><span class="ar-inline">12 شهراً بعد الفتح</span></strong></div>
-        <div class="formula-proof formula-proof--dmp"><span class="formula-proof__icon" aria-hidden="true">DMP</span><span><strong><span class="fr-inline">Approuvé par la DMP</span><span class="ar-inline">معتمد من طرف مديرية الأدوية والصيدلة DMP</span></strong><small class="fr">Direction du Médicament et de la Pharmacie</small></span></div>
+        <div class="formula-proof formula-proof--dmp"><img class="formula-proof__dmp-logo" src="https://cdn.gamestrats.com/ecln/dmp.png" alt="" width="66" height="44" loading="lazy" decoding="async"><span><strong><span class="fr-inline">Approuvé par la DMP</span><span class="ar-inline">معتمد من طرف مديرية الأدوية والصيدلة DMP</span></strong><small class="fr">Direction du Médicament et de la Pharmacie</small></span></div>
       </div>
     </section>
     <section class="builder section-pad" id="compose">
@@ -143,6 +143,7 @@
     <section class="final-cta section-pad"><p class="kicker"><span class="fr-inline">Votre rituel commence ici</span><span class="ar-inline">روتينك كيبدا هنا</span></p><h2><span class="fr">Choisissez seulement ce dont votre peau et vos envies ont <em>besoin aujourd’hui.</em></span><span class="ar">اختاري غير اللي بشرتك ورغبتك <em>محتاجين ليه اليوم.</em></span></h2><a class="primary-button" href="#compose" data-pack-cta="final"><span class="fr-inline">Composer mon sac beauté</span><span class="ar-inline">نركّب حقيبتي</span></a></section>
   </main>
   <footer><img src="./Asset/Logo transparent ECOLYN.webp" alt="ECOLYN"><p>© 2026 ECOLYN · Maroc</p><a href="mailto:ecolyn@proton.me">ecolyn@proton.me</a></footer>
+  <button class="routine-return-cta" id="routineReturnCta" type="button" aria-label="Composer ma routine" hidden><span class="routine-return-cta__bag" aria-hidden="true"></span><strong><span class="fr-inline">Composer ma routine</span><span class="ar-inline">أركّب روتيني</span></strong><span class="routine-return-cta__arrow" aria-hidden="true">→</span></button>
   <button class="sticky-cart" id="stickyCart" type="button" data-cart-open hidden><span><b data-cart-count>0</b> <span class="fr-inline">produit(s)</span><span class="ar-inline">منتج</span><small><span class="fr-inline">Économie</span><span class="ar-inline">توفير</span> <b data-sticky-savings>0</b> DH</small></span><strong><b data-total>0</b> DH</strong><span class="fr-inline">Commander</span><span class="ar-inline">طلبي</span></button>
   <dialog class="modal checkout-modal" id="checkoutDialog">
     <button class="modal__close" type="button" data-close-dialog aria-label="Fermer">×</button><p class="kicker"><span class="fr-inline">Votre commande</span><span class="ar-inline">الطلب ديالك</span></p><h2><span class="fr-inline">Finaliser en quelques secondes</span><span class="ar-inline">كمّلي الطلب فثواني</span></h2><div class="checkout-recap" id="checkoutRecap"></div>
@@ -157,6 +158,6 @@
   <dialog class="modal details-modal" id="detailsDialog"><button class="modal__close" type="button" data-close-dialog aria-label="Fermer">×</button><div id="detailsContent"></div></dialog>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
   <script src="../config.js"></script>
-  <script type="module" src="./ecolyn-runtime.js?v=6"></script>
+  <script type="module" src="./ecolyn-runtime.js?v=7"></script>
 </body>
 </html>
