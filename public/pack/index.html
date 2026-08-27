@@ -8,7 +8,7 @@
   <link rel="canonical" href="https://ecolyn.ma/pack/">
   <link rel="icon" href="https://cdn.gamestrats.com/ecln/favicon.ico">
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://connect.facebook.net https://www.googletagmanager.com; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https:; media-src 'self' blob: https://cdn.gamestrats.com; connect-src 'self' https:; frame-ancestors 'none'; base-uri 'self'; form-action 'self'">
-  <link rel="stylesheet" href="./shop.css?v=7">
+  <link rel="stylesheet" href="./shop.css?v=8">
 </head>
 <body>
   <div class="offer-bar" id="offerBar" role="status">
@@ -151,13 +151,19 @@
       <label><span class="fr-inline">Nom complet</span><span class="ar-inline">الاسم الكامل</span><input name="name" autocomplete="name" required maxlength="100"></label>
       <label><span class="fr-inline">Numéro WhatsApp</span><span class="ar-inline">رقم واتساب</span><input name="whatsapp" type="tel" inputmode="tel" autocomplete="tel" placeholder="06 12 34 56 78" required maxlength="20"></label>
       <div class="form-row"><label><span class="fr-inline">Ville</span><span class="ar-inline">المدينة</span><input name="city" autocomplete="address-level2" required maxlength="80"></label><label><span class="fr-inline">Adresse</span><span class="ar-inline">العنوان</span><input name="address" autocomplete="street-address" required maxlength="240"></label></div>
-      <label class="consent-row"><input name="consent" type="checkbox" required><span><span class="fr-inline">J’accepte d’être contactée pour confirmer cette commande et que cette confirmation soit mesurée de façon sécurisée.</span><span class="ar-inline">موافقة يتواصلو معايا باش يأكدو هاد الطلب ويتقاس هاد التأكيد بطريقة آمنة.</span></span></label>
       <button class="checkout-button" type="submit"><span class="fr-inline">Confirmer ma commande</span><span class="ar-inline">نأكد الطلب ديالي</span></button><p class="form-status" id="formStatus" aria-live="polite"></p><small><span class="fr-inline">Aucun paiement en ligne. Le prix affiché est vérifié avant l’envoi.</span><span class="ar-inline">ما كاينش الدفع أونلاين. الثمن الظاهر كيتأكد قبل الإرسال.</span></small>
     </form>
   </dialog>
   <dialog class="modal details-modal" id="detailsDialog"><button class="modal__close" type="button" data-close-dialog aria-label="Fermer">×</button><div id="detailsContent"></div></dialog>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <section class="pack-privacy" aria-labelledby="packPrivacyTitle">
+    <h2 id="packPrivacyTitle"><span class="fr-inline">Confidentialité</span><span class="ar-inline">الخصوصية</span></h2>
+    <label class="privacy-consent-row">
+      <input name="contact_consent" type="checkbox" form="checkoutForm" checked>
+      <span><span class="fr-inline">J’accepte qu’ECOLYN me contacte pour confirmer et assurer le suivi de ma commande.</span><span class="ar-inline">موافقة تتواصل معايا ECOLYN باش تأكد الطلب وتتابع معايا التوصيل.</span></span>
+    </label>
+  </section>
   <script src="../config.js"></script>
-  <script type="module" src="./ecolyn-runtime.js?v=7"></script>
+  <script type="module" src="./ecolyn-runtime.js?v=8"></script>
 </body>
 </html>
