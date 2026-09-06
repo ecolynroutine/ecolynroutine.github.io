@@ -15,6 +15,7 @@ let tracking = null
 let countdownTimer = 0
 let lastSummary = summaryFor([], commerce)
 let toastTimer = 0
+let stickyFeedbackTimer = 0
 let builderVisibilityKnown = false
 let builderVisible = false
 const blockedRoutineCtaZones = new Set()
@@ -95,6 +96,14 @@ function safeProductPayload(id, summary) {
 
 function applyCommerce() {
   document.querySelectorAll('[data-unit-price]').forEach(node => { node.textContent = commerce.productPrices[node.dataset.unitPrice] })
+  const pricesForCount = count => count === 1
+    ? PRODUCT_ORDER.map(id => commerce.productPrices[id])
+    : Object.entries(commerce.bundlePrices).filter(([key]) => key.split('+').length === count).map(([, price]) => price)
+  document.querySelectorAll('[data-tier-from]').forEach(node => { node.textContent = Math.min(...pricesForCount(Number(node.dataset.tierFrom))) })
+  const fullSummary = summaryFor(PRODUCT_ORDER, commerce)
+  document.querySelectorAll('[data-full-separate]').forEach(node => { node.textContent = fullSummary.separateValue })
+  document.querySelectorAll('[data-full-total]').forEach(node => { node.textContent = fullSummary.total })
+  document.querySelectorAll('[data-full-savings]').forEach(node => { node.textContent = fullSummary.savings })
   const number = commerce.whatsappNumber || clean(appConfig.whatsappNumber)
   const message = language() === 'ar' ? commerce.whatsappMessageAr : commerce.whatsappMessageFr
   const whatsapp = document.querySelector('#expertWhatsapp')
@@ -112,7 +121,7 @@ function updateCountdown() {
   document.querySelector('#offerBar').classList.toggle('is-ended', !available)
   if (!available) {
     document.querySelector('#countdown').innerHTML = language() === 'ar' ? 'العرض منتهي' : 'Offre terminée'
-    document.querySelectorAll('[data-add],#checkoutButton').forEach(button => { button.disabled = true })
+    document.querySelectorAll('[data-add],#checkoutButton,#addFullRoutine').forEach(button => { button.disabled = true })
     return
   }
   const totalSeconds = Math.max(0, Math.floor(remaining / 1000)); const days = Math.floor(totalSeconds / 86400); const hours = Math.floor(totalSeconds % 86400 / 3600); const minutes = Math.floor(totalSeconds % 3600 / 60); const seconds = totalSeconds % 60
@@ -128,6 +137,7 @@ function updatePersistentCtas() {
   const sticky = document.querySelector('#stickyCart')
   const routineCta = document.querySelector('#routineReturnCta')
   sticky.hidden = !hasProducts
+  if (!hasProducts) sticky.classList.remove('is-expanded', 'fly-target-pulse')
   const showRoutineCta = builderVisibilityKnown && !builderVisible && !hasProducts && !dialogOpen && blockedRoutineCtaZones.size === 0
   routineCta.classList.toggle('is-visible', showRoutineCta)
   routineCta.setAttribute('aria-hidden', String(!showRoutineCta))
@@ -136,6 +146,7 @@ function updatePersistentCtas() {
 function render() {
   const ids = PRODUCT_ORDER.filter(id => selected.has(id)); lastSummary = summaryFor(ids, commerce)
   document.querySelectorAll('[data-cart-count]').forEach(node => { node.textContent = lastSummary.count })
+  document.querySelectorAll('[data-cart-unit]').forEach(node => { node.textContent = language() === 'ar' ? (lastSummary.count === 1 ? 'منتج' : lastSummary.count === 2 ? 'منتجين' : 'منتجات') : (lastSummary.count === 1 ? 'soin' : 'soins') })
   document.querySelectorAll('[data-separate]').forEach(node => { node.textContent = lastSummary.separateValue })
   document.querySelectorAll('[data-savings]').forEach(node => { node.textContent = lastSummary.savings })
   document.querySelectorAll('[data-sticky-savings]').forEach(node => { node.textContent = lastSummary.savings })
@@ -144,7 +155,10 @@ function render() {
   const bag = document.querySelector('#bagProducts')
   bag.dataset.count = String(ids.length)
   bag.innerHTML = ids.length ? ids.map((id, index) => `<img class="bag-product bag-product--${id} bag-product--slot-${index}" src="${products[id].image}" alt="${products[id][language()]}">`).join('') : `<p class="bag-empty">${language() === 'ar' ? 'اختياراتك غتبان هنا.' : 'Votre sélection apparaîtra ici.'}</p>`
+  document.querySelector('#stickyProducts').innerHTML = ids.map(id => `<img src="${products[id].image}" alt="">`).join('')
+  document.querySelector('#stickyCart').setAttribute('aria-label', language() === 'ar' ? `افتحي الطلب: ${lastSummary.count} منتجات، المجموع ${lastSummary.total} درهم` : `Ouvrir ma commande : ${lastSummary.count} soin${lastSummary.count > 1 ? 's' : ''}, total ${lastSummary.total} DH`)
   const checkout = document.querySelector('#checkoutButton'); checkout.disabled = !ids.length || !isOfferAvailable(commerce)
+  const fullRoutineButton = document.querySelector('#addFullRoutine'); fullRoutineButton.disabled = ids.length === PRODUCT_ORDER.length || !isOfferAvailable(commerce); fullRoutineButton.setAttribute('aria-pressed', String(ids.length === PRODUCT_ORDER.length))
   updatePersistentCtas()
   renderMilestone(ids)
 }
@@ -161,6 +175,19 @@ function renderMilestone(ids) {
   }
 }
 
+function isBagVisible() {
+  const rect = document.querySelector('#bagObject').getBoundingClientRect()
+  return rect.top < innerHeight - 80 && rect.bottom > 100
+}
+
+function expandStickyFeedback() {
+  if (!matchMedia('(max-width: 820px)').matches || !selected.size) return
+  const sticky = document.querySelector('#stickyCart')
+  sticky.classList.add('is-expanded')
+  clearTimeout(stickyFeedbackTimer)
+  stickyFeedbackTimer = setTimeout(() => sticky.classList.remove('is-expanded'), 1800)
+}
+
 function flyToBag(card, id) {
   if (matchMedia('(prefers-reduced-motion: reduce)').matches) return
   const source = card.querySelector('.product-card__image img')
@@ -168,8 +195,8 @@ function flyToBag(card, id) {
   installedProduct?.classList.add('is-arriving')
   const bagObject = document.querySelector('#bagObject')
   const sticky = document.querySelector('#stickyCart')
-  const bagRect = bagObject.getBoundingClientRect()
-  const bagVisible = bagRect.top < innerHeight - 80 && bagRect.bottom > 100
+  const bagVisible = isBagVisible()
+  if (!bagVisible) expandStickyFeedback()
   const target = bagVisible ? document.querySelector('#bagMouth') : sticky
   if (!target || target.hidden) return
   const a = source.getBoundingClientRect(); const b = target.getBoundingClientRect(); const clone = source.cloneNode()
@@ -192,6 +219,23 @@ function toggleProduct(id, card) {
   if (!isOfferAvailable(commerce)) return showToast(language() === 'ar' ? 'العرض منتهي.' : 'L’offre est terminée.')
   if (selected.has(id)) { selected.delete(id); render(); track('product_remove', safeProductPayload(id, lastSummary)); showToast(language() === 'ar' ? 'تحيد المنتج.' : 'Produit retiré.') }
   else { selected.add(id); render(); flyToBag(card, id); track('product_add', safeProductPayload(id, lastSummary)); showToast(language() === 'ar' ? 'تزاد فـ الروتين ✓' : 'Ajouté à votre routine ✓') }
+}
+
+function addFullRoutine() {
+  if (!isOfferAvailable(commerce)) return showToast(language() === 'ar' ? 'العرض منتهي.' : 'L’offre est terminée.')
+  const previousIds = PRODUCT_ORDER.filter(id => selected.has(id))
+  const missingIds = PRODUCT_ORDER.filter(id => !selected.has(id))
+  if (!missingIds.length) return
+  missingIds.forEach(id => selected.add(id))
+  render()
+  if (!isBagVisible()) expandStickyFeedback()
+  missingIds.forEach((id, index) => {
+    const progressiveSummary = summaryFor([...previousIds, ...missingIds.slice(0, index + 1)], commerce)
+    track('product_add', safeProductPayload(id, progressiveSummary))
+    const card = document.querySelector(`[data-product-card="${id}"]`)
+    if (card) setTimeout(() => flyToBag(card, id), index * 90)
+  })
+  showToast(language() === 'ar' ? 'تزاد الروتين كامل ✓' : 'Routine complète ajoutée ✓')
 }
 
 function showToast(message) { const toast = document.querySelector('#toast'); toast.textContent = message; toast.classList.add('is-visible'); clearTimeout(toastTimer); toastTimer = setTimeout(() => toast.classList.remove('is-visible'), 1800) }
@@ -242,6 +286,7 @@ function bind() {
   document.querySelectorAll('dialog').forEach(dialog => dialogObserver.observe(dialog, { attributes: true, attributeFilter: ['open'] }))
   updatePersistentCtas()
   document.querySelectorAll('[data-add]').forEach(button => button.addEventListener('click', () => toggleProduct(button.dataset.add, button.closest('[data-product-card]'))))
+  document.querySelector('#addFullRoutine').addEventListener('click', addFullRoutine)
   document.querySelectorAll('[data-cart-open]').forEach(button => button.addEventListener('click', openCheckout))
   document.querySelector('#checkoutButton').addEventListener('click', openCheckout)
   document.querySelectorAll('[data-pack-cta]').forEach(link => link.addEventListener('click', () => track('pack_cta_click', { cta_location: link.dataset.packCta })))

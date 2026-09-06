@@ -8,7 +8,7 @@
   <link rel="canonical" href="https://ecolyn.ma/pack/">
   <link rel="icon" href="https://cdn.gamestrats.com/ecln/favicon.ico">
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://connect.facebook.net https://www.googletagmanager.com; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https:; media-src 'self' blob: https://cdn.gamestrats.com; connect-src 'self' https:; frame-ancestors 'none'; base-uri 'self'; form-action 'self'">
-  <link rel="stylesheet" href="./shop.css?v=8">
+  <link rel="stylesheet" href="./shop.css?v=9">
 </head>
 <body>
   <div class="offer-bar" id="offerBar" role="status">
@@ -61,6 +61,24 @@
         <p class="kicker"><span class="fr-inline">01 — L’atelier de votre routine</span><span class="ar-inline">01 — ركّبي روتينك</span></p>
         <h2><span class="fr">Quatre soins. Une routine <em>qui vous ressemble.</em></span><span class="ar">أربعة منتجات. روتين <em>كيشبه ليك.</em></span></h2>
         <p><span class="fr-inline">Touchez simplement les soins qui vous intéressent. Aucun produit n’est présélectionné.</span><span class="ar-inline">ضغطي غير على المنتجات اللي بغيتي. ما كاين حتى منتج مختار مسبقاً.</span></p>
+      </div>
+      <div class="price-ladder" aria-label="Paliers de prix ECOLYN">
+        <div class="price-ladder__steps">
+          <p><span><span class="fr-inline">1 soin</span><span class="ar-inline">منتج واحد</span></span><strong><span class="fr-inline">dès</span><span class="ar-inline">ابتداءً من</span> <b data-tier-from="1">99</b> <span class="fr-inline">DH</span><span class="ar-inline">درهم</span></strong></p>
+          <p><span><span class="fr-inline">2 soins</span><span class="ar-inline">منتجين</span></span><strong><span class="fr-inline">dès</span><span class="ar-inline">ابتداءً من</span> <b data-tier-from="2">152</b> <span class="fr-inline">DH</span><span class="ar-inline">درهم</span></strong></p>
+          <p><span><span class="fr-inline">3 soins</span><span class="ar-inline">3 منتجات</span></span><strong><span class="fr-inline">dès</span><span class="ar-inline">ابتداءً من</span> <b data-tier-from="3">208</b> <span class="fr-inline">DH</span><span class="ar-inline">درهم</span></strong></p>
+        </div>
+        <div class="price-ladder__best">
+          <div class="price-ladder__best-copy">
+            <span class="price-ladder__eyebrow"><span class="fr-inline">4 SOINS — MEILLEUR TARIF</span><span class="ar-inline">4 منتجات — أحسن عرض</span></span>
+            <div class="price-ladder__prices"><s><b data-full-separate>423</b> <span class="fr-inline">DH</span><span class="ar-inline">درهم</span></s><strong><b data-full-total>266</b> <span class="fr-inline">DH</span><span class="ar-inline">درهم</span></strong></div>
+            <p><span class="fr-inline">Vous économisez <b data-full-savings>157</b> DH</span><span class="ar-inline">كتوفري <b data-full-savings>157</b> درهم</span><span class="price-ladder__shipping">✓ <span class="fr-inline">Livraison offerte</span><span class="ar-inline">التوصيل مجاني</span></span></p>
+          </div>
+          <div class="price-ladder__action">
+            <button id="addFullRoutine" type="button"><span class="fr-inline">Ajouter les 4 soins — <b data-full-total>266</b> DH</span><span class="ar-inline">أضيفي الروتين كامل — <b data-full-total>266</b> درهم</span></button>
+            <small><span class="fr-inline">Ou choisissez uniquement les soins dont vous avez besoin ↓</span><span class="ar-inline">أو اختاري غير المنتجات اللي محتاجاها ↓</span></small>
+          </div>
+        </div>
       </div>
       <div class="builder-layout">
         <div class="product-grid" id="productGrid">
@@ -144,7 +162,12 @@
   </main>
   <footer><img src="./Asset/Logo transparent ECOLYN.webp" alt="ECOLYN"><p>© 2026 ECOLYN · Maroc</p><a href="mailto:ecolyn@proton.me">ecolyn@proton.me</a></footer>
   <button class="routine-return-cta" id="routineReturnCta" type="button" aria-label="Composer ma routine" hidden><span class="routine-return-cta__bag" aria-hidden="true"></span><strong><span class="fr-inline">Composer ma routine</span><span class="ar-inline">أركّب روتيني</span></strong><span class="routine-return-cta__arrow" aria-hidden="true">→</span></button>
-  <button class="sticky-cart" id="stickyCart" type="button" data-cart-open hidden><span><b data-cart-count>0</b> <span class="fr-inline">produit(s)</span><span class="ar-inline">منتج</span><small><span class="fr-inline">Économie</span><span class="ar-inline">توفير</span> <b data-sticky-savings>0</b> DH</small></span><strong><b data-total>0</b> DH</strong><span class="fr-inline">Commander</span><span class="ar-inline">طلبي</span></button>
+  <button class="sticky-cart" id="stickyCart" type="button" data-cart-open aria-label="Ouvrir ma commande" hidden>
+    <span class="sticky-cart__products" id="stickyProducts" aria-hidden="true"></span>
+    <span class="sticky-cart__summary"><span><b data-cart-count>0</b> <span data-cart-unit>soins</span></span><small><span class="fr-inline">Vous économisez</span><span class="ar-inline">كتوفري</span> <b data-sticky-savings>0</b> <span class="fr-inline">DH</span><span class="ar-inline">درهم</span></small></span>
+    <strong class="sticky-cart__total"><b data-total>0</b> <small><span class="fr-inline">DH</span><span class="ar-inline">درهم</span></small></strong>
+    <span class="sticky-cart__action"><span class="fr-inline">Commander</span><span class="ar-inline">طلبي</span><i aria-hidden="true">→</i></span>
+  </button>
   <dialog class="modal checkout-modal" id="checkoutDialog">
     <button class="modal__close" type="button" data-close-dialog aria-label="Fermer">×</button><p class="kicker"><span class="fr-inline">Votre commande</span><span class="ar-inline">الطلب ديالك</span></p><h2><span class="fr-inline">Finaliser en quelques secondes</span><span class="ar-inline">كمّلي الطلب فثواني</span></h2><div class="checkout-recap" id="checkoutRecap"></div>
     <form id="checkoutForm">
@@ -164,6 +187,6 @@
     </label>
   </section>
   <script src="../config.js"></script>
-  <script type="module" src="./ecolyn-runtime.js?v=8"></script>
+  <script type="module" src="./ecolyn-runtime.js?v=9"></script>
 </body>
 </html>
