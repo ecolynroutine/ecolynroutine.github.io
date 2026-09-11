@@ -16,6 +16,7 @@ let countdownTimer = 0
 let lastSummary = summaryFor([], commerce)
 let toastTimer = 0
 let stickyFeedbackTimer = 0
+let stickyFeedbackActive = false
 let builderVisibilityKnown = false
 let builderVisible = false
 const blockedRoutineCtaZones = new Set()
@@ -106,8 +107,12 @@ function applyCommerce() {
   document.querySelectorAll('[data-full-savings]').forEach(node => { node.textContent = fullSummary.savings })
   const number = commerce.whatsappNumber || clean(appConfig.whatsappNumber)
   const message = language() === 'ar' ? commerce.whatsappMessageAr : commerce.whatsappMessageFr
-  const whatsapp = document.querySelector('#expertWhatsapp')
-  whatsapp.href = `https://wa.me/${number}?text=${encodeURIComponent(message)}`
+  const whatsappHref = `https://wa.me/${number}?text=${encodeURIComponent(message)}`
+  document.querySelector('#expertWhatsapp').href = whatsappHref
+  const floatingSupport = document.querySelector('#floatingSalesSupport')
+  floatingSupport.href = whatsappHref
+  floatingSupport.hidden = false
+  floatingSupport.setAttribute('aria-label', language() === 'ar' ? 'هضري مباشرة مع حنان على واتساب' : 'Parler directement à Hanane sur WhatsApp')
   clearInterval(countdownTimer)
   updateCountdown()
   countdownTimer = setInterval(updateCountdown, 1000)
@@ -121,7 +126,7 @@ function updateCountdown() {
   document.querySelector('#offerBar').classList.toggle('is-ended', !available)
   if (!available) {
     document.querySelector('#countdown').innerHTML = language() === 'ar' ? 'العرض منتهي' : 'Offre terminée'
-    document.querySelectorAll('[data-add],#checkoutButton,#addFullRoutine').forEach(button => { button.disabled = true })
+    document.querySelectorAll('[data-add],#checkoutButton,#addFullRoutine,#heroFullRoutine').forEach(button => { button.disabled = true })
     return
   }
   const totalSeconds = Math.max(0, Math.floor(remaining / 1000)); const days = Math.floor(totalSeconds / 86400); const hours = Math.floor(totalSeconds % 86400 / 3600); const minutes = Math.floor(totalSeconds % 3600 / 60); const seconds = totalSeconds % 60
@@ -136,9 +141,16 @@ function updatePersistentCtas() {
   const dialogOpen = [...document.querySelectorAll('dialog')].some(dialog => dialog.open)
   const sticky = document.querySelector('#stickyCart')
   const routineCta = document.querySelector('#routineReturnCta')
-  sticky.hidden = !hasProducts
-  if (!hasProducts) sticky.classList.remove('is-expanded', 'fly-target-pulse')
+  const floatingSupport = document.querySelector('#floatingSalesSupport')
   const showRoutineCta = builderVisibilityKnown && !builderVisible && !hasProducts && !dialogOpen && blockedRoutineCtaZones.size === 0
+  sticky.hidden = !hasProducts
+  if (!hasProducts) { sticky.classList.remove('is-expanded', 'fly-target-pulse'); stickyFeedbackActive = false }
+  floatingSupport.classList.toggle('has-cart', hasProducts)
+  floatingSupport.classList.toggle('has-expanded-cart', hasProducts && stickyFeedbackActive)
+  floatingSupport.classList.toggle('has-routine-cta', showRoutineCta)
+  floatingSupport.classList.toggle('is-hidden', dialogOpen)
+  floatingSupport.setAttribute('aria-hidden', String(dialogOpen))
+  floatingSupport.tabIndex = dialogOpen ? -1 : 0
   routineCta.classList.toggle('is-visible', showRoutineCta)
   routineCta.setAttribute('aria-hidden', String(!showRoutineCta))
 }
@@ -159,6 +171,7 @@ function render() {
   document.querySelector('#stickyCart').setAttribute('aria-label', language() === 'ar' ? `افتحي الطلب: ${lastSummary.count} منتجات، المجموع ${lastSummary.total} درهم` : `Ouvrir ma commande : ${lastSummary.count} soin${lastSummary.count > 1 ? 's' : ''}, total ${lastSummary.total} DH`)
   const checkout = document.querySelector('#checkoutButton'); checkout.disabled = !ids.length || !isOfferAvailable(commerce)
   const fullRoutineButton = document.querySelector('#addFullRoutine'); fullRoutineButton.disabled = ids.length === PRODUCT_ORDER.length || !isOfferAvailable(commerce); fullRoutineButton.setAttribute('aria-pressed', String(ids.length === PRODUCT_ORDER.length))
+  document.querySelector('#heroFullRoutine').disabled = !isOfferAvailable(commerce)
   updatePersistentCtas()
   renderMilestone(ids)
 }
@@ -183,9 +196,14 @@ function isBagVisible() {
 function expandStickyFeedback() {
   if (!matchMedia('(max-width: 820px)').matches || !selected.size) return
   const sticky = document.querySelector('#stickyCart')
+  stickyFeedbackActive = true
   sticky.classList.add('is-expanded')
+  updatePersistentCtas()
   clearTimeout(stickyFeedbackTimer)
-  stickyFeedbackTimer = setTimeout(() => sticky.classList.remove('is-expanded'), 1800)
+  stickyFeedbackTimer = setTimeout(() => {
+    sticky.classList.remove('is-expanded')
+    stickyFeedbackTimer = setTimeout(() => { stickyFeedbackActive = false; updatePersistentCtas() }, 400)
+  }, 1800)
 }
 
 function flyToBag(card, id) {
@@ -221,21 +239,44 @@ function toggleProduct(id, card) {
   else { selected.add(id); render(); flyToBag(card, id); track('product_add', safeProductPayload(id, lastSummary)); showToast(language() === 'ar' ? 'تزاد فـ الروتين ✓' : 'Ajouté à votre routine ✓') }
 }
 
-function addFullRoutine() {
-  if (!isOfferAvailable(commerce)) return showToast(language() === 'ar' ? 'العرض منتهي.' : 'L’offre est terminée.')
+function selectFullRoutine({ animate = true } = {}) {
   const previousIds = PRODUCT_ORDER.filter(id => selected.has(id))
   const missingIds = PRODUCT_ORDER.filter(id => !selected.has(id))
-  if (!missingIds.length) return
   missingIds.forEach(id => selected.add(id))
   render()
-  if (!isBagVisible()) expandStickyFeedback()
+  if (animate && missingIds.length && !isBagVisible()) expandStickyFeedback()
+  return { previousIds, missingIds }
+}
+
+function trackFullRoutineProducts(previousIds, missingIds, animate = true) {
   missingIds.forEach((id, index) => {
     const progressiveSummary = summaryFor([...previousIds, ...missingIds.slice(0, index + 1)], commerce)
     track('product_add', safeProductPayload(id, progressiveSummary))
     const card = document.querySelector(`[data-product-card="${id}"]`)
-    if (card) setTimeout(() => flyToBag(card, id), index * 90)
+    if (animate && card) setTimeout(() => flyToBag(card, id), index * 90)
   })
+}
+
+function addFullRoutine() {
+  if (!isOfferAvailable(commerce)) return showToast(language() === 'ar' ? 'العرض منتهي.' : 'L’offre est terminée.')
+  const { previousIds, missingIds } = selectFullRoutine()
+  if (!missingIds.length) return
+  trackFullRoutineProducts(previousIds, missingIds)
   showToast(language() === 'ar' ? 'تزاد الروتين كامل ✓' : 'Routine complète ajoutée ✓')
+}
+
+function orderFullRoutineFromHero() {
+  if (!isOfferAvailable(commerce)) return showToast(language() === 'ar' ? 'العرض منتهي.' : 'L’offre est terminée.')
+  const { previousIds, missingIds } = selectFullRoutine({ animate: false })
+  track('full_routine_click', { number_of_products: 4, value: lastSummary.total, currency: 'MAD', cta_location: 'hero' })
+  trackFullRoutineProducts(previousIds, missingIds, false)
+  openCheckout()
+}
+
+function chooseCustomRoutine(event) {
+  event.preventDefault()
+  track('custom_routine_click', { cta_location: 'hero' })
+  document.querySelector('#compose').scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' })
 }
 
 function showToast(message) { const toast = document.querySelector('#toast'); toast.textContent = message; toast.classList.add('is-visible'); clearTimeout(toastTimer); toastTimer = setTimeout(() => toast.classList.remove('is-visible'), 1800) }
@@ -281,17 +322,25 @@ function bind() {
     updatePersistentCtas()
   }, { threshold: 0 })
   routineCtaObserver.observe(builder)
-  document.querySelectorAll('.hero .primary-button,.final-cta,footer').forEach(zone => routineCtaObserver.observe(zone))
+  document.querySelectorAll('.hero,.final-cta,footer').forEach(zone => routineCtaObserver.observe(zone))
+  const heroSupportObserver = new IntersectionObserver(entries => {
+    entries.forEach(entry => document.querySelector('#floatingSalesSupport').classList.toggle('is-compact', entry.isIntersecting))
+  }, { threshold: .15 })
+  heroSupportObserver.observe(document.querySelector('#heroFullRoutine'))
   const dialogObserver = new MutationObserver(updatePersistentCtas)
   document.querySelectorAll('dialog').forEach(dialog => dialogObserver.observe(dialog, { attributes: true, attributeFilter: ['open'] }))
   updatePersistentCtas()
   document.querySelectorAll('[data-add]').forEach(button => button.addEventListener('click', () => toggleProduct(button.dataset.add, button.closest('[data-product-card]'))))
   document.querySelector('#addFullRoutine').addEventListener('click', addFullRoutine)
-  document.querySelectorAll('[data-cart-open]').forEach(button => button.addEventListener('click', openCheckout))
+  document.querySelector('#heroFullRoutine').addEventListener('click', orderFullRoutineFromHero)
+  document.querySelector('#heroCustomRoutine').addEventListener('click', chooseCustomRoutine)
+  document.querySelectorAll('[data-cart-open]:not(#stickyCart)').forEach(button => button.addEventListener('click', openCheckout))
+  document.querySelector('#stickyCart').addEventListener('click', () => { track('sticky_checkout_click', { number_of_products: lastSummary.count, value: lastSummary.total, currency: 'MAD' }); openCheckout() })
   document.querySelector('#checkoutButton').addEventListener('click', openCheckout)
   document.querySelectorAll('[data-pack-cta]').forEach(link => link.addEventListener('click', () => track('pack_cta_click', { cta_location: link.dataset.packCta })))
   document.querySelector('#langButton').addEventListener('click', switchLanguage)
   document.querySelector('#expertWhatsapp').addEventListener('click', () => track('whatsapp_click', { cta_location: 'pack_expert' }))
+  document.querySelector('#floatingSalesSupport').addEventListener('click', () => track('whatsapp_click', { cta_location: 'floating_sales_support' }))
   document.querySelectorAll('[data-close-dialog]').forEach(button => button.addEventListener('click', () => button.closest('dialog').close()))
   document.querySelectorAll('dialog').forEach(dialog => dialog.addEventListener('click', event => { if (event.target === dialog) dialog.close() }))
   document.querySelectorAll('[data-details]').forEach(button => button.addEventListener('click', event => {
