@@ -139,15 +139,18 @@ function updateCountdown() {
 function updatePersistentCtas() {
   const hasProducts = selected.size > 0
   const dialogOpen = [...document.querySelectorAll('dialog')].some(dialog => dialog.open)
+  const mobileBuilderActive = matchMedia('(max-width: 820px)').matches && builderVisible
   const sticky = document.querySelector('#stickyCart')
   const routineCta = document.querySelector('#routineReturnCta')
   const floatingSupport = document.querySelector('#floatingSalesSupport')
   const showRoutineCta = builderVisibilityKnown && !builderVisible && !hasProducts && !dialogOpen && blockedRoutineCtaZones.size === 0
-  sticky.hidden = !hasProducts
+  sticky.hidden = !hasProducts || mobileBuilderActive
+  sticky.classList.toggle('is-builder-hidden', mobileBuilderActive)
   if (!hasProducts) { sticky.classList.remove('is-expanded', 'fly-target-pulse'); stickyFeedbackActive = false }
   floatingSupport.classList.toggle('has-cart', hasProducts)
   floatingSupport.classList.toggle('has-expanded-cart', hasProducts && stickyFeedbackActive)
   floatingSupport.classList.toggle('has-routine-cta', showRoutineCta)
+  floatingSupport.classList.toggle('is-builder-compact', mobileBuilderActive)
   floatingSupport.classList.toggle('is-hidden', dialogOpen)
   floatingSupport.setAttribute('aria-hidden', String(dialogOpen))
   floatingSupport.tabIndex = dialogOpen ? -1 : 0
@@ -163,10 +166,15 @@ function render() {
   document.querySelectorAll('[data-savings]').forEach(node => { node.textContent = lastSummary.savings })
   document.querySelectorAll('[data-sticky-savings]').forEach(node => { node.textContent = lastSummary.savings })
   document.querySelectorAll('[data-total]').forEach(node => { node.textContent = lastSummary.total })
-  document.querySelectorAll('[data-product-card]').forEach(card => { const active = selected.has(card.dataset.productCard); card.classList.toggle('is-selected', active); card.querySelector('[data-add]').setAttribute('aria-pressed', active) })
+  document.querySelectorAll('[data-product-card]').forEach(card => {
+    const id = card.dataset.productCard; const active = selected.has(id); const addButton = card.querySelector('[data-add]')
+    card.classList.toggle('is-selected', active)
+    addButton.setAttribute('aria-pressed', active)
+    addButton.setAttribute('aria-label', `${language() === 'ar' ? (active ? 'حيدي' : 'ضيفي') : (active ? 'Retirer' : 'Ajouter')} ${products[id][language()]}`)
+  })
   const bag = document.querySelector('#bagProducts')
   bag.dataset.count = String(ids.length)
-  bag.innerHTML = ids.length ? ids.map((id, index) => `<img class="bag-product bag-product--${id} bag-product--slot-${index}" src="${products[id].image}" alt="${products[id][language()]}">`).join('') : `<p class="bag-empty">${language() === 'ar' ? 'اختياراتك غتبان هنا.' : 'Votre sélection apparaîtra ici.'}</p>`
+  bag.innerHTML = ids.length ? ids.map((id, index) => `<img class="bag-product bag-product--${id} bag-product--slot-${index}" src="${products[id].image}" alt="${products[id][language()]}">`).join('') : `<p class="bag-empty">${language() === 'ar' ? 'الروتين ديالك غيبان هنا' : 'Votre routine apparaîtra ici'}</p>`
   document.querySelector('#stickyProducts').innerHTML = ids.map(id => `<img src="${products[id].image}" alt="">`).join('')
   document.querySelector('#stickyCart').setAttribute('aria-label', language() === 'ar' ? `افتحي الطلب: ${lastSummary.count} منتجات، المجموع ${lastSummary.total} درهم` : `Ouvrir ma commande : ${lastSummary.count} soin${lastSummary.count > 1 ? 's' : ''}, total ${lastSummary.total} DH`)
   const checkout = document.querySelector('#checkoutButton'); checkout.disabled = !ids.length || !isOfferAvailable(commerce)
@@ -194,7 +202,7 @@ function isBagVisible() {
 }
 
 function expandStickyFeedback() {
-  if (!matchMedia('(max-width: 820px)').matches || !selected.size) return
+  if (!matchMedia('(max-width: 820px)').matches || !selected.size || builderVisible) return
   const sticky = document.querySelector('#stickyCart')
   stickyFeedbackActive = true
   sticky.classList.add('is-expanded')
@@ -344,8 +352,8 @@ function bind() {
   document.querySelectorAll('[data-close-dialog]').forEach(button => button.addEventListener('click', () => button.closest('dialog').close()))
   document.querySelectorAll('dialog').forEach(dialog => dialog.addEventListener('click', event => { if (event.target === dialog) dialog.close() }))
   document.querySelectorAll('[data-details]').forEach(button => button.addEventListener('click', event => {
-    event.stopPropagation(); const id = button.dataset.details; const product = products[id]; const title = product[language()]; const content = document.querySelector('#detailsContent')
-    content.innerHTML = `<p class="kicker">ECOLYN</p><h2>${title}</h2><img src="${product.image}" alt="${title}" style="width:150px;height:200px;object-fit:contain;margin:auto"><p>${language() === 'ar' ? product.useAr : product.useFr}</p><p><b>${language() === 'ar' ? 'نصيحة:' : 'Conseil :'}</b> ${language() === 'ar' ? 'اختبري المنتج على منطقة صغيرة وتوقفي عن الاستعمال إذا وقع تهيج.' : 'Testez le produit sur une petite zone et arrêtez en cas d’irritation.'}</p>`
+    event.stopPropagation(); const id = button.dataset.details; const product = products[id]; const title = product[language()]; const content = document.querySelector('#detailsContent'); const card = button.closest('[data-product-card]'); const benefit = card.querySelector(`.product-card__benefit .${language()}-inline`).textContent.trim()
+    content.innerHTML = `<p class="kicker">ECOLYN</p><h2>${title}</h2><img src="${product.image}" alt="${title}" style="width:150px;height:200px;object-fit:contain;margin:auto"><p><b>${benefit}</b></p><p>${language() === 'ar' ? product.useAr : product.useFr}</p><p><b>${language() === 'ar' ? 'نصيحة:' : 'Conseil :'}</b> ${language() === 'ar' ? 'اختبري المنتج على منطقة صغيرة وتوقفي عن الاستعمال إذا وقع تهيج.' : 'Testez le produit sur une petite zone et arrêtez en cas d’irritation.'}</p>`
     document.querySelector('#detailsDialog').showModal(); track('view_content', { product_id: id, product_name: product.fr })
   }))
   const range = document.querySelector('#comparisonRange'); range.addEventListener('input', () => document.querySelector('#beforeAfter').style.setProperty('--split', `${range.value}%`)); range.addEventListener('change', () => track('real_before_after_interaction', { position: Number(range.value) }), { once: true })
