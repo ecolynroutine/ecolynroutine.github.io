@@ -90,7 +90,7 @@ html[dir=rtl] .offer-promise{text-align:right}html[dir=rtl] .hero-formula-note{t
   .hero-offer__custom{min-height:21px;padding-top:3px}
   .formula-note-mobile{display:block;max-width:none;margin:12px 0 0;padding:12px 14px}
 
-  .builder{width:calc(100% - 16px);min-height:calc(100svh - var(--offer-h) - var(--header-h) - 12px);padding:8px 0 16px;scroll-margin-top:0}
+  .builder{width:calc(100% - 16px);min-height:calc(100svh - var(--offer-h) - var(--header-h) - 8px);padding:8px 0 16px;scroll-margin-top:0}
   .builder .section-heading{margin:0 0 5px;padding-inline-end:42px}
   html[dir=rtl] .builder .section-heading{padding-inline:42px 0}
   .builder-heading--desktop{display:none!important}
@@ -130,6 +130,10 @@ html[dir=rtl] .offer-promise{text-align:right}html[dir=rtl] .hero-formula-note{t
   .bag-mouth{left:28%;right:28%;top:26%;height:18px;border-width:4px}
   .bag-products{left:-34%;right:-34%;top:-17px;height:82px}
   .bag-product,.bag-product--cleanser,.bag-product--cream,.bag-product--serum,.bag-product--sunscreen{width:24%;height:clamp(62px,10svh,88px)}
+  .bag-products[data-count="1"] .bag-product{width:34%}
+  .bag-products[data-count="2"] .bag-product{width:32%}
+  .bag-products[data-count="3"] .bag-product{width:27%}
+  .bag-product--cream{bottom:20%}
   .bag-front{left:25%;right:25%;bottom:1px;height:51%;border-radius:8px 8px 27px 27px}
   .bag-front img{width:58px}
   .bag-front span{display:none}
@@ -163,11 +167,61 @@ html[dir=rtl] .offer-promise{text-align:right}html[dir=rtl] .hero-formula-note{t
   .builder .section-heading{margin-bottom:3px}
   .builder .section-heading h2{font-size:20px}
   .price-ladder__mobile{min-height:21px;padding-block:2px;font-size:6.5px}
-  .product-card{height:114px}
-  .product-card__foot button{min-height:29px}
-  .bag-object{height:82px}
-  .bag-products{top:-18px;height:72px}
-  .bag-product,.bag-product--cleanser,.bag-product--cream,.bag-product--serum,.bag-product--sunscreen{height:62px}
-  .bag-summary{min-height:50px}
-  .bag-summary__head>strong,.routine-bag .checkout-button{min-height:47px}
+  .product-card{height:126px}
+  .product-card__image img{width:70%;height:98%;max-width:70%;max-height:98%}
+  .product-card__price-badge{font-size:8.5px}
+  .product-card__foot button{min-height:30px}
+  .bag-object{height:105px}
+  .bag-handle{width:min(118px,34%)}
+  .bag-back,.bag-front{right:22%;left:22%}
+  .bag-mouth{right:25%;left:25%}
+  .bag-products{top:-18px;height:88px}
+  .bag-product,.bag-product--cleanser,.bag-product--cream,.bag-product--serum,.bag-product--sunscreen{height:80px}
+  .bag-summary{min-height:55px}
+  .bag-summary__head>strong,.routine-bag .checkout-button{min-height:52px}
+}
+
+@media(max-width:820px) and (min-height:721px){
+  .builder{overflow:hidden;padding-bottom:4px}
+  .builder-layout{gap:6px}
+  .product-grid{gap:6px}
+  .product-card{height:clamp(158px,21svh,196px);border-radius:17px;padding:6px}
+  .product-card__image{border-radius:13px}
+  .product-card__image img{width:72%;height:98%;max-width:72%;max-height:98%}
+  .product-card__price-badge{top:6px;left:6px;padding:4px 7px;font-size:9px}
+  html[dir=rtl] .product-card__price-badge{right:6px;left:auto}
+  .product-card h3{font-size:clamp(14px,3.8vw,17px)}
+  .product-card__foot button{min-height:34px;font-size:9px}
+  .product-card__foot i{width:20px;height:20px}
+  .routine-bag{gap:5px;padding:6px 7px 7px}
+  .bag-object{height:clamp(140px,17.5svh,172px)}
+  .bag-handle{width:min(138px,36%);height:58%}
+  .bag-back,.bag-front{right:20%;left:20%}
+  .bag-mouth{right:23%;left:23%}
+  .bag-products{right:-25%;left:-25%;top:-20px;height:calc(100% - 30px)}
+  .bag-product,.bag-product--cleanser,.bag-product--cream,.bag-product--serum,.bag-product--sunscreen{width:24%;height:clamp(102px,14svh,142px)}
+  .bag-empty{top:44%;font-size:8.5px}
+  .bag-summary{min-height:94px;grid-template-columns:.72fr 1.55fr;grid-template-rows:40px 50px;grid-template-areas:"count prices" "checkout checkout"}
+  .bag-summary__head>strong{min-height:40px;border-radius:12px}
+  .bag-mobile-count{grid-auto-flow:column;align-items:center;justify-content:center;gap:4px}
+  .bag-mobile-count b{font-size:19px}
+  .price-lines{grid-template-columns:1fr 1.08fr}
+  .price-lines>div{border-radius:11px;font-size:7.5px}
+  .price-lines .saving-row strong{font-size:11px}
+  .price-lines .total-row strong{font-size:18px}
+  .routine-bag .checkout-button{width:100%;min-height:50px;border-radius:13px;font-size:12px}
+}
+
+@media(max-width:820px) and (min-height:900px){
+  .builder .section-heading{margin-bottom:7px}
+  .price-ladder{margin-bottom:7px}
+  .builder-layout,.product-grid{gap:7px}
+  .product-card{height:clamp(196px,22svh,205px);padding:7px}
+  .product-card__price-badge{padding:4px 8px;font-size:9.5px}
+  .product-card__foot button{min-height:36px;font-size:9.5px}
+  .bag-object{height:clamp(172px,19svh,180px)}
+  .bag-product,.bag-product--cleanser,.bag-product--cream,.bag-product--serum,.bag-product--sunscreen{height:clamp(132px,15svh,150px)}
+  .bag-summary{min-height:102px;grid-template-rows:44px 54px}
+  .bag-summary__head>strong{min-height:44px}
+  .routine-bag .checkout-button{min-height:54px;font-size:13px}
 }
