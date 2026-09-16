@@ -8,6 +8,11 @@ const supabaseReady = /^https:\/\//.test(supabaseUrl) && supabaseKey.length > 20
 const language = () => document.documentElement.lang === 'ar' ? 'ar' : 'fr'
 const safeHeaders = () => ({ apikey: supabaseKey, Authorization: `Bearer ${supabaseKey}`, 'Content-Type': 'application/json' })
 const uuid = () => crypto.randomUUID?.() || 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => ((Math.random() * 16 | 0) & (c === 'x' ? 15 : 3) | (c === 'x' ? 0 : 8)).toString(16))
+const select = selector => document.querySelector(selector)
+const selectAll = selector => document.querySelectorAll(selector)
+const isMobileViewport = () => matchMedia('(max-width: 820px)').matches
+const prefersReducedMotion = () => matchMedia('(prefers-reduced-motion: reduce)').matches
+const scrollBehavior = () => prefersReducedMotion() ? 'auto' : 'smooth'
 const qs = new URLSearchParams(location.search)
 const selected = new Set()
 let commerce = normaliseCommerce(DEFAULT_COMMERCE)
@@ -27,6 +32,9 @@ const products = {
   sunscreen: { fr: 'Écran solaire SPF50', ar: 'واقي شمسي SPF50', image: './Asset/products/sunscreen.webp', bagImage: 'https://cdn.gamestrats.com/ecln/images%20produits/spf50.png', useFr: 'Appliquez le matin en dernière étape et renouvelez selon l’exposition.', useAr: 'ديريه صباحاً كآخر خطوة وعاودي الاستعمال حسب التعرض.' },
   serum: { fr: 'Sérum visage', ar: 'سيروم الوجه', image: './Asset/products/serum.webp', bagImage: 'https://cdn.gamestrats.com/ecln/images%20produits/serum.png', useFr: 'Quelques gouttes sur peau propre avant la crème.', useAr: 'ديري قطرات قليلة على بشرة نقية قبل الكريم.' },
 }
+
+const selectedProductIds = () => PRODUCT_ORDER.filter(id => selected.has(id))
+const scrollToBuilder = () => select('#compose').scrollIntoView({ behavior: scrollBehavior(), block: 'start' })
 
 function warmBagAssets() {
   Object.values(products).forEach(product => {
@@ -107,20 +115,20 @@ function safeProductPayload(id, summary) {
 }
 
 function applyCommerce() {
-  document.querySelectorAll('[data-unit-price]').forEach(node => { node.textContent = commerce.productPrices[node.dataset.unitPrice] })
+  selectAll('[data-unit-price]').forEach(node => { node.textContent = commerce.productPrices[node.dataset.unitPrice] })
   const pricesForCount = count => count === 1
     ? PRODUCT_ORDER.map(id => commerce.productPrices[id])
     : Object.entries(commerce.bundlePrices).filter(([key]) => key.split('+').length === count).map(([, price]) => price)
-  document.querySelectorAll('[data-tier-from]').forEach(node => { node.textContent = Math.min(...pricesForCount(Number(node.dataset.tierFrom))) })
+  selectAll('[data-tier-from]').forEach(node => { node.textContent = Math.min(...pricesForCount(Number(node.dataset.tierFrom))) })
   const fullSummary = summaryFor(PRODUCT_ORDER, commerce)
-  document.querySelectorAll('[data-full-separate]').forEach(node => { node.textContent = fullSummary.separateValue })
-  document.querySelectorAll('[data-full-total]').forEach(node => { node.textContent = fullSummary.total })
-  document.querySelectorAll('[data-full-savings]').forEach(node => { node.textContent = fullSummary.savings })
+  selectAll('[data-full-separate]').forEach(node => { node.textContent = fullSummary.separateValue })
+  selectAll('[data-full-total]').forEach(node => { node.textContent = fullSummary.total })
+  selectAll('[data-full-savings]').forEach(node => { node.textContent = fullSummary.savings })
   const number = commerce.whatsappNumber || clean(appConfig.whatsappNumber)
   const message = language() === 'ar' ? commerce.whatsappMessageAr : commerce.whatsappMessageFr
   const whatsappHref = `https://wa.me/${number}?text=${encodeURIComponent(message)}`
-  document.querySelector('#expertWhatsapp').href = whatsappHref
-  const floatingSupport = document.querySelector('#floatingSalesSupport')
+  select('#expertWhatsapp').href = whatsappHref
+  const floatingSupport = select('#floatingSalesSupport')
   floatingSupport.href = whatsappHref
   floatingSupport.hidden = false
   floatingSupport.setAttribute('aria-label', language() === 'ar' ? 'هضري مباشرة مع حنان على واتساب' : 'Parler directement à Hanane sur WhatsApp')
@@ -149,11 +157,11 @@ function updateCountdown() {
 
 function updatePersistentCtas() {
   const hasProducts = selected.size > 0
-  const dialogOpen = [...document.querySelectorAll('dialog')].some(dialog => dialog.open)
-  const mobileBuilderActive = matchMedia('(max-width: 820px)').matches && builderVisible
-  const sticky = document.querySelector('#stickyCart')
-  const routineCta = document.querySelector('#routineReturnCta')
-  const floatingSupport = document.querySelector('#floatingSalesSupport')
+  const dialogOpen = [...selectAll('dialog')].some(dialog => dialog.open)
+  const mobileBuilderActive = isMobileViewport() && builderVisible
+  const sticky = select('#stickyCart')
+  const routineCta = select('#routineReturnCta')
+  const floatingSupport = select('#floatingSalesSupport')
   const showRoutineCta = builderVisibilityKnown && !builderVisible && !hasProducts && !dialogOpen && blockedRoutineCtaZones.size === 0
   sticky.hidden = !hasProducts || mobileBuilderActive
   sticky.classList.toggle('is-builder-hidden', mobileBuilderActive)
@@ -170,27 +178,27 @@ function updatePersistentCtas() {
 }
 
 function render() {
-  const ids = PRODUCT_ORDER.filter(id => selected.has(id)); lastSummary = summaryFor(ids, commerce)
-  document.querySelectorAll('[data-cart-count]').forEach(node => { node.textContent = lastSummary.count })
-  document.querySelectorAll('[data-cart-unit]').forEach(node => { node.textContent = language() === 'ar' ? (lastSummary.count === 1 ? 'منتج' : lastSummary.count === 2 ? 'منتجين' : 'منتجات') : (lastSummary.count === 1 ? 'soin' : 'soins') })
-  document.querySelectorAll('[data-separate]').forEach(node => { node.textContent = lastSummary.separateValue })
-  document.querySelectorAll('[data-savings]').forEach(node => { node.textContent = lastSummary.savings })
-  document.querySelectorAll('[data-sticky-savings]').forEach(node => { node.textContent = lastSummary.savings })
-  document.querySelectorAll('[data-total]').forEach(node => { node.textContent = lastSummary.total })
-  document.querySelectorAll('[data-product-card]').forEach(card => {
+  const ids = selectedProductIds(); lastSummary = summaryFor(ids, commerce)
+  selectAll('[data-cart-count]').forEach(node => { node.textContent = lastSummary.count })
+  selectAll('[data-cart-unit]').forEach(node => { node.textContent = language() === 'ar' ? (lastSummary.count === 1 ? 'منتج' : lastSummary.count === 2 ? 'منتجين' : 'منتجات') : (lastSummary.count === 1 ? 'soin' : 'soins') })
+  selectAll('[data-separate]').forEach(node => { node.textContent = lastSummary.separateValue })
+  selectAll('[data-savings]').forEach(node => { node.textContent = lastSummary.savings })
+  selectAll('[data-sticky-savings]').forEach(node => { node.textContent = lastSummary.savings })
+  selectAll('[data-total]').forEach(node => { node.textContent = lastSummary.total })
+  selectAll('[data-product-card]').forEach(card => {
     const id = card.dataset.productCard; const active = selected.has(id); const addButton = card.querySelector('[data-add]')
     card.classList.toggle('is-selected', active)
     addButton.setAttribute('aria-pressed', active)
     addButton.setAttribute('aria-label', `${language() === 'ar' ? (active ? 'حيدي' : 'ضيفي') : (active ? 'Retirer' : 'Ajouter')} ${products[id][language()]}`)
   })
-  const bag = document.querySelector('#bagProducts')
+  const bag = select('#bagProducts')
   bag.dataset.count = String(ids.length)
   bag.innerHTML = ids.length ? ids.map((id, index) => `<img class="bag-product bag-product--${id} bag-product--slot-${index}" data-bag-product="${id}" src="${products[id].bagImage}" alt="${products[id][language()]}" decoding="async">`).join('') : `<p class="bag-empty">${language() === 'ar' ? 'الروتين ديالك غيبان هنا' : 'Votre routine apparaîtra ici'}</p>`
-  document.querySelector('#stickyProducts').innerHTML = ids.map(id => `<img src="${products[id].image}" alt="">`).join('')
-  document.querySelector('#stickyCart').setAttribute('aria-label', language() === 'ar' ? `افتحي الطلب: ${lastSummary.count} منتجات، المجموع ${lastSummary.total} درهم` : `Ouvrir ma commande : ${lastSummary.count} soin${lastSummary.count > 1 ? 's' : ''}, total ${lastSummary.total} DH`)
-  const checkout = document.querySelector('#checkoutButton'); checkout.disabled = !ids.length || !isOfferAvailable(commerce)
-  const fullRoutineButton = document.querySelector('#addFullRoutine'); fullRoutineButton.disabled = ids.length === PRODUCT_ORDER.length || !isOfferAvailable(commerce); fullRoutineButton.setAttribute('aria-pressed', String(ids.length === PRODUCT_ORDER.length))
-  document.querySelector('#heroFullRoutine').disabled = !isOfferAvailable(commerce)
+  select('#stickyProducts').innerHTML = ids.map(id => `<img src="${products[id].image}" alt="">`).join('')
+  select('#stickyCart').setAttribute('aria-label', language() === 'ar' ? `افتحي الطلب: ${lastSummary.count} منتجات، المجموع ${lastSummary.total} درهم` : `Ouvrir ma commande : ${lastSummary.count} soin${lastSummary.count > 1 ? 's' : ''}, total ${lastSummary.total} DH`)
+  const checkout = select('#checkoutButton'); checkout.disabled = !ids.length || !isOfferAvailable(commerce)
+  const fullRoutineButton = select('#addFullRoutine'); fullRoutineButton.disabled = ids.length === PRODUCT_ORDER.length || !isOfferAvailable(commerce); fullRoutineButton.setAttribute('aria-pressed', String(ids.length === PRODUCT_ORDER.length))
+  select('#heroFullRoutine').disabled = !isOfferAvailable(commerce)
   updatePersistentCtas()
   renderMilestone(ids)
 }
@@ -208,13 +216,13 @@ function renderMilestone(ids) {
 }
 
 function isBagVisible() {
-  const rect = document.querySelector('#bagObject').getBoundingClientRect()
+  const rect = select('#bagObject').getBoundingClientRect()
   return rect.top < innerHeight - 80 && rect.bottom > 100
 }
 
 function expandStickyFeedback() {
-  if (!matchMedia('(max-width: 820px)').matches || !selected.size || builderVisible) return
-  const sticky = document.querySelector('#stickyCart')
+  if (!isMobileViewport() || !selected.size || builderVisible) return
+  const sticky = select('#stickyCart')
   stickyFeedbackActive = true
   sticky.classList.add('is-expanded')
   updatePersistentCtas()
@@ -226,15 +234,15 @@ function expandStickyFeedback() {
 }
 
 function flyToBag(card, id) {
-  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return
+  if (prefersReducedMotion()) return
   const source = card.querySelector('.product-card__image img')
-  const installedProduct = document.querySelector(`.bag-product--${id}`)
+  const installedProduct = select(`.bag-product--${id}`)
   installedProduct?.classList.add('is-arriving')
-  const bagObject = document.querySelector('#bagObject')
-  const sticky = document.querySelector('#stickyCart')
+  const bagObject = select('#bagObject')
+  const sticky = select('#stickyCart')
   const bagVisible = isBagVisible()
   if (!bagVisible) expandStickyFeedback()
-  const target = bagVisible ? document.querySelector('#bagMouth') : sticky
+  const target = bagVisible ? select('#bagMouth') : sticky
   if (!target || target.hidden) return
   const a = source.getBoundingClientRect(); const b = target.getBoundingClientRect(); const clone = new Image()
   clone.src = products[id].bagImage
@@ -263,7 +271,7 @@ function toggleProduct(id, card) {
 }
 
 function selectFullRoutine({ animate = true } = {}) {
-  const previousIds = PRODUCT_ORDER.filter(id => selected.has(id))
+  const previousIds = selectedProductIds()
   const missingIds = PRODUCT_ORDER.filter(id => !selected.has(id))
   missingIds.forEach(id => selected.add(id))
   render()
@@ -275,7 +283,7 @@ function trackFullRoutineProducts(previousIds, missingIds, animate = true) {
   missingIds.forEach((id, index) => {
     const progressiveSummary = summaryFor([...previousIds, ...missingIds.slice(0, index + 1)], commerce)
     track('product_add', safeProductPayload(id, progressiveSummary))
-    const card = document.querySelector(`[data-product-card="${id}"]`)
+    const card = select(`[data-product-card="${id}"]`)
     if (animate && card) setTimeout(() => flyToBag(card, id), index * 90)
   })
 }
@@ -299,22 +307,29 @@ function orderFullRoutineFromHero() {
 function chooseCustomRoutine(event) {
   event.preventDefault()
   track('custom_routine_click', { cta_location: 'hero' })
-  document.querySelector('#compose').scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' })
+  scrollToBuilder()
 }
 
-function showToast(message) { const toast = document.querySelector('#toast'); toast.textContent = message; toast.classList.add('is-visible'); clearTimeout(toastTimer); toastTimer = setTimeout(() => toast.classList.remove('is-visible'), 1800) }
+function showToast(message) {
+  const toast = select('#toast')
+  toast.textContent = message
+  toast.classList.add('is-visible')
+  clearTimeout(toastTimer)
+  toastTimer = setTimeout(() => toast.classList.remove('is-visible'), 1800)
+}
+
 function openCheckout() {
-  if (!selected.size) return document.querySelector('#compose').scrollIntoView()
-  const ids = PRODUCT_ORDER.filter(id => selected.has(id)); const recap = document.querySelector('#checkoutRecap')
+  if (!selected.size) return select('#compose').scrollIntoView()
+  const ids = selectedProductIds(); const recap = select('#checkoutRecap')
   recap.innerHTML = `<div class="checkout-recap__products">${ids.map(id => `<img src="${products[id].image}" alt="">`).join('')}</div><div class="checkout-recap__lines"><span><b>${ids.length} ${language() === 'ar' ? 'منتج' : 'produit(s)'}</b></span><span><small>${language() === 'ar' ? 'الثمن منفصل' : 'Valeur séparée'}</small><s>${lastSummary.separateValue} DH</s></span><span><small>${language() === 'ar' ? 'التوفير' : 'Économie'}</small><b>−${lastSummary.savings} DH</b></span><span><small>${language() === 'ar' ? 'التوصيل' : 'Livraison'}</small><b>${lastSummary.shipping ? `${lastSummary.shipping} DH` : (language() === 'ar' ? 'مجاني' : 'Offerte')}</b></span><strong>Total · ${lastSummary.total} DH</strong></div>`
-  document.querySelector('#checkoutDialog').showModal()
+  select('#checkoutDialog').showModal()
   const data = { number_of_products: ids.length, value: lastSummary.total, currency: 'MAD', content_ids: ids.join(',') }
   track('cart_view', data); track('checkout_start', data); track('initiate_checkout', data)
 }
 
 async function submitOrder(form) {
   if (!supabaseReady) throw new Error('SUPABASE_NOT_CONFIGURED')
-  const data = new FormData(form); const ids = PRODUCT_ORDER.filter(id => selected.has(id)); const reference = `ECO-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).slice(2, 6).toUpperCase()}`
+  const data = new FormData(form); const ids = selectedProductIds(); const reference = `ECO-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).slice(2, 6).toUpperCase()}`
   const record = {
     id: uuid(), reference, status: 'nouveau', first_name: String(data.get('name')).trim(), whatsapp: String(data.get('whatsapp')).trim(), email: null, city: String(data.get('city')).trim(), primary_concern: 'commande_routine_ecolyn', skin_type: null, goal: 'Commander une routine ECOLYN personnalisée', description: null,
     answers: { type: 'pack_order', selectedProductIds: ids, selectedProducts: ids.map(id => products[id].fr), numberOfProducts: ids.length, separateValueDh: lastSummary.separateValue, promoTotalDh: lastSummary.promoPrice, savingsDh: lastSummary.savings, shippingDh: lastSummary.shipping, deliveryAddress: String(data.get('address')).trim() },
@@ -328,14 +343,22 @@ async function submitOrder(form) {
 }
 
 function switchLanguage() {
-  const next = language() === 'fr' ? 'ar' : 'fr'; document.documentElement.lang = next; document.documentElement.dir = next === 'ar' ? 'rtl' : 'ltr'; localStorage.setItem('ecolyn-lang', next); document.querySelector('#langButton').textContent = next === 'ar' ? 'FR' : 'ع'; document.querySelector('#routineReturnCta').setAttribute('aria-label', next === 'ar' ? 'أركّب روتيني' : 'Composer ma routine'); document.title = next === 'ar' ? 'ركّبي روتينك ECOLYN' : 'Composez votre routine ECOLYN'; applyCommerce(); track('language_change', { language: next })
+  const next = language() === 'fr' ? 'ar' : 'fr'
+  document.documentElement.lang = next
+  document.documentElement.dir = next === 'ar' ? 'rtl' : 'ltr'
+  localStorage.setItem('ecolyn-lang', next)
+  select('#langButton').textContent = next === 'ar' ? 'FR' : 'ع'
+  select('#routineReturnCta').setAttribute('aria-label', next === 'ar' ? 'أركّب روتيني' : 'Composer ma routine')
+  document.title = next === 'ar' ? 'ركّبي روتينك ECOLYN' : 'Composez votre routine ECOLYN'
+  applyCommerce()
+  track('language_change', { language: next })
 }
 
 function bind() {
-  const builder = document.querySelector('#compose')
-  const routineCta = document.querySelector('#routineReturnCta')
+  const builder = select('#compose')
+  const routineCta = select('#routineReturnCta')
   routineCta.hidden = false
-  routineCta.addEventListener('click', () => builder.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' }))
+  routineCta.addEventListener('click', scrollToBuilder)
   const routineCtaObserver = new IntersectionObserver(entries => {
     entries.forEach(entry => {
       if (entry.target === builder) { builderVisibilityKnown = true; builderVisible = entry.isIntersecting }
@@ -345,28 +368,28 @@ function bind() {
     updatePersistentCtas()
   }, { threshold: 0 })
   routineCtaObserver.observe(builder)
-  document.querySelectorAll('.hero,.final-cta,footer').forEach(zone => routineCtaObserver.observe(zone))
+  selectAll('.hero,.final-cta,footer').forEach(zone => routineCtaObserver.observe(zone))
   const heroSupportObserver = new IntersectionObserver(entries => {
-    entries.forEach(entry => document.querySelector('#floatingSalesSupport').classList.toggle('is-compact', entry.isIntersecting))
+    entries.forEach(entry => select('#floatingSalesSupport').classList.toggle('is-compact', entry.isIntersecting))
   }, { threshold: .15 })
-  heroSupportObserver.observe(document.querySelector('#heroFullRoutine'))
+  heroSupportObserver.observe(select('#heroFullRoutine'))
   const dialogObserver = new MutationObserver(updatePersistentCtas)
-  document.querySelectorAll('dialog').forEach(dialog => dialogObserver.observe(dialog, { attributes: true, attributeFilter: ['open'] }))
+  selectAll('dialog').forEach(dialog => dialogObserver.observe(dialog, { attributes: true, attributeFilter: ['open'] }))
   updatePersistentCtas()
-  document.querySelectorAll('[data-add]').forEach(button => button.addEventListener('click', () => toggleProduct(button.dataset.add, button.closest('[data-product-card]'))))
-  document.querySelector('#addFullRoutine').addEventListener('click', addFullRoutine)
-  document.querySelector('#heroFullRoutine').addEventListener('click', orderFullRoutineFromHero)
-  document.querySelector('#heroCustomRoutine').addEventListener('click', chooseCustomRoutine)
-  document.querySelectorAll('[data-cart-open]:not(#stickyCart)').forEach(button => button.addEventListener('click', openCheckout))
-  document.querySelector('#stickyCart').addEventListener('click', () => { track('sticky_checkout_click', { number_of_products: lastSummary.count, value: lastSummary.total, currency: 'MAD' }); openCheckout() })
-  document.querySelector('#checkoutButton').addEventListener('click', openCheckout)
-  document.querySelectorAll('[data-pack-cta]').forEach(link => link.addEventListener('click', () => track('pack_cta_click', { cta_location: link.dataset.packCta })))
-  document.querySelector('#langButton').addEventListener('click', switchLanguage)
-  document.querySelector('#expertWhatsapp').addEventListener('click', () => track('whatsapp_click', { cta_location: 'pack_expert' }))
-  document.querySelector('#floatingSalesSupport').addEventListener('click', () => track('whatsapp_click', { cta_location: 'floating_sales_support' }))
-  document.querySelectorAll('[data-close-dialog]').forEach(button => button.addEventListener('click', () => button.closest('dialog').close()))
-  document.querySelectorAll('dialog').forEach(dialog => dialog.addEventListener('click', event => { if (event.target === dialog) dialog.close() }))
-  document.querySelectorAll('[data-details]').forEach(button => button.addEventListener('click', event => {
+  selectAll('[data-add]').forEach(button => button.addEventListener('click', () => toggleProduct(button.dataset.add, button.closest('[data-product-card]'))))
+  select('#addFullRoutine').addEventListener('click', addFullRoutine)
+  select('#heroFullRoutine').addEventListener('click', orderFullRoutineFromHero)
+  select('#heroCustomRoutine').addEventListener('click', chooseCustomRoutine)
+  selectAll('[data-cart-open]:not(#stickyCart)').forEach(button => button.addEventListener('click', openCheckout))
+  select('#stickyCart').addEventListener('click', () => { track('sticky_checkout_click', { number_of_products: lastSummary.count, value: lastSummary.total, currency: 'MAD' }); openCheckout() })
+  select('#checkoutButton').addEventListener('click', openCheckout)
+  selectAll('[data-pack-cta]').forEach(link => link.addEventListener('click', () => track('pack_cta_click', { cta_location: link.dataset.packCta })))
+  select('#langButton').addEventListener('click', switchLanguage)
+  select('#expertWhatsapp').addEventListener('click', () => track('whatsapp_click', { cta_location: 'pack_expert' }))
+  select('#floatingSalesSupport').addEventListener('click', () => track('whatsapp_click', { cta_location: 'floating_sales_support' }))
+  selectAll('[data-close-dialog]').forEach(button => button.addEventListener('click', () => button.closest('dialog').close()))
+  selectAll('dialog').forEach(dialog => dialog.addEventListener('click', event => { if (event.target === dialog) dialog.close() }))
+  selectAll('[data-details]').forEach(button => button.addEventListener('click', event => {
     event.stopPropagation(); const id = button.dataset.details; const product = products[id]; const title = product[language()]; const content = document.querySelector('#detailsContent'); const card = button.closest('[data-product-card]'); const benefit = card.querySelector(`.product-card__benefit .${language()}-inline`).textContent.trim()
     content.innerHTML = `<p class="kicker">ECOLYN</p><h2>${title}</h2><img src="${product.image}" alt="${title}" style="width:150px;height:200px;object-fit:contain;margin:auto"><p><b>${benefit}</b></p><p>${language() === 'ar' ? product.useAr : product.useFr}</p><p><b>${language() === 'ar' ? 'نصيحة:' : 'Conseil :'}</b> ${language() === 'ar' ? 'اختبري المنتج على منطقة صغيرة وتوقفي عن الاستعمال إذا وقع تهيج.' : 'Testez le produit sur une petite zone et arrêtez en cas d’irritation.'}</p>`
     document.querySelector('#detailsDialog').showModal(); track('view_content', { product_id: id, product_name: product.fr })
