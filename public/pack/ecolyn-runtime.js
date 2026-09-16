@@ -22,11 +22,22 @@ let builderVisible = false
 const blockedRoutineCtaZones = new Set()
 
 const products = {
-  cream: { fr: 'Crème hydratante', ar: 'كريم مرطب', image: './Asset/products/cream.webp', useFr: 'Appliquez après le sérum, matin et/ou soir selon votre routine.', useAr: 'ديريها من بعد السيروم صباحاً و/أو مساءً حسب الروتين.' },
-  cleanser: { fr: 'Mousse nettoyante', ar: 'غسول الوجه', image: './Asset/products/cleanser.webp', useFr: 'Utilisez sur peau humide puis rincez soigneusement.', useAr: 'استعمليه على بشرة مبللة ومن بعد شلليه مزيان.' },
-  sunscreen: { fr: 'Écran solaire SPF50', ar: 'واقي شمسي SPF50', image: './Asset/products/sunscreen.webp', useFr: 'Appliquez le matin en dernière étape et renouvelez selon l’exposition.', useAr: 'ديريه صباحاً كآخر خطوة وعاودي الاستعمال حسب التعرض.' },
-  serum: { fr: 'Sérum visage', ar: 'سيروم الوجه', image: './Asset/products/serum.webp', useFr: 'Quelques gouttes sur peau propre avant la crème.', useAr: 'ديري قطرات قليلة على بشرة نقية قبل الكريم.' },
+  cream: { fr: 'Crème hydratante', ar: 'كريم مرطب', image: './Asset/products/cream.webp', bagImage: 'https://cdn.gamestrats.com/ecln/images%20produits/hydratante.png', useFr: 'Appliquez après le sérum, matin et/ou soir selon votre routine.', useAr: 'ديريها من بعد السيروم صباحاً و/أو مساءً حسب الروتين.' },
+  cleanser: { fr: 'Mousse nettoyante', ar: 'غسول الوجه', image: './Asset/products/cleanser.webp', bagImage: 'https://cdn.gamestrats.com/ecln/images%20produits/mousse.png', useFr: 'Utilisez sur peau humide puis rincez soigneusement.', useAr: 'استعمليه على بشرة مبللة ومن بعد شلليه مزيان.' },
+  sunscreen: { fr: 'Écran solaire SPF50', ar: 'واقي شمسي SPF50', image: './Asset/products/sunscreen.webp', bagImage: 'https://cdn.gamestrats.com/ecln/images%20produits/spf50.png', useFr: 'Appliquez le matin en dernière étape et renouvelez selon l’exposition.', useAr: 'ديريه صباحاً كآخر خطوة وعاودي الاستعمال حسب التعرض.' },
+  serum: { fr: 'Sérum visage', ar: 'سيروم الوجه', image: './Asset/products/serum.webp', bagImage: 'https://cdn.gamestrats.com/ecln/images%20produits/serum.png', useFr: 'Quelques gouttes sur peau propre avant la crème.', useAr: 'ديري قطرات قليلة على بشرة نقية قبل الكريم.' },
 }
+
+function warmBagAssets() {
+  Object.values(products).forEach(product => {
+    const image = new Image()
+    image.decoding = 'async'
+    image.src = product.bagImage
+  })
+}
+
+if ('requestIdleCallback' in window) window.requestIdleCallback(warmBagAssets, { timeout: 1800 })
+else setTimeout(warmBagAssets, 650)
 
 function fallbackTracking() {
   return {
@@ -174,7 +185,7 @@ function render() {
   })
   const bag = document.querySelector('#bagProducts')
   bag.dataset.count = String(ids.length)
-  bag.innerHTML = ids.length ? ids.map((id, index) => `<img class="bag-product bag-product--${id} bag-product--slot-${index}" src="${products[id].image}" alt="${products[id][language()]}">`).join('') : `<p class="bag-empty">${language() === 'ar' ? 'الروتين ديالك غيبان هنا' : 'Votre routine apparaîtra ici'}</p>`
+  bag.innerHTML = ids.length ? ids.map((id, index) => `<img class="bag-product bag-product--${id} bag-product--slot-${index}" data-bag-product="${id}" src="${products[id].bagImage}" alt="${products[id][language()]}" decoding="async">`).join('') : `<p class="bag-empty">${language() === 'ar' ? 'الروتين ديالك غيبان هنا' : 'Votre routine apparaîtra ici'}</p>`
   document.querySelector('#stickyProducts').innerHTML = ids.map(id => `<img src="${products[id].image}" alt="">`).join('')
   document.querySelector('#stickyCart').setAttribute('aria-label', language() === 'ar' ? `افتحي الطلب: ${lastSummary.count} منتجات، المجموع ${lastSummary.total} درهم` : `Ouvrir ma commande : ${lastSummary.count} soin${lastSummary.count > 1 ? 's' : ''}, total ${lastSummary.total} DH`)
   const checkout = document.querySelector('#checkoutButton'); checkout.disabled = !ids.length || !isOfferAvailable(commerce)
@@ -225,9 +236,13 @@ function flyToBag(card, id) {
   if (!bagVisible) expandStickyFeedback()
   const target = bagVisible ? document.querySelector('#bagMouth') : sticky
   if (!target || target.hidden) return
-  const a = source.getBoundingClientRect(); const b = target.getBoundingClientRect(); const clone = source.cloneNode()
+  const a = source.getBoundingClientRect(); const b = target.getBoundingClientRect(); const clone = new Image()
+  clone.src = products[id].bagImage
+  clone.alt = ''
+  clone.decoding = 'async'
   const dx = b.left + b.width / 2 - (a.left + a.width / 2); const dy = b.top + b.height / 2 - (a.top + a.height / 2)
-  clone.className = 'flying-product'; clone.style.left = `${a.left + a.width / 2 - 37}px`; clone.style.top = `${a.top + a.height / 2 - 49}px`; document.body.append(clone)
+  clone.className = 'flying-product'; document.body.append(clone)
+  clone.style.left = `${a.left + a.width / 2 - clone.offsetWidth / 2}px`; clone.style.top = `${a.top + a.height / 2 - clone.offsetHeight / 2}px`
   const animation = clone.animate([
     { transform: 'translate(0,0) scale(.82) rotate(0deg)', opacity: 1 },
     { transform: `translate(${dx * .52}px,${dy * .34 - 42}px) scale(.58) rotate(-7deg)`, opacity: 1, offset: .54 },
