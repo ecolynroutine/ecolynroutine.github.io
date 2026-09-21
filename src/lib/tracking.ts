@@ -225,18 +225,51 @@ function loadMeta(id: string) {
 
 function loadTikTok(id: string) {
   if (!id || window.ttq) return
-  const queue = [] as unknown as TikTokQueue
-  const methods = [
+  type TikTokBootstrapQueue = TikTokQueue & {
+    methods: string[]
+    setAndDefer: (target: TikTokQueue, method: string) => void
+    instance: (pixelId: string) => TikTokQueue
+    load: (pixelId: string, options?: Record<string, unknown>) => void
+    _i?: Record<string, TikTokQueue>
+    _t?: Record<string, number>
+    _o?: Record<string, Record<string, unknown>>
+  }
+
+  const queue = [] as unknown as TikTokBootstrapQueue
+  queue.methods = [
     'page', 'track', 'identify', 'instances', 'debug', 'on', 'off', 'once',
     'ready', 'alias', 'group', 'enableCookie', 'disableCookie', 'holdConsent',
     'revokeConsent', 'grantConsent',
   ]
-  const dynamicQueue = queue as unknown as Record<string, (...args: unknown[]) => void>
-  for (const method of methods) {
-    dynamicQueue[method] = (...args: unknown[]) => queue.push([method, ...args])
+
+  queue.setAndDefer = (target, method) => {
+    const dynamicTarget = target as unknown as Record<string, (...args: unknown[]) => void>
+    dynamicTarget[method] = (...args: unknown[]) => target.push([method, ...args])
   }
+  for (const method of queue.methods) queue.setAndDefer(queue, method)
+
+  queue.instance = pixelId => {
+    const instance = queue._i?.[pixelId] || ([] as unknown as TikTokQueue)
+    for (const method of queue.methods) queue.setAndDefer(instance, method)
+    return instance
+  }
+
+  queue.load = (pixelId, options = {}) => {
+    const source = 'https://analytics.tiktok.com/i18n/pixel/events.js'
+    queue._i ||= {}
+    const instance = [] as unknown as TikTokQueue
+    ;(instance as unknown as { _u: string })._u = source
+    queue._i[pixelId] = instance
+    queue._t ||= {}
+    queue._t[pixelId] = Date.now()
+    queue._o ||= {}
+    queue._o[pixelId] = options
+    attachScript(`${source}?sdkid=${encodeURIComponent(pixelId)}&lib=ttq`, 'tiktok')
+  }
+
+  ;(window as unknown as Record<string, unknown>).TiktokAnalyticsObject = 'ttq'
   window.ttq = queue
-  attachScript(`https://analytics.tiktok.com/i18n/pixel/events.js?sdkid=${encodeURIComponent(id)}&lib=ttq`, 'tiktok')
+  queue.load(id)
 }
 
 async function ensureTracking() {

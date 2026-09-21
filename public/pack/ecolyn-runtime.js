@@ -88,9 +88,25 @@ function loadTrackers() {
     const script = document.createElement('script'); script.async = true; script.src = 'https://connect.facebook.net/en_US/fbevents.js'; document.head.append(script)
   }
   if (tracking.tiktok_enabled && clean(tracking.tiktok_pixel_id) && !window.ttq) {
-    const ttq = []; ['page','track','identify','instances','debug','on','off','once','ready','alias','group','enableCookie','disableCookie','holdConsent','revokeConsent','grantConsent'].forEach(method => { ttq[method] = (...args) => ttq.push([method, ...args]) })
+    const ttq = []
+    window.TiktokAnalyticsObject = 'ttq'
+    ttq.methods = ['page','track','identify','instances','debug','on','off','once','ready','alias','group','enableCookie','disableCookie','holdConsent','revokeConsent','grantConsent']
+    ttq.setAndDefer = (target, method) => { target[method] = (...args) => target.push([method, ...args]) }
+    ttq.methods.forEach(method => ttq.setAndDefer(ttq, method))
+    ttq.instance = pixelId => {
+      const instance = ttq._i?.[pixelId] || []
+      ttq.methods.forEach(method => ttq.setAndDefer(instance, method))
+      return instance
+    }
+    ttq.load = (pixelId, options = {}) => {
+      const source = 'https://analytics.tiktok.com/i18n/pixel/events.js'
+      ttq._i ||= {}; ttq._i[pixelId] = []; ttq._i[pixelId]._u = source
+      ttq._t ||= {}; ttq._t[pixelId] = Date.now()
+      ttq._o ||= {}; ttq._o[pixelId] = options
+      const script = document.createElement('script'); script.type = 'text/javascript'; script.async = true; script.src = `${source}?sdkid=${encodeURIComponent(pixelId)}&lib=ttq`; document.head.append(script)
+    }
     window.ttq = ttq
-    const script = document.createElement('script'); script.async = true; script.src = `https://analytics.tiktok.com/i18n/pixel/events.js?sdkid=${encodeURIComponent(clean(tracking.tiktok_pixel_id))}&lib=ttq`; document.head.append(script)
+    ttq.load(clean(tracking.tiktok_pixel_id))
   }
 }
 
