@@ -54,7 +54,9 @@ Deno.serve(async request => {
     return response({ error: 'INVALID_JSON' }, 400, origin)
   }
 
-  const eventName = body.event_name === 'SubmitForm' ? 'SubmitForm' : ''
+  const eventName = body.event_name === 'SubmitForm' || body.event_name === 'Purchase'
+    ? body.event_name
+    : ''
   const eventId = text(body.event_id, 100)
   const reference = text(body.reference, 64)
   const eventSourceUrl = text(body.event_source_url, 2_000)

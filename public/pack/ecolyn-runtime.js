@@ -113,7 +113,7 @@ function loadTrackers() {
 const metaEvents = { page_view: 'PageView', pack_view: 'ViewContent', cart_view: 'ViewContent', initiate_checkout: 'InitiateCheckout', whatsapp_click: 'Contact' }
 // Pack orders use one browser-only custom event because the current CAPI endpoint accepts Lead only.
 const metaCustomEvents = { order_submit: 'OrderSubmit' }
-const tiktokEvents = { page_view: 'PageView', pack_view: 'ViewContent', cart_view: 'ViewContent', checkout_start: 'InitiateCheckout', initiate_checkout: 'InitiateCheckout', order_submit: 'SubmitForm', whatsapp_click: 'Contact' }
+const tiktokEvents = { page_view: 'PageView', pack_view: 'ViewContent', cart_view: 'ViewContent', checkout_start: 'InitiateCheckout', initiate_checkout: 'InitiateCheckout', order_submit: 'Purchase', whatsapp_click: 'Contact' }
 function track(eventName, raw = {}, eventId = uuid()) {
   const blocked = /^(first_?name|last_?name|full_?name|nom|email|phone|telephone|tel|whatsapp|address|adresse|description|photo|message|free_?text|reference)$/i
   const payload = Object.fromEntries(Object.entries(raw).filter(([key, value]) => !blocked.test(key) && ['string', 'number', 'boolean'].includes(typeof value)))
@@ -375,7 +375,7 @@ async function submitOrder(form) {
   const response = await fetch(`${supabaseUrl}/rest/v1/prospects`, { method: 'POST', headers: { ...safeHeaders(), Prefer: 'return=minimal' }, body: JSON.stringify(record) })
   if (!response.ok) throw new Error('ORDER_INSERT_FAILED')
   const eventId = track('order_submit', { number_of_products: ids.length, value: lastSummary.total, currency: 'MAD', content_ids: ids.join(',') })
-  void sendTikTokEapi('SubmitForm', eventId, reference)
+  void sendTikTokEapi('Purchase', eventId, reference)
   sessionStorage.setItem('ecolyn-last-lead', JSON.stringify({ reference }))
   return reference
 }

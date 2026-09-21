@@ -69,7 +69,7 @@ const tiktokMap: Record<string, string> = {
   generate_lead: 'SubmitForm',
   whatsapp_click: 'Contact',
   initiate_checkout: 'InitiateCheckout',
-  order_submit: 'SubmitForm',
+  order_submit: 'Purchase',
 }
 
 let settingsPromise: Promise<TrackingSettings> | null = null
