@@ -26,6 +26,8 @@ export interface TrackingDiagnostics {
 interface TrackOptions {
   metaCapi?: boolean
   metaCapiReference?: string
+  tiktokEapi?: boolean
+  tiktokEapiReference?: string
   gaDebug?: boolean
 }
 
@@ -325,6 +327,30 @@ async function sendMetaCapi(eventName: string, eventId: string, reference?: stri
   notifyDiagnostics()
 }
 
+async function sendTikTokEapi(eventName: string, eventId: string, reference?: string) {
+  const supabase = getSupabase()
+  if (!supabase || !reference) return
+  const query = new URLSearchParams(window.location.search)
+  const { data, error } = await supabase.functions.invoke('tiktok-events-api', {
+    body: {
+      event_name: eventName,
+      event_id: eventId,
+      event_time: Math.floor(Date.now() / 1000),
+      event_source_url: window.location.href,
+      referrer: document.referrer,
+      reference,
+      ttclid: query.get('ttclid') || undefined,
+      ttp: cookieValue('_ttp'),
+      test: isDebugMode(),
+    },
+  })
+  if (error) {
+    console.warn('[ECOLYN tracking] TikTok Events API', { event: eventName, status: 'error', event_id: eventId.slice(0, 12) })
+  } else {
+    console.info('[ECOLYN tracking] TikTok Events API', { event: eventName, status: data?.accepted === true ? 'accepted' : 'skipped', event_id: eventId.slice(0, 12) })
+  }
+}
+
 function sendToPlatforms(event: string, payload: EventPayload, settings: TrackingSettings, eventId: string, options: TrackOptions) {
   if (isLocalPreview()) return
   const pageContext = {
@@ -357,6 +383,9 @@ function sendToPlatforms(event: string, payload: EventPayload, settings: Trackin
     const tiktokPayload = { ...payload, event_id: eventId }
     if (tiktokEvent === 'PageView') window.ttq.page(tiktokPayload)
     else window.ttq.track(tiktokEvent || event, tiktokPayload)
+  }
+  if (settings.tiktokEnabled && tiktokEvent && options.tiktokEapi) {
+    void sendTikTokEapi(tiktokEvent, eventId, options.tiktokEapiReference)
   }
 }
 

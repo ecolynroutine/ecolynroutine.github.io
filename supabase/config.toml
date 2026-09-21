@@ -2,3 +2,6 @@ project_id = "kzygabpjpdzbjfglmppj"
 
 [functions.meta-capi]
 verify_jwt = false
+
+[functions.tiktok-events-api]
+verify_jwt = true

@@ -1063,6 +1063,8 @@ function LeadForm({ lang, concern, setConcern }: { lang: Language; concern: stri
       track('generate_lead', { submission_mode: nextResult.mode }, {
         metaCapi: marketingConsent && (nextResult.mode === 'supabase' || nextResult.mode === 'endpoint'),
         metaCapiReference: nextResult.reference,
+        tiktokEapi: nextResult.mode === 'supabase',
+        tiktokEapiReference: nextResult.reference,
       })
       if (nextResult.mode === 'supabase' || nextResult.mode === 'endpoint') {
         sessionStorage.setItem('ecolyn-last-lead', JSON.stringify({
@@ -1271,6 +1273,8 @@ function SimpleLeadForm({ lang, concerns: selectedConcerns, profiles, contexts, 
         track('generate_lead', { submission_mode: nextResult.mode }, {
           metaCapi: marketingConsent && nextResult.mode === 'supabase',
           metaCapiReference: nextResult.reference,
+          tiktokEapi: nextResult.mode === 'supabase',
+          tiktokEapiReference: nextResult.reference,
         })
         sessionStorage.setItem('ecolyn-last-lead', JSON.stringify({
           reference: nextResult.reference,

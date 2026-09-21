@@ -126,6 +126,27 @@ function track(eventName, raw = {}, eventId = uuid()) {
 }
 window.ecolynTrack = track
 
+async function sendTikTokEapi(eventName, eventId, reference) {
+  if (!supabaseReady || !tracking?.tiktok_enabled || !reference) return
+  const cookie = document.cookie.split('; ').find(item => item.startsWith('_ttp='))?.slice(5)
+  const response = await fetch(`${supabaseUrl}/functions/v1/tiktok-events-api`, {
+    method: 'POST',
+    headers: safeHeaders(),
+    body: JSON.stringify({
+      event_name: eventName,
+      event_id: eventId,
+      event_time: Math.floor(Date.now() / 1000),
+      event_source_url: location.href,
+      referrer: document.referrer,
+      reference,
+      ttclid: qs.get('ttclid') || undefined,
+      ttp: cookie || undefined,
+      test: qs.get('tracking_debug') === '1',
+    }),
+  })
+  if (!response.ok) console.warn('[ECOLYN tracking] TikTok Events API rejected', { event: eventName, event_id: eventId.slice(0, 12) })
+}
+
 function safeProductPayload(id, summary) {
   return { product_id: id, product_name: products[id].fr, quantity: 1, number_of_products: summary.count, value: summary.promoPrice, currency: 'MAD' }
 }
@@ -353,7 +374,8 @@ async function submitOrder(form) {
   }
   const response = await fetch(`${supabaseUrl}/rest/v1/prospects`, { method: 'POST', headers: { ...safeHeaders(), Prefer: 'return=minimal' }, body: JSON.stringify(record) })
   if (!response.ok) throw new Error('ORDER_INSERT_FAILED')
-  track('order_submit', { number_of_products: ids.length, value: lastSummary.total, currency: 'MAD', content_ids: ids.join(',') })
+  const eventId = track('order_submit', { number_of_products: ids.length, value: lastSummary.total, currency: 'MAD', content_ids: ids.join(',') })
+  void sendTikTokEapi('SubmitForm', eventId, reference)
   sessionStorage.setItem('ecolyn-last-lead', JSON.stringify({ reference }))
   return reference
 }
