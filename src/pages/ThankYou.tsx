@@ -3,6 +3,7 @@ import { ArrowLeft, ArrowUpRight, Check, HeartHandshake, MessageCircle, ShieldCh
 import { useTranslation } from 'react-i18next'
 import { routeUrl } from '../lib/navigation'
 import { initializeTracking, track } from '../lib/tracking'
+import { hananeWhatsappUrl } from '../lib/hananeWhatsapp'
 import './system-pages.css'
 
 interface SavedLead {
@@ -28,7 +29,7 @@ export default function ThankYou() {
   const reference = confirmed ? saved.reference || '' : ''
   const number = (window.ECOLYN_CONFIG?.whatsappNumber || '212699072913').replace(/\D/g, '')
   const whatsappUrl = saved.whatsappUrl || `https://wa.me/${number}`
-  const groupUrl = window.ECOLYN_CONFIG?.whatsappGroupUrl || 'https://chat.whatsapp.com/IbrwixzaySqLYawg3D7WiP?s=cl&p=a&ilr=1'
+  const hananeUrl = hananeWhatsappUrl(lang)
 
   useEffect(() => {
     document.documentElement.lang = lang
@@ -60,14 +61,14 @@ export default function ThankYou() {
           <div><span><MessageCircle /></span><p><strong>{lang === 'fr' ? 'Conseils sur WhatsApp' : 'نصائح عبر WhatsApp'}</strong><small>{lang === 'fr' ? 'Vous recevrez les prochaines étapes.' : 'ستصلك الخطوات التالية.'}</small></p></div>
         </div>}
         {confirmed && <section className="thank-you-group">
-          <p>{lang === 'fr' ? 'En attendant, rejoignez notre groupe gratuit de conseils skincare.' : 'في انتظار الرد، انضمي إلى مجموعتنا المجانية لنصائح العناية بالبشرة.'}</p>
+          <p>{lang === 'fr' ? 'Une question complémentaire ? Écrivez directement à Hanane sur WhatsApp.' : 'عندك سؤال إضافي؟ تواصلي مباشرة مع حنان على واتساب.'}</p>
           <ul>
             {(lang === 'fr'
-              ? ['Conseils réguliers', 'Réponses aux questions fréquentes', 'Lives', 'Expériences de la communauté', 'Nouveaux contenus']
-              : ['نصائح منتظمة', 'إجابات عن الأسئلة المتكررة', 'لقاءات مباشرة', 'تجارب المجتمع', 'محتوى جديد']).map(item => <li key={item}><Check /> {item}</li>)}
+              ? ['Échange privé', 'Question sur votre routine', 'Suivi de votre demande']
+              : ['محادثة خاصة', 'سؤال على الروتين ديالك', 'متابعة الطلب ديالك']).map(item => <li key={item}><Check /> {item}</li>)}
           </ul>
-          <a href={groupUrl} target="_blank" rel="noreferrer" onClick={() => track('join_whatsapp_group', { source: 'thank_you_group' })}>
-            <MessageCircle /> {lang === 'fr' ? 'Rejoindre le groupe WhatsApp' : 'انضمي لمجموعة WhatsApp'} <ArrowUpRight />
+          <a href={hananeUrl} target="_blank" rel="noreferrer" onClick={() => track('whatsapp_click', { source: 'thank_you_hanane' })}>
+            <MessageCircle /> {lang === 'fr' ? 'Parler à Hanane sur WhatsApp' : 'تواصلي مع حنان على واتساب'} <ArrowUpRight />
           </a>
         </section>}
         <div className="thank-you-actions">

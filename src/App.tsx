@@ -17,6 +17,7 @@ import { faqs } from './data/faqs'
 import { initializeTracking, track, trackOncePerSession } from './lib/tracking'
 import { submitLead, type LeadResult } from './lib/submitLead'
 import { navigate, packUrl } from './lib/navigation'
+import { hananeWhatsappUrl } from './lib/hananeWhatsapp'
 import DiscoveryExperience, { DiscoveryAfterForm } from './components/DiscoveryExperience'
 import { concernOptions, lifestyleTopics, skinProfiles, type LifestyleId, type SkinProfileId } from './data/discovery'
 import type { ComplexionId } from './data/advice'
@@ -28,7 +29,6 @@ import {
 } from './lib/live'
 
 const packHref = packUrl()
-const whatsappGroupHref = 'https://chat.whatsapp.com/IbrwixzaySqLYawg3D7WiP?s=cl&p=a&ilr=1'
 
 const concerns = [
   {
@@ -1090,7 +1090,7 @@ function LeadForm({ lang, concern, setConcern }: { lang: Language; concern: stri
   }
 
   if (result) {
-    const groupUrl = window.ECOLYN_CONFIG?.whatsappGroupUrl
+    const hananeUrl = hananeWhatsappUrl(lang)
     return (
       <Reveal className="form-section form-section--success" id="formulaire">
         <div className="success-orbit"><Check /></div>
@@ -1100,9 +1100,8 @@ function LeadForm({ lang, concern, setConcern }: { lang: Language; concern: stri
         <span className="reference">{result.reference}</span>
         <div className="success-actions">
           <a className="button button--primary" href={result.whatsappUrl} target="_blank" rel="noreferrer" onClick={() => track('whatsapp_click', { source: 'lead_success' })}>{t('form.whatsapp')} <MessageCircle /></a>
-          {groupUrl && <a className="button button--ghost" href={groupUrl} target="_blank" rel="noreferrer" onClick={() => track('join_whatsapp_group', { source: 'lead_success' })}>{t('form.group')} <ArrowUpRight /></a>}
+          <a className="button button--ghost" href={hananeUrl} target="_blank" rel="noreferrer" onClick={() => track('whatsapp_click', { source: 'lead_success_hanane' })}>{t('form.group')} <ArrowUpRight /></a>
         </div>
-        {!groupUrl && <small>{lang === 'fr' ? 'Le lien du groupe apparaîtra ici une fois configuré — jamais avant la soumission.' : 'رابط المجموعة غيبان هنا من بعد ما يتضبط — وعمره يبان قبل الإرسال.'}</small>}
       </Reveal>
     )
   }
@@ -1685,13 +1684,13 @@ export default function App() {
       </a>
       <a
         className="whatsapp-group-float"
-        href={whatsappGroupHref}
+        href={hananeWhatsappUrl(lang)}
         target="_blank"
         rel="noreferrer"
-        onClick={() => track('join_whatsapp_group', { source: 'floating_button' })}
-        aria-label={lang === 'fr' ? 'Rejoindre le groupe conseils sur WhatsApp' : 'انضمي لمجموعة النصائح على واتساب'}
+        onClick={() => track('whatsapp_click', { source: 'floating_hanane' })}
+        aria-label={lang === 'fr' ? 'Parler directement à Hanane sur WhatsApp' : 'تواصلي مباشرة مع حنان على واتساب'}
       >
-        <MessageCircle /><span>{lang === 'fr' ? 'Rejoindre le groupe conseils' : 'انضمي لمجموعة النصائح'}</span>
+        <MessageCircle /><span>{lang === 'fr' ? 'Parler à Hanane sur WhatsApp' : 'تواصلي مع حنان على واتساب'}</span>
       </a>
       <AnimatePresence>
         {article && <ArticleDrawer article={article} lang={lang} close={() => setArticle(null)} next={nextArticle} />}

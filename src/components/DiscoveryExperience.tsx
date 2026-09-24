@@ -16,8 +16,7 @@ import {
 import { recommendAdvice } from '../data/advice/engine'
 import type { AdviceItem, ComplexionId } from '../data/advice'
 import { track, trackOncePerSession } from '../lib/tracking'
-
-const whatsappGroupHref = 'https://chat.whatsapp.com/IbrwixzaySqLYawg3D7WiP?s=cl&p=a&ilr=1'
+import { hananeWhatsappUrl } from '../lib/hananeWhatsapp'
 
 function local(value: Localized, lang: Language) {
   return value[lang]
@@ -329,6 +328,6 @@ export function DiscoveryAfterForm({ lang, openArticle }: { lang: Language; open
     <ComplementaryArticles lang={lang} openArticle={openArticle} />
     <StorySection lang={lang} goToForm={goToForm} />
     <section className="after-hanane" id="hanane"><div className="journey-wrap after-hanane__shell"><div className="after-hanane__photo"><img src={siteConfig.assets.expertProfile} alt="Hanane — ECOLYN" width="900" height="1120" loading="lazy" /><span>ECOLYN</span></div><div className="after-hanane__copy"><p>{lang === 'fr' ? 'La personne derrière les conseils' : 'الشخص الذي يقف خلف النصائح'}</p><h2>{lang === 'fr' ? <>Hanane commence par <em>vous écouter.</em></> : <>حنان تبدأ <em>بالاستماع إليك.</em></>}</h2><span>{lang === 'fr' ? 'Elle vous aide à clarifier vos priorités et à éviter les changements inutiles, sans poser de diagnostic en ligne.' : 'تساعدك على توضيح أولوياتك وتجنب التغييرات غير الضرورية، من دون تشخيص عبر الإنترنت.'}</span><div><b><Check /> {lang === 'fr' ? 'Écouter la situation réelle' : 'فهم الوضع الحقيقي'}</b><b><Check /> {lang === 'fr' ? 'Simplifier les priorités' : 'تبسيط الأولويات'}</b><b><Check /> {lang === 'fr' ? 'Orienter avec prudence' : 'التوجيه بحذر'}</b></div><button className="journey-primary" type="button" onClick={goToForm}>{lang === 'fr' ? 'Être contactée par Hanane' : 'تواصلي مع حنان'} <MessageCircle /></button></div></div></section>
-    <section className="after-whatsapp"><div className="journey-wrap"><div><MessageCircle /><span><small>{lang === 'fr' ? 'Conseils courts et rappels utiles' : 'نصائح قصيرة وتذكيرات مفيدة'}</small><b>{lang === 'fr' ? 'Rejoignez le groupe ECOLYN sur WhatsApp' : 'انضمي إلى مجموعة ECOLYN على WhatsApp'}</b></span></div><a href={whatsappGroupHref} target="_blank" rel="noreferrer" onClick={() => track('join_whatsapp_group', { source: 'homepage_invitation' })}>{lang === 'fr' ? 'Rejoindre le groupe' : 'الانضمام إلى المجموعة'} <ArrowUpRight /></a></div></section>
+    <section className="after-whatsapp"><div className="journey-wrap"><div><MessageCircle /><span><small>{lang === 'fr' ? 'Une question sur votre peau ?' : 'عندك سؤال على بشرتك؟'}</small><b>{lang === 'fr' ? 'Échangez directement avec Hanane sur WhatsApp' : 'تواصلي مباشرة مع حنان على واتساب'}</b></span></div><a href={hananeWhatsappUrl(lang)} target="_blank" rel="noreferrer" onClick={() => track('whatsapp_click', { source: 'homepage_hanane' })}>{lang === 'fr' ? 'Parler à Hanane' : 'تواصلي مع حنان'} <ArrowUpRight /></a></div></section>
   </>
 }

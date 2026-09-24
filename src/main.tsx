@@ -18,7 +18,7 @@ window.ECOLYN_CONFIG = {
   supabaseAnonKey: import.meta.env.VITE_SUPABASE_ANON_KEY || runtimeValue(window.ECOLYN_CONFIG?.supabaseAnonKey),
   leadEndpoint: import.meta.env.VITE_LEAD_ENDPOINT || runtimeValue(window.ECOLYN_CONFIG?.leadEndpoint),
   whatsappNumber: import.meta.env.VITE_WHATSAPP_NUMBER || window.ECOLYN_CONFIG?.whatsappNumber,
-  whatsappGroupUrl: import.meta.env.VITE_WHATSAPP_GROUP_URL || window.ECOLYN_CONFIG?.whatsappGroupUrl,
+  whatsappGroupUrl: '',
   metaPixelId: import.meta.env.VITE_META_PIXEL_ID || runtimeValue(window.ECOLYN_CONFIG?.metaPixelId),
   tiktokPixelId: import.meta.env.VITE_TIKTOK_PIXEL_ID || runtimeValue(window.ECOLYN_CONFIG?.tiktokPixelId),
   ga4MeasurementId: import.meta.env.VITE_GA4_MEASUREMENT_ID || runtimeValue(window.ECOLYN_CONFIG?.ga4MeasurementId),

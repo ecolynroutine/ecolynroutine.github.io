@@ -36,7 +36,7 @@ i18n.use(initReactI18next).init({
           successTitle: 'Votre demande est prête.',
           successCopy: 'Merci. Confirmez simplement l’envoi sur WhatsApp pour nous transmettre votre demande.',
           whatsapp: 'Envoyer ma demande sur WhatsApp',
-          group: 'Rejoindre le groupe WhatsApp'
+          group: 'Parler directement à Hanane'
         }
       }
     },
@@ -70,7 +70,7 @@ i18n.use(initReactI18next).init({
           successTitle: 'تم استلام طلبك بنجاح.',
           successCopy: 'يمكن لحنان الآن مراجعة المعلومات التي أرسلتِها والتواصل معك عبر WhatsApp.',
           whatsapp: 'فتح WhatsApp',
-          group: 'الانضمام إلى مجموعة WhatsApp'
+          group: 'تواصلي مباشرة مع حنان'
         }
       }
     }
